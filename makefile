@@ -12,8 +12,9 @@ Include = -I$(GCCSDK_INSTALL_ENV)/include -I$(GCCSDK_LIBS)/OSLib/ -I$(GCCSDK_LIB
 
 # Final Target
 
-OBJS = colpick.o config.o debug.o errors.o general.o heap.o icons.o menus.o msgs.o \
-       resources.o stack.o tasks.o string.o transfer.o url.o windows.o
+OBJS = colpick.o config.o debug.o errors.o event.o general.o heap.o	\
+	icons.o menus.o msgs.o resources.o stack.o tasks.o string.o	\
+	transfer.o url.o windows.o
 
 ../libSFLib32.a: $(OBJS)
 		$(AR) -rcuv ../libSFLib32.a $(OBJS)
@@ -32,6 +33,9 @@ debug.o: debug.h debug.c
 
 errors.o: errors.h msgs.h errors.c
 	$(CC) $(CCFlags) $(Include) -o errors.o -c errors.c
+
+event.o: event.h event.c
+	$(CC) $(CCFlags) $(Include) -o event.o -c event.c
 
 general.o: general.h general.c
 	$(CC) $(CCFlags) $(Include) -o general.o -c general.c
