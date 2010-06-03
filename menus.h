@@ -8,7 +8,10 @@
 
 /* ================================================================================================================== */
 
-void load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[]);
+typedef int * menu_template;
+
+menu_template load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[]);
+int load_menus_dbox(menu_template data, char *tag, wimp_w dbox);
 
 wimp_menu *create_standard_menu (wimp_menu *menu, wimp_pointer *pointer);
 wimp_menu *create_iconbar_menu (wimp_menu *menu, wimp_pointer *pointer, int entries, int lines);

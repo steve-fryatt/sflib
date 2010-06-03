@@ -17,12 +17,13 @@
 /* ANSII C header files. */
 
 #include <stdlib.h>
+#include <string.h>
 
 /* None */
 
 /* ================================================================================================================== */
 
-int *load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[])
+menu_template load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[])
 {
 
   int *current, *data, dbox, menu, *menu_block;
@@ -147,7 +148,50 @@ int *load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[])
 
 /* -------------------------------------------------------------------------------------------------------------------*/
 
-int load_menus_dbox(
+/**
+ *
+ * Return:		0 if the linkage happened correctly; else 1.
+ */
+
+int load_menus_dbox(menu_template data, char *tag, wimp_w dbox)
+{
+	int next, *current;
+
+	if (data == NULL)
+		return 1;
+
+	if (*data == -1)
+		return 1;
+
+	current = (int *) ((int) data + (int) *data);
+
+	if (*current != 0)
+		return 1;
+
+	current++; /* Find the first tag block */
+
+	/* Find the correct dbox list by string matching the tags. */
+
+	while (*current != -1 && strcmp((char *) current+1, tag) != 0) {
+		current = (int *) ((int) current +
+				((strlen((char *) current+1) + 7) & (~3)));
+	}
+
+	if (*current == -1)
+		return 1;
+
+	current = (int *) ((int) data + (int) *current);
+
+	do {
+		next = *current;
+		*current = (int) dbox;
+		if (next != -1) {
+			current = (int *) ((int) data + next);
+		}
+	} while (next != -1);
+
+	return 0;
+}
 
 /* ================================================================================================================== */
 
