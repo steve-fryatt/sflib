@@ -22,7 +22,7 @@
 
 /* ================================================================================================================== */
 
-void load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[])
+int *load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[])
 {
 
   int *current, *data, dbox, menu, *menu_block;
@@ -34,12 +34,19 @@ void load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[])
 
   osfile_read_stamped_no_path (filename, NULL, NULL, &size, NULL, NULL);
   data = (int *) malloc (size);
+
+  if (data == NULL)
+  	return data;
+
   osfile_load_stamped_no_path (filename, (byte *) data, NULL, NULL, NULL, NULL);
 
   /* Insert the dialogue box pointers.
    *
    * These are linked through the structure with each pointer containing an offset to the next pointer
    * to be filled in.
+   *
+   * If the dbox pointer points to a zero word, then this is a new format file with embedded
+   * dialogue boxes -- in which case we don't do anything.
    */
 
 
@@ -51,16 +58,19 @@ void load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[])
 
     current = (int *) ((int) data + (int) *data);
 
-    do
+    if (*current != 0)
     {
-      next = (int *) *current;
-      *current = (int) dbox_list[dbox++];
-      if ((int) next != -1)
+      do
       {
-        current = (int *) ((int) data + (int) next);
+        next = (int *) *current;
+        *current = (int) dbox_list[dbox++];
+        if ((int) next != -1)
+        {
+          current = (int *) ((int) data + (int) next);
+        }
       }
+      while ((int) next != -1);
     }
-    while ((int) next != -1);
   }
 
   /* Insert the indirection pointers. */
@@ -131,7 +141,13 @@ void load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[])
     if ((int) menu_block != -1)
       menu_block = (int*) ((int) menu_block + (int) data);
   }
+
+  return data;
 }
+
+/* -------------------------------------------------------------------------------------------------------------------*/
+
+int load_menus_dbox(
 
 /* ================================================================================================================== */
 
