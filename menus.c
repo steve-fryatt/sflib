@@ -172,9 +172,9 @@ int load_menus_dbox(menu_template data, char *tag, wimp_w dbox)
 
 	/* Find the correct dbox list by string matching the tags. */
 
-	while (*current != -1 && strcmp((char *) current+1, tag) != 0) {
+	while (*current != -1 && strcmp((char *) (current + 1), tag) != 0) {
 		current = (int *) ((int) current +
-				((strlen((char *) current+1) + 7) & (~3)));
+				((strlen((char *) (current + 1)) + 8) & (~3)));
 	}
 
 	if (*current == -1)
