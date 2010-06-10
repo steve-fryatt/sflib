@@ -345,7 +345,7 @@ wimp_window *load_window_template (char *name)
   {
     window_def = (wimp_window *) malloc (def_size);
     ind_data = (byte *) malloc (ind_size);
-    wimp_load_template (window_def, ind_data, ind_data+ind_size, wimp_NO_FONTS, name, 0, NULL, NULL);
+    wimp_load_template (window_def, (char *) ind_data, (char const *) ind_data+ind_size, wimp_NO_FONTS, name, 0, NULL, NULL);
   }
 
   return (window_def);

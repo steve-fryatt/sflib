@@ -37,7 +37,7 @@ static int                         (*external_tx_function) (char *),
                                    bytes_xfered,
                                    buffer_offered,
                                    ram_xfer_started,
-                                   flex_budge_setting,
+//                                 flex_budge_setting,
                                    delete_after;
 
 static wimp_full_message_data_xfer saved_message;
@@ -134,7 +134,7 @@ int send_reply_data_save_ack (wimp_message *message)
 
   if (data != NULL)
   {
-    error = xosfile_save_stamped (datasaveack->file_name, data_type, *data, *data+data_length);
+    error = xosfile_save_stamped (datasaveack->file_name, data_type, (byte const *) *data, (byte const *) *data+data_length);
     if (error != NULL)
     {
       wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
@@ -177,7 +177,7 @@ int send_reply_ram_fetch (wimp_message *message, wimp_t task_handle)
     bytes_to_send = data_length - bytes_xfered;
     bytes_sent_this_time = (bytes_to_send > ramfetch->xfer_size) ? ramfetch->xfer_size : bytes_to_send;
 
-    error = xwimp_transfer_block (task_handle, *data+bytes_xfered,
+    error = xwimp_transfer_block (task_handle, (byte *) *data+bytes_xfered,
                                   ramfetch->sender, ramfetch->addr, bytes_sent_this_time);
     if (error != NULL)
     {
@@ -246,7 +246,7 @@ int receive_reply_data_save_block (wimp_message *message, char **data_ptr)
   ramfetch.your_ref = datasave->my_ref;
   ramfetch.action = message_RAM_FETCH;
 
-  ramfetch.addr = *data;
+  ramfetch.addr = (byte *) *data;
   ramfetch.xfer_size = buffer_offered;
 
   ram_xfer_started = 0;
@@ -358,7 +358,7 @@ int recieve_reply_ram_transmit (wimp_message *message, char *name)
 
 int receive_bounced_ram_fetch (wimp_message *message)
 {
-  wimp_full_message_ram_xfer  *ramtransmit = (wimp_full_message_ram_xfer *) message;
+//wimp_full_message_ram_xfer  *ramtransmit = (wimp_full_message_ram_xfer *) message;
   os_error                    *error;
 
 
@@ -414,9 +414,10 @@ void receive_init_quick_data_load_function (wimp_message *message, int (*load_fu
 
 int receive_reply_data_load (wimp_message *message, char *name)
 {
-  wimp_full_message_data_xfer *dataload = (wimp_full_message_data_xfer *) message;
-  os_error                    *error;
-  int                         size, type;
+	wimp_full_message_data_xfer	*dataload = (wimp_full_message_data_xfer *) message;
+	os_error			*error;
+	int				size;
+	bits				type;
 
 
   /* Reply with a Message_DataLoadAck. */
@@ -453,7 +454,7 @@ int receive_reply_data_load (wimp_message *message, char *name)
       return -1;
     }
 
-    error = xosfile_load_stamped_no_path (dataload->file_name, *data, NULL, NULL, NULL, NULL, NULL);
+    error = xosfile_load_stamped_no_path (dataload->file_name, (byte *) *data, NULL, NULL, NULL, NULL, NULL);
     if (error != NULL)
     {
       wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);

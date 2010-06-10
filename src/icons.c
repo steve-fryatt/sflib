@@ -309,7 +309,7 @@ void put_caret_at_end (wimp_w window, wimp_i icon)
     index = ctrl_strlen (icon_state.icon.data.indirected_text.text);
   }
 
-  wimp_set_caret_position (window, icon, NULL, NULL, -1, index);
+  wimp_set_caret_position (window, icon, 0, 0, -1, index);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
@@ -483,6 +483,6 @@ void insert_text_into_icon (wimp_w w, wimp_i i, int index, char *text, int n)
     icon_state.icon.data.indirected_text.text[index + j] = text[j];
   }
 
-  wimp_set_caret_position (w, i, NULL, NULL, -1, index+copy);
+  wimp_set_caret_position (w, i, 0, 0, -1, index+copy);
   wimp_set_icon_state (w, i, 0, 0);
 }

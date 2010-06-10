@@ -104,9 +104,9 @@ void launch_url (const char *url)
 
 static int url_acornlaunch(const char *url)
 {
-  wimp_t taskhan = 0;
-  int success = 1;
-  int flags;
+	wimp_t			taskhan = 0;
+	int			success = 1;
+	uri_dispatch_flags	flags;
 
 
   if (xwimpreadsysinfo_task (&taskhan, NULL) != NULL)
