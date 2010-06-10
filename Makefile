@@ -26,6 +26,7 @@ BUILD_DATE := $(shell date "+%d %b %Y")
 CC := $(wildcard $(GCCSDK_INSTALL_CROSSBIN)/*gcc)
 AR := $(wildcard $(GCCSDK_INSTALL_CROSSBIN)/*ar)
 
+MKDIR := mkdir
 RM := rm -rf
 CP := cp
 
@@ -54,7 +55,7 @@ MENUGENFLAGS := -d
 
 # Includes and libraries.
 
-INCLUDES := -I$(GCCSDK_INSTALL_ENV)/include -I$(GCCSDK_LIBS)/OSLib/ -I$(GCCSDK_LIBS)/SFLib/e
+INCLUDES := -I$(GCCSDK_INSTALL_ENV)/include -I$(GCCSDK_LIBS)/OSLib/ -I$(GCCSDK_LIBS)/FlexLib/
 
 
 # Set up the various build directories.
@@ -83,15 +84,15 @@ OBJS := colpick.o config.o debug.o errors.o event.o general.o heap.o	\
 
 # Build everything, but don't package it for release.
 
-all: documentation $(OUTDIR)/$(RUNIMAGE)
-
+all: $(OUTDIR)/$(RUNIMAGE)
+# Was all: documentation $(OUTDIR)/$(RUNIMAGE)
 
 # Build the complete !RunImage from the object files.
 
 OBJS := $(addprefix $(OBJDIR)/, $(OBJS))
 
 $(OUTDIR)/$(RUNIMAGE): $(OBJS)
-	$(AR) -rcuv ../libSFLib32.a $(OBJS)
+	$(AR) -rcuv $(OUTDIR)/$(RUNIMAGE) $(OBJS)
 
 
 # Build the object files, and identify their dependencies.
@@ -113,6 +114,8 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 #
 #$(OUTDIR)/$(README): $(MANUAL)/$(MANSRC)
 #	$(TEXTMAN) $(MANUAL)/$(MANSRC) $(OUTDIR)/$(README)
+#
+#MakeCHelp.MakeCLibSH ADFS::Iyonix.$.C.Libraries.SFLib.sflib ADFS::Iyonix.$.!Boot.Resources.!Manuals.Root.c.SFLib -b
 
 
 # Build the release Zip file.
@@ -134,7 +137,8 @@ backup:
 
 install: clean all
 	$(RM) $(SFLIB)/*
-	$(CP) $(OUTDIR)/$(RUMIMAGE) $(SFLIB)
+	$(CP) $(OUTDIR)/$(RUNIMAGE) $(SFLIB)
+	$(MKDIR) $(SFLIB)/sflib
 	$(CP) $(SRCDIR)/*.h $(SFLIB)/sflib
 
 

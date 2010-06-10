@@ -15,10 +15,10 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/transfer.h"
-#include "sflib/general.h"
-#include "sflib/string.h"
-#include "sflib/errors.h"
+#include "transfer.h"
+#include "general.h"
+#include "string.h"
+#include "errors.h"
 
 /* ANSII C header files. */
 

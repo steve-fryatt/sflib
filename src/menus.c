@@ -11,8 +11,8 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/menus.h"
-#include "sflib/windows.h"
+#include "menus.h"
+#include "windows.h"
 
 /* ANSII C header files. */
 

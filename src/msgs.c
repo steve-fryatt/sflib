@@ -14,7 +14,7 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/msgs.h"
+#include "msgs.h"
 
 /* ANSII C header files. */
 

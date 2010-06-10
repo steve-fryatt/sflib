@@ -5,7 +5,7 @@
 
 /* SFLib header files. */
 
-#include "sflib/stack.h"
+#include "stack.h"
 
 /* ANSII C header files. */
 

@@ -10,10 +10,10 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/icons.h"
-#include "sflib/string.h"
-#include "sflib/debug.h"
-#include "sflib/string.h"
+#include "icons.h"
+#include "string.h"
+#include "debug.h"
+#include "string.h"
 
 /* ANSII C header files. */
 

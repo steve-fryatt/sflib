@@ -16,10 +16,10 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/heap.h"
-#include "sflib/errors.h"
+#include "heap.h"
+#include "errors.h"
 
-#include "sflib/debug.h"
+#include "debug.h"
 
 /* ANSII C header files. */
 

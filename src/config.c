@@ -24,9 +24,9 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/config.h"
-#include "sflib/general.h"
-#include "sflib/string.h"
+#include "config.h"
+#include "general.h"
+#include "string.h"
 
 /* #include "errors.h" */
 

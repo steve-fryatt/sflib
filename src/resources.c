@@ -13,7 +13,7 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/resources.h"
+#include "resources.h"
 
 /* ANSII C header files. */
 

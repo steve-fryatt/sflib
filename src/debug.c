@@ -18,7 +18,7 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/debug.h"
+#include "debug.h"
 
 /* ==================================================================================================================
  * Stand-alone functions

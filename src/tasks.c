@@ -10,10 +10,10 @@
 
 /* SFLib header files. */
 
-#include "sflib/errors.h"
-#include "sflib/msgs.h"
+#include "errors.h"
+#include "msgs.h"
 
-#include "sflib/tasks.h"
+#include "tasks.h"
 
 /* ANSII C header files. */
 

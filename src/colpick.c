@@ -9,8 +9,8 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/colpick.h"
-#include "sflib/icons.h"
+#include "colpick.h"
+#include "icons.h"
 
 /* ANSII C header files. */
 

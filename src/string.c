@@ -9,7 +9,7 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/general.h"
+#include "general.h"
 
 /* ANSII C header files. */
 

@@ -16,8 +16,8 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/heap.h"
-#include "sflib/errors.h"
+#include "heap.h"
+#include "errors.h"
 
 /* ANSII C header files. */
 

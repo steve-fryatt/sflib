@@ -20,9 +20,9 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/url.h"
-#include "sflib/general.h"
-#include "sflib/errors.h"
+#include "url.h"
+#include "general.h"
+#include "errors.h"
 
 /* ANSII C header files. */
 

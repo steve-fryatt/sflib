@@ -10,7 +10,7 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/windows.h"
+#include "windows.h"
 
 /* ANSII C header files. */
 
