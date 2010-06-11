@@ -48,7 +48,7 @@ static struct event_window *event_create_window(wimp_w w);
  * Return:		Zero if the event was handled; else non-zero.
  */
 
-int event_process_event(int event, wimp_block *block, int pollword)
+int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 {
 	struct event_window	*win = NULL;
 
@@ -203,19 +203,19 @@ void *event_return_user_data(wimp_w w)
 
 void event_delete_window(wimp_w w)
 {
-	struct event_window	*block, *parent;
+	struct event_window	*block, **parent;
 
 	block = event_find_window(w);
 
 	if (block != NULL) {
-		parent = event_window_list;
+		parent = &event_window_list;
 
-		while (parent != NULL && parent->next != block)
-			parent = parent->next;
+		while (*parent != NULL && *parent != block)
+				parent = &((*parent)->next);
 
-		assert(parent != NULL);
+		assert(*parent != NULL);
 
-		parent->next = block->next;
+		*parent = block->next;
 
 		free(block);
 	}
