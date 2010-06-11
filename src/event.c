@@ -9,6 +9,7 @@
 
 /* ANSII C header files. */
 
+#include <assert.h>
 #include <stdlib.h>
 
 
@@ -19,6 +20,7 @@ struct event_window {
 	void			(*close)(wimp_close *close);
 	void			(*pointer)(wimp_pointer *pointer);
 	void			(*key)(wimp_key *key);
+	void			*data;
 	struct event_window	*next;
 };
 
@@ -90,10 +92,31 @@ int event_process_event(int event, wimp_block *block, int pollword)
 
 
 /**
+ * Add a window redraw event handler for the specified window.
+ *
+ * Param:  w		The window handle to attach the action to.
+ * Param:  *redraw()	The callback function to use on the event.
+ * Return:		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_redraw_event(wimp_w w, void (*callback)(wimp_draw *draw))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->redraw = callback;
+
+	return (block == NULL);
+}
+
+
+/**
  * Add a window open event handler for the specified window.
  *
  * Param:  w		The window handle to attach the action to.
- * Param:  *close()	The callback function to use on the event.
+ * Param:  *open()	The callback function to use on the event.
  * Return:		Zero if the handler was registered; else non-zero.
  */
 
@@ -103,13 +126,10 @@ int event_add_window_open_event(wimp_w w, void (*callback)(wimp_open *open))
 
 	block = event_create_window(w);
 
-	if (block != NULL) {
+	if (block != NULL)
 		block->open = callback;
 
-		return 0;
-	} else {
-		return 1;
-	}
+	return (block == NULL);
 }
 
 
@@ -127,17 +147,79 @@ int event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close))
 
 	block = event_create_window(w);
 
-	if (block != NULL) {
+	if (block != NULL)
 		block->close = callback;
 
-		return 0;
-	} else {
-		return 1;
-	}
+	return (block == NULL);
 }
 
 
+/**
+ * Add a user data pointer for the specified window.
+ *
+ * Param:  w		The window handle to attach the data to.
+ * Param:  *data	The data to attach.
+ * Return:		Zero if the handler was registered; else non-zero.
+ */
 
+int event_add_window_user_data(wimp_w w, void *data)
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->data = data;
+
+	return (block == NULL);
+}
+
+
+/**
+ * Return the user data block associated with the specified window.
+ *
+ * Param:  w		The window to locate the data for.
+ * Return:		A pointer to the user data, or NULL.
+ */
+
+void *event_return_user_data(wimp_w w)
+{
+	void			*data = NULL;
+	struct event_window	*block;
+
+	block = event_find_window(w);
+	if (block != NULL)
+		data = block->data;
+
+	return data;
+}
+
+
+/**
+ * Remove a window and its associated event details from the records.
+ *
+ * Param:  w		The window to remove the data for.
+ */
+
+void event_delete_window(wimp_w w)
+{
+	struct event_window	*block, *parent;
+
+	block = event_find_window(w);
+
+	if (block != NULL) {
+		parent = event_window_list;
+
+		while (parent != NULL && parent->next != block)
+			parent = parent->next;
+
+		assert(parent != NULL);
+
+		parent->next = block->next;
+
+		free(block);
+	}
+}
 
 /**
  * Find the window data block for the given window.
@@ -192,9 +274,11 @@ struct event_window *event_create_window(wimp_w w)
 		block->pointer = NULL;
 		block->key = NULL;
 
+		block->data = NULL;
+
 		block->next = event_window_list;
 		event_window_list = block;
 	}
 
-	return (block);
+	return block;
 }
