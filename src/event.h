@@ -10,6 +10,6 @@ int event_add_window_open_event(wimp_w w, void (*callback)(wimp_open *open));
 int event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close));
 
 int event_add_window_user_data(wimp_w w, void *data);
-void *event_return_user_data(wimp_w w);
+void *event_return_window_user_data(wimp_w w);
 
 void event_delete_window(wimp_w w);

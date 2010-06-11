@@ -182,7 +182,7 @@ int event_add_window_user_data(wimp_w w, void *data)
  * Return:		A pointer to the user data, or NULL.
  */
 
-void *event_return_user_data(wimp_w w)
+void *event_return_window_user_data(wimp_w w)
 {
 	void			*data = NULL;
 	struct event_window	*block;
