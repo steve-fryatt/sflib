@@ -146,16 +146,20 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 	case wimp_USER_MESSAGE_RECORDED:
 		switch (block->message.action) {
 		case message_MENUS_DELETED:
-			if (current_menu != NULL &&
-					current_menu->menu_close != NULL)
-				(current_menu->menu_close)(current_menu->w, current_menu->menu);
-			current_menu = NULL;
+			if (current_menu != NULL) {
+				if (current_menu->menu_close != NULL)
+					(current_menu->menu_close)(current_menu->w, current_menu->menu);
+				current_menu = NULL;
+				return 0;
+			}
 			break;
 
 		case message_MENU_WARNING:
-			if (current_menu != NULL &&
-					current_menu->menu_warning != NULL)
-				(current_menu->menu_warning)(current_menu->w, current_menu->menu, (wimp_message_menu_warning *) &(block->message.data));
+			if (current_menu != NULL) {
+				if (current_menu->menu_warning != NULL)
+					(current_menu->menu_warning)(current_menu->w, current_menu->menu, (wimp_message_menu_warning *) &(block->message.data));
+				return 0;
+			}
 			break;
 		}
 		break;
