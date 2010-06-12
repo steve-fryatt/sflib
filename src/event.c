@@ -30,7 +30,7 @@ struct event_window {
 	void			(*menu_prepare)(wimp_pointer *pointer, wimp_menu *m);
 	void			(*menu_selection)(wimp_w w, wimp_menu *m, wimp_selection *selection);
 	void			(*menu_close)(wimp_w w, wimp_menu *m);
-	void			(*menu_warning)(wimp_w w, wimp_menu *m, wimp_selection *selection);
+	void			(*menu_warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning);
 
 	void			*data;
 	struct event_window	*next;
@@ -153,7 +153,9 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 			break;
 
 		case message_MENU_WARNING:
-			// \TODO -- This needs to be implemented.
+			if (current_menu != NULL &&
+					current_menu->menu_warning != NULL)
+				(current_menu->menu_warning)(current_menu->w, current_menu->menu, (wimp_message_menu_warning *) &(block->message.data));
 			break;
 		}
 		break;
@@ -260,7 +262,7 @@ int event_add_window_menu(wimp_w w, wimp_menu *menu,
 		void (*prepare)(wimp_pointer *pointer, wimp_menu *m),
 		void (*selection)(wimp_w w, wimp_menu *m, wimp_selection *selection),
 		void (*close)(wimp_w w, wimp_menu *m),
-		void (*warning)(wimp_w w, wimp_menu *m, wimp_selection *selection))
+		void (*warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning))
 {
 	struct event_window	*block;
 

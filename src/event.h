@@ -14,7 +14,7 @@ int event_add_window_menu(wimp_w w, wimp_menu *menu,
 		void (*prepare)(wimp_pointer *pointer, wimp_menu *m),
 		void (*selection)(wimp_w w, wimp_menu *m, wimp_selection *selection),
 		void (*close)(wimp_w w, wimp_menu *m),
-		void (*warning)(wimp_w w, wimp_menu *m, wimp_selection *selection));
+		void (*warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning));
 
 int event_add_window_user_data(wimp_w w, void *data);
 void *event_get_window_user_data(wimp_w w);
