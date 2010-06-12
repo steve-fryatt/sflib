@@ -1,6 +1,8 @@
 /* SF-Lib - Event.c
  *
  * Version 0.10 (3 May 2010)
+ *
+ * Simple event-based Wimp_Poll dispatch system.
  */
 
 /* OS-Lib header files. */
@@ -254,12 +256,19 @@ int event_add_window_mouse_event(wimp_w w, void (*callback)(wimp_pointer *pointe
 
 
 /**
- * Register a menu to the specified window.
+ * Register a menu to the specified window: this will then be opened whenever
+ * there is a menu click within the work area (even over icons).
  *
- * param:  w		The window handle to attach the menu to.
- * param:  *callback()	The
-
-
+ * If a menu is registered, no events related to it will be passed back from
+ * event_process_event() -- even if specific handlers are registed as NULL.
+ *
+ * \param  w		The window handle to attach the menu to.
+ * \param  *menu	The menu handle.
+ * \param  *prepare()	A callback function to prepare the menu for (re-) opening.
+ * \param  *selection()	A callback function to handle menu selections.
+ * \param  *close()	A callback function to handle the menu closing.
+ * \param  *warning()	A callback function to handle submenu warnings.
+ * \return		0 if the handler was registered; else 1.
  */
 
 int event_add_window_menu(wimp_w w, wimp_menu *menu,
