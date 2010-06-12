@@ -7,6 +7,11 @@
 
 #include "oslib/wimp.h"
 
+/* SFLib Header Files. */
+
+#include "event.h"
+#include "menus.h"
+
 /* ANSII C header files. */
 
 #include <assert.h>
@@ -20,6 +25,13 @@ struct event_window {
 	void			(*close)(wimp_close *close);
 	void			(*pointer)(wimp_pointer *pointer);
 	void			(*key)(wimp_key *key);
+
+	wimp_menu		*menu;
+	void			(*menu_prepare)(wimp_pointer *pointer, wimp_menu *m);
+	void			(*menu_selection)(wimp_w w, wimp_menu *m, wimp_selection *selection);
+	void			(*menu_close)(wimp_w w, wimp_menu *m);
+	void			(*menu_warning)(wimp_w w, wimp_menu *m, wimp_selection *selection);
+
 	void			*data;
 	struct event_window	*next;
 };
@@ -29,6 +41,7 @@ struct event_window {
  */
 
 static struct event_window	*event_window_list = NULL;
+static struct event_window	*current_menu = NULL;
 
 /**
  * Function prototypes for internal functions.
@@ -51,6 +64,7 @@ static struct event_window *event_create_window(wimp_w w);
 int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 {
 	struct event_window	*win = NULL;
+	wimp_pointer		pointer;
 
 	switch (event) {
 	case wimp_REDRAW_WINDOW_REQUEST:
@@ -85,6 +99,64 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 			}
 		}
 		break;
+
+	case wimp_MOUSE_CLICK:
+		if (block->pointer.w != NULL) {
+			win = event_find_window(block->pointer.w);
+
+			if (win != NULL && block->pointer.buttons == wimp_CLICK_MENU
+				/* Process window menus on Menu clicks. */
+
+					&& win->menu != NULL) {
+				if (win->menu_prepare != NULL)
+					(win->menu_prepare)((wimp_pointer *) block, win->menu);
+				create_standard_menu(win->menu, (wimp_pointer *) block);
+				current_menu = win;
+				return 0;
+			} else if (win != NULL && win->pointer != NULL) {
+				/* Process generic click handlers. */
+
+				(win->pointer)((wimp_pointer *) block);
+				return 0;
+			}
+		}
+		break;
+
+	case wimp_MENU_SELECTION:
+		if (current_menu != NULL) {
+			wimp_get_pointer_info(&pointer);
+
+			if (current_menu->menu_selection != NULL)
+				(current_menu->menu_selection)(current_menu->w, current_menu->menu, (wimp_selection *) block);
+
+			if (pointer.buttons == wimp_CLICK_ADJUST) {
+				if (current_menu->menu_prepare != NULL)
+					(current_menu->menu_prepare)(&pointer, current_menu->menu);
+				wimp_create_menu(current_menu->menu, 0, 0);
+			} else {
+				if (current_menu->menu_close != NULL)
+					(current_menu->menu_close)(current_menu->w, current_menu->menu);
+				current_menu = NULL;
+			}
+			return 0;
+		}
+		break;
+
+	case wimp_USER_MESSAGE:
+	case wimp_USER_MESSAGE_RECORDED:
+		switch (block->message.action) {
+		case message_MENUS_DELETED:
+			if (current_menu != NULL &&
+					current_menu->menu_close != NULL)
+				(current_menu->menu_close)(current_menu->w, current_menu->menu);
+			current_menu = NULL;
+			break;
+
+		case message_MENU_WARNING:
+			// \TODO -- This needs to be implemented.
+			break;
+		}
+		break;
 	}
 
 	return 1;
@@ -95,7 +167,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
  * Add a window redraw event handler for the specified window.
  *
  * Param:  w		The window handle to attach the action to.
- * Param:  *redraw()	The callback function to use on the event.
+ * Param:  *callback()	The callback function to use on the event.
  * Return:		Zero if the handler was registered; else non-zero.
  */
 
@@ -116,7 +188,7 @@ int event_add_window_redraw_event(wimp_w w, void (*callback)(wimp_draw *draw))
  * Add a window open event handler for the specified window.
  *
  * Param:  w		The window handle to attach the action to.
- * Param:  *open()	The callback function to use on the event.
+ * Param:  *callback()	The callback function to use on the event.
  * Return:		Zero if the handler was registered; else non-zero.
  */
 
@@ -137,7 +209,7 @@ int event_add_window_open_event(wimp_w w, void (*callback)(wimp_open *open))
  * Add a window close event handler for the specified window.
  *
  * Param:  w		The window handle to attach the action to.
- * Param:  *close()	The callback function to use on the event.
+ * Param:  *callback()	The callback function to use on the event.
  * Return:		Zero if the handler was registered; else non-zero.
  */
 
@@ -149,6 +221,58 @@ int event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close))
 
 	if (block != NULL)
 		block->close = callback;
+
+	return (block == NULL);
+}
+
+
+/**
+ * Add a mouse click (pointer) event handler for the specified window.
+ *
+ * Param:  w		The window handle to attach the action to.
+ * Param:  *callback()	The callback to use on the event.
+ * Return:		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_mouse_event(wimp_w w, void (*callback)(wimp_pointer *pointer))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->pointer = callback;
+
+	return (block == NULL);
+}
+
+
+/**
+ * Register a menu to the specified window.
+ *
+ * param:  w		The window handle to attach the menu to.
+ * param:  *callback()	The
+
+
+ */
+
+int event_add_window_menu(wimp_w w, wimp_menu *menu,
+		void (*prepare)(wimp_pointer *pointer, wimp_menu *m),
+		void (*selection)(wimp_w w, wimp_menu *m, wimp_selection *selection),
+		void (*close)(wimp_w w, wimp_menu *m),
+		void (*warning)(wimp_w w, wimp_menu *m, wimp_selection *selection))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL) {
+		block->menu = menu;
+		block->menu_prepare = prepare;
+		block->menu_selection = selection;
+		block->menu_close = close;
+		block->menu_warning = warning;
+	}
 
 	return (block == NULL);
 }
@@ -217,6 +341,8 @@ void event_delete_window(wimp_w w)
 
 		*parent = block->next;
 
+		if (block == current_menu)
+			current_menu = NULL;
 		free(block);
 	}
 }
@@ -273,6 +399,13 @@ struct event_window *event_create_window(wimp_w w)
 		block->close = NULL;
 		block->pointer = NULL;
 		block->key = NULL;
+
+		block->menu = NULL;
+
+		block->menu_prepare = NULL;
+		block->menu_selection = NULL;
+		block->menu_close = NULL;
+		block->menu_warning = NULL;
 
 		block->data = NULL;
 
