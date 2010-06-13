@@ -108,9 +108,9 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 			win = event_find_window(block->pointer.w);
 
 			if (win != NULL && block->pointer.buttons == wimp_CLICK_MENU
+					&& win->menu != NULL) {
 				/* Process window menus on Menu clicks. */
 
-					&& win->menu != NULL) {
 				if (win->menu_prepare != NULL)
 					(win->menu_prepare)((wimp_pointer *) block, win->menu);
 				create_standard_menu(win->menu, (wimp_pointer *) block);
@@ -120,6 +120,17 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				/* Process generic click handlers. */
 
 				(win->pointer)((wimp_pointer *) block);
+				return 0;
+			}
+		}
+		break;
+
+	case wimp_KEY_PRESSED:
+		if (block->key.w != NULL) {
+			win = event_find_window(block->key.w);
+
+			if (win != NULL && win->key != NULL) {
+				(win->key)((wimp_key *) block);
 				return 0;
 			}
 		}
@@ -238,6 +249,9 @@ int event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close))
 /**
  * Add a mouse click (pointer) event handler for the specified window.
  *
+ * If the window has a window menu attached, this handler is not called for
+ * Menu clicks over the work area.
+ *
  * \param  w		The window handle to attach the action to.
  * \param  *callback()	The callback to use on the event.
  * \return		Zero if the handler was registered; else non-zero.
@@ -251,6 +265,27 @@ int event_add_window_mouse_event(wimp_w w, void (*callback)(wimp_pointer *pointe
 
 	if (block != NULL)
 		block->pointer = callback;
+
+	return (block == NULL);
+}
+
+
+/**
+ * Add a keypress event handler for the specified window.
+ *
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_key_event(wimp_w w, void (*callback)(wimp_key *key))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->key = callback;
 
 	return (block == NULL);
 }
