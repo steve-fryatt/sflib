@@ -28,6 +28,8 @@ struct event_window {
 	void			(*close)(wimp_close *close);
 	void			(*pointer)(wimp_pointer *pointer);
 	void			(*key)(wimp_key *key);
+	void			(*lose_caret)(wimp_caret *caret);
+	void			(*gain_caret)(wimp_caret *caret);
 
 	wimp_menu		*menu;
 	void			(*menu_prepare)(wimp_pointer *pointer, wimp_menu *m);
@@ -153,6 +155,28 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				current_menu = NULL;
 			}
 			return 0;
+		}
+		break;
+
+	case wimp_LOSE_CARET:
+		if (block->caret.w != NULL) {
+			win = event_find_window(block->caret.w);
+
+			if (win != NULL && win->lose_caret != NULL) {
+				(win->lose_caret)((wimp_caret *) block);
+				return 0;
+			}
+		}
+		break;
+
+	case wimp_GAIN_CARET:
+		if (block->caret.w != NULL) {
+			win = event_find_window(block->caret.w);
+
+			if (win != NULL && win->gain_caret != NULL) {
+				(win->gain_caret)((wimp_caret *) block);
+				return 0;
+			}
 		}
 		break;
 
@@ -290,6 +314,47 @@ int event_add_window_key_event(wimp_w w, void (*callback)(wimp_key *key))
 	return (block == NULL);
 }
 
+
+/**
+ * Add a lose caret event handler for the specified window.
+ *
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_lose_caret_event(wimp_w w, void (*callback)(wimp_caret *caret))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->lose_caret = callback;
+
+	return (block == NULL);
+}
+
+
+/**
+ * Add a gain caret event handler for the specified window.
+ *
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *caret))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->gain_caret = callback;
+
+	return (block == NULL);
+}
 
 /**
  * Register a menu to the specified window: this will then be opened whenever
@@ -450,6 +515,8 @@ struct event_window *event_create_window(wimp_w w)
 		block->close = NULL;
 		block->pointer = NULL;
 		block->key = NULL;
+		block->lose_caret = NULL;
+		block->gain_caret = NULL;
 
 		block->menu = NULL;
 
