@@ -1,4 +1,7 @@
-/* SF-Lib - Icons.c
+/**
+ * \file icons.c
+ *
+ * SFLib -- Icon handling routines.
  *
  * Version 0.10 (5 May 2003)
  */
@@ -24,6 +27,17 @@
 
 /* ================================================================================================================== */
 
+/**
+ * Copy the text of an icon (indirected or otherwise) into the supplied buffer.
+ *
+ * No attempt is made to spot buffer overruns.
+ *
+ * \param  w		The handle of the window containing the icon.
+ * \param  i		The handle of the icon to be read.
+ * \param  *buffer	A buffer to contain the icon text.
+ * \return		A pointer to the start of the returned text.
+ */
+
 char *icon_text (wimp_w w, wimp_i i, char *buffer)
 {
   wimp_icon_state icon;
@@ -45,7 +59,14 @@ char *icon_text (wimp_w w, wimp_i i, char *buffer)
   }
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+
+/**
+ * Return a pointer to the indirected text buffer of an icon.
+ *
+ * \param  w		The handle of the window containing the icon.
+ * \param  i		The handle of the icon to read.
+ * \return		The start of the icon's indirected buffer.
+ */
 
 char *indirected_icon_text (wimp_w w, wimp_i i)
 {
@@ -67,7 +88,13 @@ char *indirected_icon_text (wimp_w w, wimp_i i)
 }
 
 
-/* ------------------------------------------------------------------------------------------------------------------ */
+/**
+ * Return a pointer to the validation string buffer of an icon.
+ *
+ * \param  w		The handle of the window containing the icon.
+ * \param  i		The handle of the icon to read.
+ * \return		The start of the icon's validation string buffer.
+ */
 
 char *indirected_icon_validation (wimp_w w, wimp_i i)
 {
@@ -88,9 +115,16 @@ char *indirected_icon_validation (wimp_w w, wimp_i i)
   }
 }
 
-/* ================================================================================================================== */
-
-/* Returns 1 if the icon was not validated. */
+/**
+ * Return the part of an icon's validation string corresponding to the
+ * supplied 'command' character.
+ *
+ * \param  *buffer	Pointer to a buffer to take the returned text.
+ * \param  w		The handle of the window containing the icon.
+ * \param  i		The handle of the icon to read.
+ * \param  command	The single character validation command to return.
+ * \return		1 if the icon had no validation string; else 0.
+ */
 
 int get_validation_command (char *buffer, wimp_w w, wimp_i i, char command)
 {

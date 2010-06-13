@@ -1,8 +1,9 @@
-/* SF-Lib - Event.c
+/**
+ * \file event.c
+ *
+ * SFLib - Simple event-based Wimp_Poll dispatch system.
  *
  * Version 0.10 (3 May 2010)
- *
- * Simple event-based Wimp_Poll dispatch system.
  */
 
 /* OS-Lib header files. */
@@ -57,10 +58,10 @@ static struct event_window *event_create_window(wimp_w w);
 /**
  * Accept and process a wimp event.
  *
- * Param:  event	The Wimp event code to be handled.
- * Param:  block	The Wimp poll block.
- * Param:  pollword	The Wimp pollword.
- * Return:		Zero if the event was handled; else non-zero.
+ * \param  event	The Wimp event code to be handled.
+ * \param  block	The Wimp poll block.
+ * \param  pollword	The Wimp pollword.
+ * \return		Zero if the event was handled; else non-zero.
  */
 
 int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
@@ -174,9 +175,9 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 /**
  * Add a window redraw event handler for the specified window.
  *
- * Param:  w		The window handle to attach the action to.
- * Param:  *callback()	The callback function to use on the event.
- * Return:		Zero if the handler was registered; else non-zero.
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback function to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
  */
 
 int event_add_window_redraw_event(wimp_w w, void (*callback)(wimp_draw *draw))
@@ -195,9 +196,9 @@ int event_add_window_redraw_event(wimp_w w, void (*callback)(wimp_draw *draw))
 /**
  * Add a window open event handler for the specified window.
  *
- * Param:  w		The window handle to attach the action to.
- * Param:  *callback()	The callback function to use on the event.
- * Return:		Zero if the handler was registered; else non-zero.
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback function to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
  */
 
 int event_add_window_open_event(wimp_w w, void (*callback)(wimp_open *open))
@@ -216,9 +217,9 @@ int event_add_window_open_event(wimp_w w, void (*callback)(wimp_open *open))
 /**
  * Add a window close event handler for the specified window.
  *
- * Param:  w		The window handle to attach the action to.
- * Param:  *callback()	The callback function to use on the event.
- * Return:		Zero if the handler was registered; else non-zero.
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback function to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
  */
 
 int event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close))
@@ -237,9 +238,9 @@ int event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close))
 /**
  * Add a mouse click (pointer) event handler for the specified window.
  *
- * Param:  w		The window handle to attach the action to.
- * Param:  *callback()	The callback to use on the event.
- * Return:		Zero if the handler was registered; else non-zero.
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
  */
 
 int event_add_window_mouse_event(wimp_w w, void (*callback)(wimp_pointer *pointer))
@@ -296,9 +297,9 @@ int event_add_window_menu(wimp_w w, wimp_menu *menu,
 /**
  * Add a user data pointer for the specified window.
  *
- * Param:  w		The window handle to attach the data to.
- * Param:  *data	The data to attach.
- * Return:		Zero if the handler was registered; else non-zero.
+ * \param  w		The window handle to attach the data to.
+ * \param  *data	The data to attach.
+ * \return		Zero if the handler was registered; else non-zero.
  */
 
 int event_add_window_user_data(wimp_w w, void *data)
@@ -317,8 +318,8 @@ int event_add_window_user_data(wimp_w w, void *data)
 /**
  * Return the user data block associated with the specified window.
  *
- * Param:  w		The window to locate the data for.
- * Return:		A pointer to the user data, or NULL.
+ * \param  w		The window to locate the data for.
+ * \return		A pointer to the user data, or NULL.
  */
 
 void *event_get_window_user_data(wimp_w w)
@@ -337,7 +338,7 @@ void *event_get_window_user_data(wimp_w w)
 /**
  * Remove a window and its associated event details from the records.
  *
- * Param:  w		The window to remove the data for.
+ * \param  w		The window to remove the data for.
  */
 
 void event_delete_window(wimp_w w)
@@ -365,8 +366,8 @@ void event_delete_window(wimp_w w)
 /**
  * Find the window data block for the given window.
  *
- * Param:  w		The window handle to find the structure for.
- * Return:		A pointer to the window structure, or NULL.
+ * \param  w		The window handle to find the structure for.
+ * \return		A pointer to the window structure, or NULL.
  */
 
 struct event_window *event_find_window(wimp_w w)
@@ -387,8 +388,8 @@ struct event_window *event_find_window(wimp_w w)
 /**
  * Create a new window data block for the given window.
  *
- * Param:  w		The window handle to create a new structure for.
- * Return:		A pointer to the window structure, or NULL.
+ * \param  w		The window handle to create a new structure for.
+ * \return		A pointer to the window structure, or NULL.
  */
 
 struct event_window *event_create_window(wimp_w w)
