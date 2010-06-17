@@ -115,6 +115,34 @@ char *indirected_icon_validation (wimp_w w, wimp_i i)
   }
 }
 
+
+/**
+ * Return the given length of the indirected text buffer of an icon.
+ *
+ * \param  w		The handle of the window containing the icon.
+ * \param  i		The handle of the icon to read.
+ * \return		The size of the icon's validation string buffer, or -1.
+ */
+
+size_t indirected_icon_length(wimp_w w, wimp_i i)
+{
+  wimp_icon_state icon;
+
+
+  icon.w = w;
+  icon.i = i;
+  wimp_get_icon_state (&icon);
+
+  if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) == (wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
+  {
+    return (icon.icon.data.indirected_text.size);
+  }
+  else
+  {
+    return (-1);
+  }
+}
+
 /**
  * Return the part of an icon's validation string corresponding to the
  * supplied 'command' character.

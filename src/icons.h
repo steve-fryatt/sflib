@@ -6,11 +6,14 @@
 #ifndef _SFLIB_ICONS
 #define _SFLIB_ICONS
 
+#include <stddef.h>
+
 /* ================================================================================================================== */
 
 char *icon_text (wimp_w w, wimp_i i, char *buffer);
 char *indirected_icon_text (wimp_w w, wimp_i i);
 char *indirected_icon_validation (wimp_w w, wimp_i i);
+size_t indirected_icon_length(wimp_w w, wimp_i i);
 
 int get_validation_command (char *buffer, wimp_w w, wimp_i i, char command);
 
