@@ -32,7 +32,7 @@ struct event_window {
 	void			(*gain_caret)(wimp_caret *caret);
 
 	wimp_menu		*menu;
-	void			(*menu_prepare)(wimp_pointer *pointer, wimp_menu *m);
+	void			(*menu_prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer);
 	void			(*menu_selection)(wimp_w w, wimp_menu *m, wimp_selection *selection);
 	void			(*menu_close)(wimp_w w, wimp_menu *m);
 	void			(*menu_warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning);
@@ -114,7 +114,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				/* Process window menus on Menu clicks. */
 
 				if (win->menu_prepare != NULL)
-					(win->menu_prepare)((wimp_pointer *) block, win->menu);
+					(win->menu_prepare)(win->w, win->menu, (wimp_pointer *) block);
 				create_standard_menu(win->menu, (wimp_pointer *) block);
 				current_menu = win;
 				return 0;
@@ -147,7 +147,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (pointer.buttons == wimp_CLICK_ADJUST) {
 				if (current_menu->menu_prepare != NULL)
-					(current_menu->menu_prepare)(&pointer, current_menu->menu);
+					(current_menu->menu_prepare)(current_menu->w, current_menu->menu, &pointer);
 				wimp_create_menu(current_menu->menu, 0, 0);
 			} else {
 				if (current_menu->menu_close != NULL)
@@ -373,7 +373,7 @@ int event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *car
  */
 
 int event_add_window_menu(wimp_w w, wimp_menu *menu,
-		void (*prepare)(wimp_pointer *pointer, wimp_menu *m),
+		void (*prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer),
 		void (*selection)(wimp_w w, wimp_menu *m, wimp_selection *selection),
 		void (*close)(wimp_w w, wimp_menu *m),
 		void (*warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning))

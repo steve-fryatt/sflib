@@ -14,7 +14,7 @@ int event_add_window_lose_caret_event(wimp_w w, void (*callback)(wimp_caret *car
 int event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *caret));
 
 int event_add_window_menu(wimp_w w, wimp_menu *menu,
-		void (*prepare)(wimp_pointer *pointer, wimp_menu *m),
+		void (*prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer),
 		void (*selection)(wimp_w w, wimp_menu *m, wimp_selection *selection),
 		void (*close)(wimp_w w, wimp_menu *m),
 		void (*warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning));
