@@ -23,3 +23,6 @@ int event_add_window_user_data(wimp_w w, void *data);
 void *event_get_window_user_data(wimp_w w);
 
 void event_delete_window(wimp_w w);
+
+int event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data), int (*drag_null_poll)(void *data), void *data);
+

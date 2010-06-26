@@ -48,6 +48,12 @@ struct event_window {
 static struct event_window	*event_window_list = NULL;
 static struct event_window	*current_menu = NULL;
 
+/* User Drag Event Data */
+
+static void (*event_drag_end)(wimp_dragged *dragged, void *data) = NULL;
+static int (*event_drag_null_poll)(void *data) = NULL;
+static void *event_drag_data = NULL;
+
 /**
  * Function prototypes for internal functions.
  */
@@ -72,6 +78,11 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 	wimp_pointer		pointer;
 
 	switch (event) {
+	case wimp_NULL_REASON_CODE:
+		if (event_drag_null_poll != NULL && (event_drag_null_poll)(event_drag_data) == 0)
+			return 0;
+		break;
+
 	case wimp_REDRAW_WINDOW_REQUEST:
 		if (block->redraw.w != NULL) {
 			win = event_find_window(block->redraw.w);
@@ -124,6 +135,19 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				(win->pointer)((wimp_pointer *) block);
 				return 0;
 			}
+		}
+		break;
+
+	case wimp_USER_DRAG_BOX:
+		if (event_drag_end != NULL) {
+			(event_drag_end)((wimp_dragged *) block, event_drag_data);
+
+			/* One-shot, so clear the function pointer. */
+
+			event_drag_end = NULL;
+			event_drag_null_poll = NULL;
+			event_drag_data = NULL;
+			return 0;
 		}
 		break;
 
@@ -533,3 +557,27 @@ struct event_window *event_create_window(wimp_w w)
 
 	return block;
 }
+
+/**
+ * Set a handler for the next drag box event and any Null Polls in between.
+ * If either handler is NULL it will not be called; both will be cancelled on
+ * the next User_Drag_Box event to be received.
+ *
+ * Null Polls can be passed on to the application by returning 1 from
+ * (drag_null_poll)(); returning 0 causes event_process_event() to also return 0.
+ *
+ * \param  *drag_end		A callback function for the drag end event.
+ * \param  *drag_null_poll	A callback function for Null Polls during the drag.
+ * \param  *data		Private data to be passed to the callback routines.
+ * \return			Zero if the handler was registerd; else non-Zero.
+ */
+
+int event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data), int (*drag_null_poll)(void *data), void *data)
+{
+	event_drag_end = drag_end;
+	event_drag_null_poll = drag_null_poll;
+	event_drag_data = data;
+
+	return 1;
+}
+
