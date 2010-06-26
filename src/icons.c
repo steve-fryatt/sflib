@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 
@@ -191,6 +192,69 @@ int get_validation_command (char *buffer, wimp_w w, wimp_i i, char command)
   {
     return (1);
   }
+}
+
+/**
+ * Perform an sprintf() into an icon, assuming that it is indirected.  The
+ * icon details are trusted, including buffer length.
+ *
+ * \param  w			The handle of the windown containing the icon.
+ * \param  i			The target icon handle.
+ * \param  *cntrl_string	The format string for printf.
+ * \param  ...			Any remaining parameters.
+ * \return			The number of characters printed.
+ */
+
+int icon_printf(wimp_w w, wimp_i i, char *cntrl_string, ...)
+{
+	int			ret = 0;
+	va_list			ap;
+	wimp_icon_state		icon;
+	os_error		*error;
+
+	icon.w = w;
+	icon.i = i;
+	error = xwimp_get_icon_state(&icon);
+	if (error != NULL)
+		return 0;
+
+	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) ==
+			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
+		ret = vsnprintf(icon.icon.data.indirected_text.text,
+				icon.icon.data.indirected_text.size,
+				cntrl_string, ap);
+
+	return ret;
+}
+
+
+/**
+ * Perform a strncpy() into an icon, assuming that it is indirected.  The
+ * icon details are trusted, including buffer length.
+ *
+ * \param  w			The handle of the windown containing the icon.
+ * \param  i			The target icon handle.
+ * \param  *s			The string to be copied.
+ * \return			A pointer to the copied string.
+ */
+
+char *icon_strncpy(wimp_w w, wimp_i i, char *s)
+{
+	wimp_icon_state		icon;
+	os_error		*error;
+
+	icon.w = w;
+	icon.i = i;
+	error = xwimp_get_icon_state(&icon);
+	if (error != NULL)
+		return NULL;
+
+	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) ==
+			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
+		strncpy(icon.icon.data.indirected_text.text, s,
+				icon.icon.data.indirected_text.size);
+
+	return icon.icon.data.indirected_text.text;
 }
 
 /* ================================================================================================================== */

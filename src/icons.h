@@ -17,6 +17,9 @@ size_t indirected_icon_length(wimp_w w, wimp_i i);
 
 int get_validation_command (char *buffer, wimp_w w, wimp_i i, char command);
 
+int icon_printf(wimp_w w, wimp_i i, char *cntrl_string, ...);
+char *icon_strncpy(wimp_w w, wimp_i i, char *s);
+
 void set_icon_selected (wimp_w w, wimp_i i, int selected);
 void set_icon_shaded (wimp_w w, wimp_i i, int shaded);
 void set_icon_deleted (wimp_w w, wimp_i i, int deleted);
