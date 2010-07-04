@@ -26,8 +26,11 @@ struct event_window {
 	void			(*redraw)(wimp_draw *draw);
 	void			(*open)(wimp_open *open);
 	void			(*close)(wimp_close *close);
+	void			(*leaving)(wimp_leaving *leaving);
+	void			(*entering)(wimp_entering *entering);
 	void			(*pointer)(wimp_pointer *pointer);
 	void			(*key)(wimp_key *key);
+	void			(*scroll)(wimp_scroll *scroll);
 	void			(*lose_caret)(wimp_caret *caret);
 	void			(*gain_caret)(wimp_caret *caret);
 
@@ -47,6 +50,8 @@ struct event_window {
 
 static struct event_window	*event_window_list = NULL;
 static struct event_window	*current_menu = NULL;
+
+static wimp_menu		**menu_handle = NULL;
 
 /* User Drag Event Data */
 
@@ -76,6 +81,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 {
 	struct event_window	*win = NULL;
 	wimp_pointer		pointer;
+	wimp_menu		*menu;
 
 	switch (event) {
 	case wimp_NULL_REASON_CODE:
@@ -116,6 +122,28 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 		}
 		break;
 
+	case wimp_POINTER_LEAVING_WINDOW:
+		if (block->leaving.w != NULL) {
+			win = event_find_window(block->leaving.w);
+
+			if (win != NULL && win->leaving != NULL) {
+				(win->leaving)((wimp_leaving *) block);
+				return 0;
+			}
+		}
+		break;
+
+	case wimp_POINTER_ENTERING_WINDOW:
+		if (block->entering.w != NULL) {
+			win = event_find_window(block->entering.w);
+
+			if (win != NULL && win->entering != NULL) {
+				(win->entering)((wimp_entering *) block);
+				return 0;
+			}
+		}
+		break;
+
 	case wimp_MOUSE_CLICK:
 		if (block->pointer.w != NULL) {
 			win = event_find_window(block->pointer.w);
@@ -126,8 +154,10 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 				if (win->menu_prepare != NULL)
 					(win->menu_prepare)(win->w, win->menu, (wimp_pointer *) block);
-				create_standard_menu(win->menu, (wimp_pointer *) block);
+				menu = create_standard_menu(win->menu, (wimp_pointer *) block);
 				current_menu = win;
+				if (menu_handle != NULL)
+					*menu_handle = menu;
 				return 0;
 			} else if (win != NULL && win->pointer != NULL) {
 				/* Process generic click handlers. */
@@ -177,8 +207,21 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				if (current_menu->menu_close != NULL)
 					(current_menu->menu_close)(current_menu->w, current_menu->menu);
 				current_menu = NULL;
+				if (menu_handle != NULL)
+					*menu_handle = NULL;
 			}
 			return 0;
+		}
+		break;
+
+	case wimp_SCROLL_REQUEST:
+		if (block->scroll.w != NULL) {
+			win = event_find_window(block->scroll.w);
+
+			if (win != NULL && win->scroll != NULL) {
+				(win->scroll)((wimp_scroll *) block);
+				return 0;
+			}
 		}
 		break;
 
@@ -212,6 +255,8 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				if (current_menu->menu_close != NULL)
 					(current_menu->menu_close)(current_menu->w, current_menu->menu);
 				current_menu = NULL;
+				if (menu_handle != NULL)
+					*menu_handle = NULL;
 				return 0;
 			}
 			break;
@@ -295,6 +340,48 @@ int event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close))
 
 
 /**
+ * Add a pointer leaving event handler for the specified window.
+ *
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_pointer_leaving_event(wimp_w w, void (*callback)(wimp_leaving *leaving))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->leaving = callback;
+
+	return (block == NULL);
+}
+
+
+/**
+ * Add a pointer entering event handler for the specified window.
+ *
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_pointer_entering_event(wimp_w w, void (*callback)(wimp_entering *entering))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->entering = callback;
+
+	return (block == NULL);
+}
+
+
+/**
  * Add a mouse click (pointer) event handler for the specified window.
  *
  * If the window has a window menu attached, this handler is not called for
@@ -334,6 +421,27 @@ int event_add_window_key_event(wimp_w w, void (*callback)(wimp_key *key))
 
 	if (block != NULL)
 		block->key = callback;
+
+	return (block == NULL);
+}
+
+
+/**
+ * Add a scroll event handler for the specified window.
+ *
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_scroll_event(wimp_w w, void (*callback)(wimp_scroll *scroll))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->scroll = callback;
 
 	return (block == NULL);
 }
@@ -537,8 +645,11 @@ struct event_window *event_create_window(wimp_w w)
 		block->redraw = NULL;
 		block->open = NULL;
 		block->close = NULL;
+		block->leaving = NULL;
+		block->entering = NULL;
 		block->pointer = NULL;
 		block->key = NULL;
+		block->scroll = NULL;
 		block->lose_caret = NULL;
 		block->gain_caret = NULL;
 
@@ -557,6 +668,7 @@ struct event_window *event_create_window(wimp_w w)
 
 	return block;
 }
+
 
 /**
  * Set a handler for the next drag box event and any Null Polls in between.
@@ -577,6 +689,21 @@ int event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data), 
 	event_drag_end = drag_end;
 	event_drag_null_poll = drag_null_poll;
 	event_drag_data = data;
+
+	return 0;
+}
+
+
+/**
+ * Set a variable to store a pointer to the currently open menu block.
+ *
+ * \param  **menu		Pointer to a wimp_menu * to take the pointers.
+ * \return			Zero if the variable was registerd; else non-Zero.Ze
+ */
+
+int event_set_menu_pointer(wimp_menu **menu)
+{
+	menu_handle = menu;
 
 	return 1;
 }
