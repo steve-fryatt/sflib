@@ -38,4 +38,6 @@ char *lose_extension (char *string);
  * a NULL terminator.
  */
 
+int string_convert_version_number(char *string);
+
 #endif

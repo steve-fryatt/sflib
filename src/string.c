@@ -254,3 +254,63 @@ char *lose_extension (char *string)
 
   return (leaf);
 }
+
+/**
+ * Convert a textual n.nn version number into an integer in the form nnn.
+ *
+ * \param *string		The string to parse into a version number.
+ * \return			The numeric version number, or -1 if failed.
+ */
+
+int string_convert_version_number(char *string)
+{
+	char	*start, *end, *p;
+	int	count;
+
+	if (*string == '\0')
+		return -1;
+
+
+	/* Clean up the string, removing surplus characters from start and finish. */
+
+	start = string;
+	while (!isdigit(*start))
+		start++;
+
+
+	end = strrchr(string, '\0') - 1;
+
+	while (!isdigit(*end))
+		*end-- = '\0';
+
+	/* Check that we're all digits and one decimal point. */
+
+	p = start;
+	count = 0;
+
+	while (*p != '\0' && count <= 1 && (isdigit(*p) || *p == '.')) {
+		if (*p == '.')
+			count++;
+		p++;
+	}
+
+	if (count >= 2 || *p != '\0')
+		return -1;
+
+	/* Check that we've the right number of decimal places. */
+
+	p = strchr(start, '.');
+	if ((end - p) != 2)
+		return -1;
+
+	/* Convert to an integer string and then to an integer. */
+
+	*p = *(p+1);
+	p++;
+	*p = *(p+1);
+	p++;
+	*p = '\0';
+
+	return atoi(start);
+}
+
