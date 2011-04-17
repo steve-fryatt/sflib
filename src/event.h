@@ -16,11 +16,11 @@ int event_add_window_scroll_event(wimp_w w, void (*callback)(wimp_scroll *scroll
 int event_add_window_lose_caret_event(wimp_w w, void (*callback)(wimp_caret *caret));
 int event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *caret));
 
-int event_add_window_menu(wimp_w w, wimp_menu *menu,
-		void (*prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer),
-		void (*selection)(wimp_w w, wimp_menu *m, wimp_selection *selection),
-		void (*close)(wimp_w w, wimp_menu *m),
-		void (*warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning));
+int event_add_window_menu(wimp_w w, wimp_menu *menu, int iconbar);
+int event_add_window_menu_prepare(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_pointer *pointer));
+int event_add_window_menu_selection(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_selection *selection));
+int event_add_window_menu_close(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m));
+int event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning));
 
 int event_add_window_user_data(wimp_w w, void *data);
 void *event_get_window_user_data(wimp_w w);

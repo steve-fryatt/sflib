@@ -35,10 +35,13 @@ struct event_window {
 	void			(*gain_caret)(wimp_caret *caret);
 
 	wimp_menu		*menu;
+	int			menu_ibar;
 	void			(*menu_prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer);
 	void			(*menu_selection)(wimp_w w, wimp_menu *m, wimp_selection *selection);
 	void			(*menu_close)(wimp_w w, wimp_menu *m);
 	void			(*menu_warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning);
+
+
 
 	void			*data;
 	struct event_window	*next;
@@ -497,18 +500,11 @@ int event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *car
  *
  * \param  w		The window handle to attach the menu to.
  * \param  *menu	The menu handle.
- * \param  *prepare()	A callback function to prepare the menu for (re-) opening.
- * \param  *selection()	A callback function to handle menu selections.
- * \param  *close()	A callback function to handle the menu closing.
- * \param  *warning()	A callback function to handle submenu warnings.
+ * \param  iconbar	1 if the menu is an iconbar menu; else 0.
  * \return		0 if the handler was registered; else 1.
  */
 
-int event_add_window_menu(wimp_w w, wimp_menu *menu,
-		void (*prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer),
-		void (*selection)(wimp_w w, wimp_menu *m, wimp_selection *selection),
-		void (*close)(wimp_w w, wimp_menu *m),
-		void (*warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning))
+int event_add_window_menu(wimp_w w, wimp_menu *menu, int iconbar)
 {
 	struct event_window	*block;
 
@@ -516,15 +512,95 @@ int event_add_window_menu(wimp_w w, wimp_menu *menu,
 
 	if (block != NULL) {
 		block->menu = menu;
-		block->menu_prepare = prepare;
-		block->menu_selection = selection;
-		block->menu_close = close;
-		block->menu_warning = warning;
+		block->menu_ibar = iconbar;
 	}
 
 	return (block == NULL);
 }
 
+
+/**
+ * Add a menu prepare event handler for the specified window.
+ *
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_menu_prepare(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_pointer *pointer))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->menu_prepare = callback;
+
+	return (block == NULL);
+}
+
+
+/**
+ * Add a menu selection event handler for the specified window.
+ *
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_menu_selection(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_selection *selection))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->menu_selection = callback;
+
+	return (block == NULL);
+}
+
+
+/**
+ * Add a menu close event handler for the specified window.
+ *
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_menu_close(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->menu_close = callback;
+
+	return (block == NULL);
+}
+
+
+/**
+ * Add a menu warning event handler for the specified window.
+ *
+ * \param  w		The window handle to attach the action to.
+ * \param  *callback()	The callback to use on the event.
+ * \return		Zero if the handler was registered; else non-zero.
+ */
+
+int event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning))
+{
+	struct event_window	*block;
+
+	block = event_create_window(w);
+
+	if (block != NULL)
+		block->menu_warning = callback;
+
+	return (block == NULL);
+}
 
 /**
  * Add a user data pointer for the specified window.
@@ -654,6 +730,7 @@ struct event_window *event_create_window(wimp_w w)
 		block->gain_caret = NULL;
 
 		block->menu = NULL;
+		block->menu_ibar = 0;
 
 		block->menu_prepare = NULL;
 		block->menu_selection = NULL;
