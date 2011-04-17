@@ -13,6 +13,7 @@
 
 /* ANSII C header files. */
 
+#include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 
