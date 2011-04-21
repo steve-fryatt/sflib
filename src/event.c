@@ -157,7 +157,19 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 				if (win->menu_prepare != NULL)
 					(win->menu_prepare)(win->w, win->menu, (wimp_pointer *) block);
-				menu = create_standard_menu(win->menu, (wimp_pointer *) block);
+				if (win->menu_ibar) {
+					int entry = 0, entries = 0, lines = 0;
+
+					do {
+						entries ++;
+						if ((win->menu->entries[entry].menu_flags & wimp_MENU_SEPARATE) != 0)
+							lines++;
+					} while ((win->menu->entries[entry++].menu_flags & wimp_MENU_LAST) == 0);
+
+					menu = create_iconbar_menu (win->menu, (wimp_pointer *) block, entries, lines);
+				} else {
+					menu = create_standard_menu(win->menu, (wimp_pointer *) block);
+				}
 				current_menu = win;
 				if (menu_handle != NULL)
 					*menu_handle = menu;
