@@ -206,7 +206,7 @@ wimp_menu *create_standard_menu (wimp_menu *menu, wimp_pointer *pointer)
 
 wimp_menu *create_iconbar_menu (wimp_menu *menu, wimp_pointer *pointer, int entries, int lines)
 {
-  wimp_create_menu (menu, pointer->pos.x - 64, 96 + (entries * 44) + (lines * 24));
+  wimp_create_menu (menu, pointer->pos.x - 64, 96 + (entries * (menu->height + menu->gap)) + (lines * 24));
 
   return (menu);
 }
