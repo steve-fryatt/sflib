@@ -216,7 +216,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (pointer.buttons == wimp_CLICK_ADJUST) {
 				if (current_menu->menu_prepare != NULL)
-					(current_menu->menu_prepare)(current_menu->w, current_menu->menu, &pointer);
+					(current_menu->menu_prepare)(current_menu->w, current_menu->menu, NULL);
 				wimp_create_menu(current_menu->menu, 0, 0);
 			} else {
 				if (current_menu->menu_close != NULL)
@@ -533,6 +533,9 @@ int event_add_window_menu(wimp_w w, wimp_menu *menu, int iconbar)
 
 /**
  * Add a menu prepare event handler for the specified window.
+ *
+ * The callback function takes the associated window handle, the associated
+ * menu handle and wimp pointer data (which is NULL on a reopen).
  *
  * \param  w		The window handle to attach the action to.
  * \param  *callback()	The callback to use on the event.
