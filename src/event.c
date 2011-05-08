@@ -78,13 +78,14 @@ struct event_window {
 };
 
 struct event_message_action {
-	osbool				(*action)(wimp_message *message, wimp_event_no reason);
+	enum event_message_type		type;
+	osbool				(*action)(wimp_message *message);
 
 	struct event_message_action	*next;
 };
 
 struct event_message {
-	int				message;
+	unsigned int			message;
 	struct event_message_action	*actions;
 
 	struct event_message		*next;
@@ -125,6 +126,7 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 	struct event_window		*win = NULL;
 	struct event_message		*message = NULL;
 	struct event_message_action	*action = NULL;
+	enum event_message_type		type;
 	wimp_pointer			pointer;
 	wimp_menu			*menu;
 	osbool				handled;
@@ -313,6 +315,21 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 		 * returns TRUE to indicate that it has claimed the message.
 		 */
 
+		switch (event) {
+		case wimp_USER_MESSAGE:
+			type = EVENT_MESSAGE;
+			break;
+		case wimp_USER_MESSAGE_RECORDED:
+			type = EVENT_MESSAGE_RECORDED;
+			break;
+		case wimp_USER_MESSAGE_ACKNOWLEDGE:
+			type = EVENT_MESSAGE_ACKNOWLEDGE;
+			break;
+		default:
+			type = EVENT_MESSAGE_NONE;
+			break;
+		}
+
 		message = event_find_message(block->message.action);
 		handled = FALSE;
 
@@ -320,8 +337,10 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 			action = message->actions;
 
 			while (action != NULL && handled == FALSE) {
-				if (action->action != NULL)
-					handled = action->action((wimp_message *) block, event);
+				if ((action->type & type) != 0 && action->action != NULL)
+					handled = action->action((wimp_message *) block);
+
+				action = action->next;
 			}
 		}
 
@@ -818,7 +837,7 @@ static struct event_window *event_create_window(wimp_w w)
  * This function is an external interface, documented in event.h.
  */
 
-osbool event_add_message_handler(int message, osbool (*message_action)(wimp_message *message, wimp_event_no reason))
+osbool event_add_message_handler(unsigned int message, enum event_message_type type, osbool (*message_action)(wimp_message *message))
 {
 	struct event_message		*block = NULL;
 	struct event_message_action	*action = NULL;
@@ -844,6 +863,7 @@ osbool event_add_message_handler(int message, osbool (*message_action)(wimp_mess
 	if (action == NULL)
 		return FALSE;
 
+	action->type = type;
 	action->action = message_action;
 	action->next = block->actions;
 	block->actions = action;

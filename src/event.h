@@ -8,6 +8,14 @@
 
 #include "oslib/types.h"
 
+enum event_message_type {
+	EVENT_MESSAGE_NONE = 0,
+	EVENT_MESSAGE = 1,
+	EVENT_MESSAGE_RECORDED = 2,
+	EVENT_MESSAGE_INCOMING = 3,
+	EVENT_MESSAGE_ACKNOWLEDGE = 4
+};
+
 /**
  * Accept and process a wimp event.
  *
@@ -230,11 +238,12 @@ void event_delete_window(wimp_w w);
  * Add a message handler for the given user message.
  *
  * \param message		The message number.
+ * \param type			The type of message to handle ("Normal", Recorded, Acknowledge)
  * \param *message_action	The callback function to handle the message.
  * \return			TRUE if the hander was registered; else FALSE.
  */
 
-osbool event_add_message_handler(int message, osbool (*message_action)(wimp_message *message, wimp_event_no reason));
+osbool event_add_message_handler(unsigned int message, enum event_message_type type, osbool (*message_action)(wimp_message *message));
 
 
 /**
