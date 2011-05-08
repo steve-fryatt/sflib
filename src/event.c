@@ -50,6 +50,8 @@ struct event_icon {
 	struct event_icon		*next_icon;
 };
 
+/* Window data structure. */
+
 struct event_window {
 	wimp_w				w;
 	void				(*redraw)(wimp_draw *draw);
@@ -76,6 +78,8 @@ struct event_window {
 	void				*data;
 	struct event_window		*next;
 };
+
+/* Message dispatch structures. */
 
 struct event_message_action {
 	enum event_message_type		type;
@@ -129,7 +133,7 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 	enum event_message_type		type;
 	wimp_pointer			pointer;
 	wimp_menu			*menu;
-	osbool				handled;
+	osbool				handled, special;
 
 	switch (event) {
 	case wimp_NULL_REASON_CODE:
@@ -310,7 +314,34 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 	case wimp_USER_MESSAGE:
 	case wimp_USER_MESSAGE_RECORDED:
 	case wimp_USER_MESSAGE_ACKNOWLEDGE:
-		/* First pass the message on to any registered handlers, in
+		/* If the message is one that we need, we then process it first before
+		 * anything else can get at it.
+		 */
+
+		if (event != wimp_USER_MESSAGE_ACKNOWLEDGE) {
+			switch (block->message.action) {
+			case message_MENUS_DELETED:
+				if (current_menu != NULL) {
+					if (current_menu->menu_close != NULL)
+						(current_menu->menu_close)(current_menu->w, current_menu->menu);
+					current_menu = NULL;
+					if (menu_handle != NULL)
+						*menu_handle = NULL;
+					special = TRUE;
+				}
+				break;
+
+			case message_MENU_WARNING:
+				if (current_menu != NULL) {
+					if (current_menu->menu_warning != NULL)
+						(current_menu->menu_warning)(current_menu->w, current_menu->menu, (wimp_message_menu_warning *) &(block->message.data));
+					special = TRUE;
+				}
+				break;
+			}
+		}
+
+		/* Then pass the message on to any registered handlers, in
 		 * reverse order of registration, until we run out or one of them
 		 * returns TRUE to indicate that it has claimed the message.
 		 */
@@ -344,34 +375,11 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 			}
 		}
 
-		/* If the message is one that we need, we then process it regardless
-		 * of whether any external code has claimed it.
+		/* Always report as handled if this is a message that we processed
+		 * at the start.
 		 */
 
-		if (event != wimp_USER_MESSAGE_ACKNOWLEDGE) {
-			switch (block->message.action) {
-			case message_MENUS_DELETED:
-				if (current_menu != NULL) {
-					if (current_menu->menu_close != NULL)
-						(current_menu->menu_close)(current_menu->w, current_menu->menu);
-					current_menu = NULL;
-					if (menu_handle != NULL)
-						*menu_handle = NULL;
-					handled = TRUE;
-				}
-				break;
-
-			case message_MENU_WARNING:
-				if (current_menu != NULL) {
-					if (current_menu->menu_warning != NULL)
-						(current_menu->menu_warning)(current_menu->w, current_menu->menu, (wimp_message_menu_warning *) &(block->message.data));
-					handled = TRUE;
-				}
-				break;
-			}
-		}
-
-		if (handled)
+		if (handled || special)
 			return TRUE;
 		break;
 	}
