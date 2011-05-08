@@ -21,36 +21,80 @@
 #include <stdlib.h>
 
 
+enum event_icon_type {
+	EVENT_ICON_NONE,
+	EVENT_ICON_RADIO
+};
+
+struct event_radio_icon {
+
+};
+
+
+struct event_icon_action {
+	enum event_icon_type		type;
+
+	union {
+		struct event_radio_icon		radio;
+	} data;
+
+	struct event_icon_action	*next_icon_action;
+	struct event_icon_action	*next_window_action;
+};
+
+struct event_icon {
+	wimp_i				i;
+
+	struct event_icon_action	*actions;
+
+	struct event_icon		*next_icon;
+};
+
 struct event_window {
-	wimp_w			w;
-	void			(*redraw)(wimp_draw *draw);
-	void			(*open)(wimp_open *open);
-	void			(*close)(wimp_close *close);
-	void			(*leaving)(wimp_leaving *leaving);
-	void			(*entering)(wimp_entering *entering);
-	void			(*pointer)(wimp_pointer *pointer);
-	void			(*key)(wimp_key *key);
-	void			(*scroll)(wimp_scroll *scroll);
-	void			(*lose_caret)(wimp_caret *caret);
-	void			(*gain_caret)(wimp_caret *caret);
+	wimp_w				w;
+	void				(*redraw)(wimp_draw *draw);
+	void				(*open)(wimp_open *open);
+	void				(*close)(wimp_close *close);
+	void				(*leaving)(wimp_leaving *leaving);
+	void				(*entering)(wimp_entering *entering);
+	void				(*pointer)(wimp_pointer *pointer);
+	void				(*key)(wimp_key *key);
+	void				(*scroll)(wimp_scroll *scroll);
+	void				(*lose_caret)(wimp_caret *caret);
+	void				(*gain_caret)(wimp_caret *caret);
 
-	wimp_menu		*menu;
-	int			menu_ibar;
-	void			(*menu_prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer);
-	void			(*menu_selection)(wimp_w w, wimp_menu *m, wimp_selection *selection);
-	void			(*menu_close)(wimp_w w, wimp_menu *m);
-	void			(*menu_warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning);
+	wimp_menu			*menu;
+	int				menu_ibar;
+	void				(*menu_prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer);
+	void				(*menu_selection)(wimp_w w, wimp_menu *m, wimp_selection *selection);
+	void				(*menu_close)(wimp_w w, wimp_menu *m);
+	void				(*menu_warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning);
 
+	struct event_icon_action	*actions;
+	struct event_icon		*icons;
 
+	void				*data;
+	struct event_window		*next;
+};
 
-	void			*data;
-	struct event_window	*next;
+struct event_message_action {
+	osbool				(*action)(wimp_message *message, wimp_event_no reason);
+
+	struct event_message_action	*next;
+};
+
+struct event_message {
+	int				message;
+	struct event_message_action	*actions;
+
+	struct event_message		*next;
 };
 
 /**
  * Global Variables for the module.
  */
 
+static struct event_message	*event_message_list = NULL;
 static struct event_window	*event_window_list = NULL;
 static struct event_window	*current_menu = NULL;
 
@@ -68,28 +112,27 @@ static void *event_drag_data = NULL;
 
 static struct event_window *event_find_window(wimp_w w);
 static struct event_window *event_create_window(wimp_w w);
-
-
+static struct event_message *event_find_message(int message);
 
 /**
  * Accept and process a wimp event.
  *
- * \param  event	The Wimp event code to be handled.
- * \param  block	The Wimp poll block.
- * \param  pollword	The Wimp pollword.
- * \return		Zero if the event was handled; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
+osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 {
-	struct event_window	*win = NULL;
-	wimp_pointer		pointer;
-	wimp_menu		*menu;
+	struct event_window		*win = NULL;
+	struct event_message		*message = NULL;
+	struct event_message_action	*action = NULL;
+	wimp_pointer			pointer;
+	wimp_menu			*menu;
+	osbool				handled;
 
 	switch (event) {
 	case wimp_NULL_REASON_CODE:
-		if (event_drag_null_poll != NULL && (event_drag_null_poll)(event_drag_data) == 0)
-			return 0;
+		if (event_drag_null_poll != NULL && (event_drag_null_poll)(event_drag_data) == TRUE)
+			return TRUE;
 		break;
 
 	case wimp_REDRAW_WINDOW_REQUEST:
@@ -98,7 +141,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (win != NULL && win->redraw != NULL) {
 				(win->redraw)((wimp_draw *) block);
-				return 0;
+				return TRUE;
 			}
 		}
 		break;
@@ -109,7 +152,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (win != NULL && win->open != NULL) {
 				(win->open)((wimp_open *) block);
-				return 0;
+				return TRUE;
 			}
 		}
 		break;
@@ -120,7 +163,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (win != NULL && win->close != NULL) {
 				(win->close)((wimp_close *) block);
-				return 0;
+				return TRUE;
 			}
 		}
 		break;
@@ -131,7 +174,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (win != NULL && win->leaving != NULL) {
 				(win->leaving)((wimp_leaving *) block);
-				return 0;
+				return TRUE;
 			}
 		}
 		break;
@@ -142,7 +185,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (win != NULL && win->entering != NULL) {
 				(win->entering)((wimp_entering *) block);
-				return 0;
+				return TRUE;
 			}
 		}
 		break;
@@ -173,12 +216,12 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				current_menu = win;
 				if (menu_handle != NULL)
 					*menu_handle = menu;
-				return 0;
+				return TRUE;
 			} else if (win != NULL && win->pointer != NULL) {
 				/* Process generic click handlers. */
 
 				(win->pointer)((wimp_pointer *) block);
-				return 0;
+				return TRUE;
 			}
 		}
 		break;
@@ -192,7 +235,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 			event_drag_end = NULL;
 			event_drag_null_poll = NULL;
 			event_drag_data = NULL;
-			return 0;
+			return TRUE;
 		}
 		break;
 
@@ -202,7 +245,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (win != NULL && win->key != NULL) {
 				(win->key)((wimp_key *) block);
-				return 0;
+				return TRUE;
 			}
 		}
 		break;
@@ -225,7 +268,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				if (menu_handle != NULL)
 					*menu_handle = NULL;
 			}
-			return 0;
+			return TRUE;
 		}
 		break;
 
@@ -235,7 +278,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (win != NULL && win->scroll != NULL) {
 				(win->scroll)((wimp_scroll *) block);
-				return 0;
+				return TRUE;
 			}
 		}
 		break;
@@ -246,7 +289,7 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (win != NULL && win->lose_caret != NULL) {
 				(win->lose_caret)((wimp_caret *) block);
-				return 0;
+				return TRUE;
 			}
 		}
 		break;
@@ -257,49 +300,74 @@ int event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			if (win != NULL && win->gain_caret != NULL) {
 				(win->gain_caret)((wimp_caret *) block);
-				return 0;
+				return TRUE;
 			}
 		}
 		break;
 
 	case wimp_USER_MESSAGE:
 	case wimp_USER_MESSAGE_RECORDED:
-		switch (block->message.action) {
-		case message_MENUS_DELETED:
-			if (current_menu != NULL) {
-				if (current_menu->menu_close != NULL)
-					(current_menu->menu_close)(current_menu->w, current_menu->menu);
-				current_menu = NULL;
-				if (menu_handle != NULL)
-					*menu_handle = NULL;
-				return 0;
-			}
-			break;
+	case wimp_USER_MESSAGE_ACKNOWLEDGE:
+		/* First pass the message on to any registered handlers, in
+		 * reverse order of registration, until we run out or one of them
+		 * returns TRUE to indicate that it has claimed the message.
+		 */
 
-		case message_MENU_WARNING:
-			if (current_menu != NULL) {
-				if (current_menu->menu_warning != NULL)
-					(current_menu->menu_warning)(current_menu->w, current_menu->menu, (wimp_message_menu_warning *) &(block->message.data));
-				return 0;
+		message = event_find_message(block->message.action);
+		handled = FALSE;
+
+		if (message != NULL && message->actions != NULL) {
+			action = message->actions;
+
+			while (action != NULL && handled == FALSE) {
+				if (action->action != NULL)
+					handled = action->action((wimp_message *) block, event);
 			}
-			break;
 		}
+
+		/* If the message is one that we need, we then process it regardless
+		 * of whether any external code has claimed it.
+		 */
+
+		if (event != wimp_USER_MESSAGE_ACKNOWLEDGE) {
+			switch (block->message.action) {
+			case message_MENUS_DELETED:
+				if (current_menu != NULL) {
+					if (current_menu->menu_close != NULL)
+						(current_menu->menu_close)(current_menu->w, current_menu->menu);
+					current_menu = NULL;
+					if (menu_handle != NULL)
+						*menu_handle = NULL;
+					handled = TRUE;
+				}
+				break;
+
+			case message_MENU_WARNING:
+				if (current_menu != NULL) {
+					if (current_menu->menu_warning != NULL)
+						(current_menu->menu_warning)(current_menu->w, current_menu->menu, (wimp_message_menu_warning *) &(block->message.data));
+					handled = TRUE;
+				}
+				break;
+			}
+		}
+
+		if (handled)
+			return TRUE;
 		break;
 	}
 
-	return 1;
+	return FALSE;
 }
 
 
 /**
  * Add a window redraw event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback function to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_redraw_event(wimp_w w, void (*callback)(wimp_draw *draw))
+osbool event_add_window_redraw_event(wimp_w w, void (*callback)(wimp_draw *draw))
 {
 	struct event_window	*block;
 
@@ -308,19 +376,17 @@ int event_add_window_redraw_event(wimp_w w, void (*callback)(wimp_draw *draw))
 	if (block != NULL)
 		block->redraw = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a window open event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback function to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_open_event(wimp_w w, void (*callback)(wimp_open *open))
+osbool event_add_window_open_event(wimp_w w, void (*callback)(wimp_open *open))
 {
 	struct event_window	*block;
 
@@ -329,19 +395,17 @@ int event_add_window_open_event(wimp_w w, void (*callback)(wimp_open *open))
 	if (block != NULL)
 		block->open = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a window close event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback function to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close))
+osbool event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close))
 {
 	struct event_window	*block;
 
@@ -350,19 +414,17 @@ int event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close))
 	if (block != NULL)
 		block->close = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a pointer leaving event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_pointer_leaving_event(wimp_w w, void (*callback)(wimp_leaving *leaving))
+osbool event_add_window_pointer_leaving_event(wimp_w w, void (*callback)(wimp_leaving *leaving))
 {
 	struct event_window	*block;
 
@@ -371,19 +433,17 @@ int event_add_window_pointer_leaving_event(wimp_w w, void (*callback)(wimp_leavi
 	if (block != NULL)
 		block->leaving = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a pointer entering event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_pointer_entering_event(wimp_w w, void (*callback)(wimp_entering *entering))
+osbool event_add_window_pointer_entering_event(wimp_w w, void (*callback)(wimp_entering *entering))
 {
 	struct event_window	*block;
 
@@ -392,22 +452,17 @@ int event_add_window_pointer_entering_event(wimp_w w, void (*callback)(wimp_ente
 	if (block != NULL)
 		block->entering = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a mouse click (pointer) event handler for the specified window.
  *
- * If the window has a window menu attached, this handler is not called for
- * Menu clicks over the work area.
- *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_mouse_event(wimp_w w, void (*callback)(wimp_pointer *pointer))
+osbool event_add_window_mouse_event(wimp_w w, void (*callback)(wimp_pointer *pointer))
 {
 	struct event_window	*block;
 
@@ -416,19 +471,17 @@ int event_add_window_mouse_event(wimp_w w, void (*callback)(wimp_pointer *pointe
 	if (block != NULL)
 		block->pointer = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a keypress event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_key_event(wimp_w w, void (*callback)(wimp_key *key))
+osbool event_add_window_key_event(wimp_w w, void (*callback)(wimp_key *key))
 {
 	struct event_window	*block;
 
@@ -437,19 +490,17 @@ int event_add_window_key_event(wimp_w w, void (*callback)(wimp_key *key))
 	if (block != NULL)
 		block->key = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a scroll event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_scroll_event(wimp_w w, void (*callback)(wimp_scroll *scroll))
+osbool event_add_window_scroll_event(wimp_w w, void (*callback)(wimp_scroll *scroll))
 {
 	struct event_window	*block;
 
@@ -458,19 +509,17 @@ int event_add_window_scroll_event(wimp_w w, void (*callback)(wimp_scroll *scroll
 	if (block != NULL)
 		block->scroll = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a lose caret event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_lose_caret_event(wimp_w w, void (*callback)(wimp_caret *caret))
+osbool event_add_window_lose_caret_event(wimp_w w, void (*callback)(wimp_caret *caret))
 {
 	struct event_window	*block;
 
@@ -479,19 +528,17 @@ int event_add_window_lose_caret_event(wimp_w w, void (*callback)(wimp_caret *car
 	if (block != NULL)
 		block->lose_caret = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a gain caret event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *caret))
+osbool event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *caret))
 {
 	struct event_window	*block;
 
@@ -500,23 +547,18 @@ int event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *car
 	if (block != NULL)
 		block->gain_caret = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
+
 
 /**
  * Register a menu to the specified window: this will then be opened whenever
  * there is a menu click within the work area (even over icons).
  *
- * If a menu is registered, no events related to it will be passed back from
- * event_process_event() -- even if specific handlers are registed as NULL.
- *
- * \param  w		The window handle to attach the menu to.
- * \param  *menu	The menu handle.
- * \param  iconbar	1 if the menu is an iconbar menu; else 0.
- * \return		0 if the handler was registered; else 1.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_menu(wimp_w w, wimp_menu *menu, int iconbar)
+osbool event_add_window_menu(wimp_w w, wimp_menu *menu, osbool iconbar)
 {
 	struct event_window	*block;
 
@@ -527,22 +569,17 @@ int event_add_window_menu(wimp_w w, wimp_menu *menu, int iconbar)
 		block->menu_ibar = iconbar;
 	}
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE: TRUE;
 }
 
 
 /**
  * Add a menu prepare event handler for the specified window.
  *
- * The callback function takes the associated window handle, the associated
- * menu handle and wimp pointer data (which is NULL on a reopen).
- *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_menu_prepare(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_pointer *pointer))
+osbool event_add_window_menu_prepare(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_pointer *pointer))
 {
 	struct event_window	*block;
 
@@ -551,19 +588,17 @@ int event_add_window_menu_prepare(wimp_w w, void (*callback)(wimp_w w, wimp_menu
 	if (block != NULL)
 		block->menu_prepare = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a menu selection event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_menu_selection(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_selection *selection))
+osbool event_add_window_menu_selection(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_selection *selection))
 {
 	struct event_window	*block;
 
@@ -572,19 +607,17 @@ int event_add_window_menu_selection(wimp_w w, void (*callback)(wimp_w w, wimp_me
 	if (block != NULL)
 		block->menu_selection = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a menu close event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_menu_close(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m))
+osbool event_add_window_menu_close(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m))
 {
 	struct event_window	*block;
 
@@ -593,19 +626,17 @@ int event_add_window_menu_close(wimp_w w, void (*callback)(wimp_w w, wimp_menu *
 	if (block != NULL)
 		block->menu_close = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Add a menu warning event handler for the specified window.
  *
- * \param  w		The window handle to attach the action to.
- * \param  *callback()	The callback to use on the event.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning))
+osbool event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning))
 {
 	struct event_window	*block;
 
@@ -614,18 +645,17 @@ int event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_menu
 	if (block != NULL)
 		block->menu_warning = callback;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
+
 
 /**
  * Add a user data pointer for the specified window.
  *
- * \param  w		The window handle to attach the data to.
- * \param  *data	The data to attach.
- * \return		Zero if the handler was registered; else non-zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_add_window_user_data(wimp_w w, void *data)
+osbool event_add_window_user_data(wimp_w w, void *data)
 {
 	struct event_window	*block;
 
@@ -634,15 +664,14 @@ int event_add_window_user_data(wimp_w w, void *data)
 	if (block != NULL)
 		block->data = data;
 
-	return (block == NULL);
+	return (block == NULL) ? FALSE : TRUE;
 }
 
 
 /**
  * Return the user data block associated with the specified window.
  *
- * \param  w		The window to locate the data for.
- * \return		A pointer to the user data, or NULL.
+ * This function is an external interface, documented in event.h.
  */
 
 void *event_get_window_user_data(wimp_w w)
@@ -661,16 +690,34 @@ void *event_get_window_user_data(wimp_w w)
 /**
  * Remove a window and its associated event details from the records.
  *
- * \param  w		The window to remove the data for.
+ * This function is an external interface, documented in event.h.
  */
 
 void event_delete_window(wimp_w w)
 {
-	struct event_window	*block, **parent;
+	struct event_window		*block, **parent;
+	struct event_icon		*icon;
+	struct event_icon_action	*action;
 
 	block = event_find_window(w);
 
 	if (block != NULL) {
+		/* Delete all linked icon and action definitions. */
+
+		while (block->icons != NULL) {
+			icon = block->icons;
+			block->icons = icon->next_icon;
+			free(icon);
+		}
+
+		while (block->actions != NULL) {
+			action = block->actions;
+			block->actions = action->next_window_action;
+			free(action);
+		}
+
+		/* Delete the window itself. */
+
 		parent = &event_window_list;
 
 		while (*parent != NULL && *parent != block)
@@ -693,7 +740,7 @@ void event_delete_window(wimp_w w)
  * \return		A pointer to the window structure, or NULL.
  */
 
-struct event_window *event_find_window(wimp_w w)
+static struct event_window *event_find_window(wimp_w w)
 {
 	struct event_window	*block = NULL;
 
@@ -715,7 +762,7 @@ struct event_window *event_find_window(wimp_w w)
  * \return		A pointer to the window structure, or NULL.
  */
 
-struct event_window *event_create_window(wimp_w w)
+static struct event_window *event_create_window(wimp_w w)
 {
 	struct event_window	*block;
 
@@ -754,9 +801,71 @@ struct event_window *event_create_window(wimp_w w)
 
 		block->data = NULL;
 
+		block->actions = NULL;
+		block->icons = NULL;
+
 		block->next = event_window_list;
 		event_window_list = block;
 	}
+
+	return block;
+}
+
+
+/**
+ * Add a message handler for the given user message.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_add_message_handler(int message, osbool (*message_action)(wimp_message *message, wimp_event_no reason))
+{
+	struct event_message		*block = NULL;
+	struct event_message_action	*action = NULL;
+
+	block = event_find_message(message);
+
+	if (block == NULL) {
+		block = malloc(sizeof(struct event_message));
+
+		if (block == NULL)
+			return FALSE;
+
+		block->message = message;
+		block->actions = NULL;
+		block->next = event_message_list;
+		event_message_list = block;
+	}
+
+	/* Create a new action for the message. */
+
+	action = malloc(sizeof(struct event_message_action));
+
+	if (action == NULL)
+		return FALSE;
+
+	action->action = message_action;
+	action->next = block->actions;
+	block->actions = action;
+
+	return TRUE;
+}
+
+/**
+ * Find the message block for the given message.
+ *
+ * \param message	The message to find the structure for.
+ * \return		A pointer to the message structure, or NULL.
+ */
+
+static struct event_message *event_find_message(int message)
+{
+	struct event_message	*block = NULL;
+
+	block = event_message_list;
+
+	while (block != NULL && block->message != message)
+		block = block->next;
 
 	return block;
 }
@@ -767,36 +876,29 @@ struct event_window *event_create_window(wimp_w w)
  * If either handler is NULL it will not be called; both will be cancelled on
  * the next User_Drag_Box event to be received.
  *
- * Null Polls can be passed on to the application by returning 1 from
- * (drag_null_poll)(); returning 0 causes event_process_event() to also return 0.
- *
- * \param  *drag_end		A callback function for the drag end event.
- * \param  *drag_null_poll	A callback function for Null Polls during the drag.
- * \param  *data		Private data to be passed to the callback routines.
- * \return			Zero if the handler was registerd; else non-Zero.
+ * This function is an external interface, documented in event.h.
  */
 
-int event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data), int (*drag_null_poll)(void *data), void *data)
+osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data), int (*drag_null_poll)(void *data), void *data)
 {
 	event_drag_end = drag_end;
 	event_drag_null_poll = drag_null_poll;
 	event_drag_data = data;
 
-	return 0;
+	return TRUE;
 }
 
 
 /**
  * Set a variable to store a pointer to the currently open menu block.
  *
- * \param  **menu		Pointer to a wimp_menu * to take the pointers.
- * \return			Zero if the variable was registerd; else non-Zero.Ze
+ * This function is an external interface, documented in event.h.
  */
 
-int event_set_menu_pointer(wimp_menu **menu)
+osbool event_set_menu_pointer(wimp_menu **menu)
 {
 	menu_handle = menu;
 
-	return 1;
+	return TRUE;
 }
 
