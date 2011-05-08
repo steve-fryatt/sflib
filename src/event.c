@@ -22,12 +22,13 @@
 
 
 enum event_icon_type {
-	EVENT_ICON_NONE,
+	EVENT_ICON_NONE = 0,
+	EVENT_ICON_CLICK,
 	EVENT_ICON_RADIO
 };
 
-struct event_radio_icon {
-
+struct event_icon_click {
+	osbool				(*callback)(wimp_pointer *pointer);
 };
 
 
@@ -35,11 +36,10 @@ struct event_icon_action {
 	enum event_icon_type		type;
 
 	union {
-		struct event_radio_icon		radio;
+		struct event_icon_click		click;
 	} data;
 
-	struct event_icon_action	*next_icon_action;
-	struct event_icon_action	*next_window_action;
+	struct event_icon_action	*next;
 };
 
 struct event_icon {
@@ -47,7 +47,7 @@ struct event_icon {
 
 	struct event_icon_action	*actions;
 
-	struct event_icon		*next_icon;
+	struct event_icon		*next;
 };
 
 /* Window data structure. */
@@ -66,13 +66,12 @@ struct event_window {
 	void				(*gain_caret)(wimp_caret *caret);
 
 	wimp_menu			*menu;
-	int				menu_ibar;
+	osbool				menu_ibar;
 	void				(*menu_prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer);
 	void				(*menu_selection)(wimp_w w, wimp_menu *m, wimp_selection *selection);
 	void				(*menu_close)(wimp_w w, wimp_menu *m);
 	void				(*menu_warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning);
 
-	struct event_icon_action	*actions;
 	struct event_icon		*icons;
 
 	void				*data;
@@ -115,8 +114,11 @@ static void *event_drag_data = NULL;
  * Function prototypes for internal functions.
  */
 
+static osbool event_process_icon(struct event_window *window, struct event_icon *icon, wimp_pointer *pointer);
 static struct event_window *event_find_window(wimp_w w);
 static struct event_window *event_create_window(wimp_w w);
+static struct event_icon *event_find_icon(struct event_window *window, wimp_i i);
+static struct event_icon *event_create_icon(struct event_window *window, wimp_i i);
 static struct event_message *event_find_message(int message);
 
 /**
@@ -128,6 +130,7 @@ static struct event_message *event_find_message(int message);
 osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 {
 	struct event_window		*win = NULL;
+	struct event_icon		*icon = NULL;
 	struct event_message		*message = NULL;
 	struct event_message_action	*action = NULL;
 	enum event_message_type		type;
@@ -223,11 +226,19 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				if (menu_handle != NULL)
 					*menu_handle = menu;
 				return TRUE;
-			} else if (win != NULL && win->pointer != NULL) {
+			} else if (win != NULL) {
+				/* Try to process an icon handler. */
+				icon = event_find_icon(win, block->pointer.i);
+
+				if (icon != NULL && event_process_icon(win, icon, (wimp_pointer *) block))
+					return TRUE;
+
 				/* Process generic click handlers. */
 
-				(win->pointer)((wimp_pointer *) block);
-				return TRUE;
+				if (win->pointer != NULL) {
+					(win->pointer)((wimp_pointer *) block);
+					return TRUE;
+				}
 			}
 		}
 		break;
@@ -385,6 +396,40 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 	}
 
 	return FALSE;
+}
+
+
+/**
+ * Handle mouse click events on an icon in a window.
+ *
+ * \param *window		The window block to handle.
+ * \param *icon			The icon block to handle.
+ * \param *pointer		The Wimp Event block.
+ * \return 			TRUE if the event was handled; else FALSE.
+ */
+
+static osbool event_process_icon(struct event_window *window, struct event_icon *icon, wimp_pointer *pointer)
+{
+	struct event_icon_action	*action;
+	osbool				handled = TRUE;
+
+	action = icon->actions;
+
+	while (action != NULL) {
+		switch (action->type) {
+		case EVENT_ICON_CLICK:
+			if (action->data.click.callback != NULL)
+				handled = action->data.click.callback(pointer);
+			break;
+
+		default:
+			break;
+		}
+
+		action = action->next;
+	}
+
+	return handled;
 }
 
 
@@ -677,6 +722,45 @@ osbool event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_m
 
 
 /**
+ * Add an icon click handler for the specified window and icon.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_pointer *pointer))
+{
+	struct event_window		*window;
+	struct event_icon		*icon;
+	struct event_icon_action	*action;
+
+	window = event_create_window(w);
+
+	if (window == NULL)
+		return FALSE;
+
+	icon = event_create_icon(window, i);
+
+	if (icon == NULL)
+		return FALSE;
+
+	action = malloc(sizeof(struct event_icon_action));
+
+	if (action == NULL)
+		return FALSE;
+
+	action->type = EVENT_ICON_CLICK;
+
+	action->data.click.callback = callback;
+
+	action->next = icon->actions;
+	icon->actions = action;
+
+	return TRUE;
+}
+
+
+
+/**
  * Add a user data pointer for the specified window.
  *
  * This function is an external interface, documented in event.h.
@@ -733,14 +817,15 @@ void event_delete_window(wimp_w w)
 
 		while (block->icons != NULL) {
 			icon = block->icons;
-			block->icons = icon->next_icon;
-			free(icon);
-		}
+			block->icons = icon->next;
 
-		while (block->actions != NULL) {
-			action = block->actions;
-			block->actions = action->next_window_action;
-			free(action);
+			while (icon->actions != NULL) {
+				action = icon->actions;
+				icon->actions = action->next;
+				free(action);
+			}
+
+			free(icon);
 		}
 
 		/* Delete the window itself. */
@@ -759,6 +844,7 @@ void event_delete_window(wimp_w w)
 		free(block);
 	}
 }
+
 
 /**
  * Find the window data block for the given window.
@@ -783,7 +869,7 @@ static struct event_window *event_find_window(wimp_w w)
 
 
 /**
- * Create a new window data block for the given window.
+ * Return the window data block for the given window, creating one first if required.
  *
  * \param  w		The window handle to create a new structure for.
  * \return		A pointer to the window structure, or NULL.
@@ -828,7 +914,6 @@ static struct event_window *event_create_window(wimp_w w)
 
 		block->data = NULL;
 
-		block->actions = NULL;
 		block->icons = NULL;
 
 		block->next = event_window_list;
@@ -836,6 +921,110 @@ static struct event_window *event_create_window(wimp_w w)
 	}
 
 	return block;
+}
+
+
+/**
+ * Remove an icon and its associated event details from the records.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+void event_delete_icon(wimp_w w, wimp_i i)
+{
+	struct event_window		*window;
+	struct event_icon		*icon, **parent;
+	struct event_icon_action	*action;
+
+	window = event_find_window(w);
+
+	if (window == NULL)
+		return;
+
+	icon = event_find_icon(window, i);
+
+	if (icon != NULL) {
+		/* Delete all linked action definitions. */
+
+		while (icon->actions != NULL) {
+			action = icon->actions;
+			icon->actions = action->next;
+			free(action);
+		}
+
+		/* Delete the icon itself. */
+
+		parent = &window->icons;
+
+		while (*parent != NULL && *parent != icon)
+				parent = &((*parent)->next);
+
+		assert(*parent != NULL);
+
+		*parent = icon->next;
+
+		free(icon);
+	}
+}
+
+
+/**
+ * Find the icon data block for the given icon in the specified window.
+ *
+ * \param *window	The window structure to find the icon structure for.
+ * \param i		The icon to find the structure for.
+ * \return		A pointer to the icon structure, or NULL.
+ */
+
+static struct event_icon *event_find_icon(struct event_window *window, wimp_i i)
+{
+	struct event_icon	*block = NULL;
+
+	if (window != NULL && i >= 0) {
+		block = window->icons;
+
+		while (block != NULL && block->i != i)
+			block = block->next;
+	}
+
+	return block;
+}
+
+
+/**
+ * Return the icon data block for the given window and icon, creating it first
+ * if required.
+ *
+ * \param *window	The window structure to find the icon structure for.
+ * \param i		The icon to find the structure for.
+ * \return		A pointer to the icon structure, or NULL.
+ */
+
+static struct event_icon *event_create_icon(struct event_window *window, wimp_i i)
+{
+	struct event_icon	*block;
+
+	if (window == NULL)
+		return NULL;
+
+	block = event_find_icon(window, i);
+
+	if (block != NULL)
+		return block;
+
+	block = (struct event_icon *) malloc(sizeof(struct event_icon));
+
+	if (block != NULL) {
+		block->i = i;
+
+		block->actions = NULL;
+
+		block->next = window->icons;
+		window->icons = block;
+	}
+
+	return block;
+
 }
 
 

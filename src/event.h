@@ -205,6 +205,18 @@ osbool event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_m
 
 
 /**
+ * Add an icon click handler for the specified window and icon.
+ *
+ * \param w		The window handle to attach the action to.
+ * \param i		The icon handle to attach the action to.
+ * \param *callback()	The callback to use when the icon is clicked.
+ * \return		TRUE if the handler was registered; else FALSE.
+ */
+
+osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_pointer *pointer));
+
+
+/**
  * Add a user data pointer for the specified window.
  *
  * \param  w		The window handle to attach the data to.
@@ -232,6 +244,16 @@ void *event_get_window_user_data(wimp_w w);
  */
 
 void event_delete_window(wimp_w w);
+
+
+/**
+ * Remove an icon and its associated event details from the records.
+ *
+ * \param  w		The window containing the icon.
+ * \param  i		The icon to remove the data for.
+ */
+
+void event_delete_icon(wimp_w w, wimp_i i);
 
 
 /**
