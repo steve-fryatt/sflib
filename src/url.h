@@ -1,4 +1,7 @@
-/* SF-Lib - URL.h
+/**
+ * \file: url.h
+ *
+ * SF-Lib - URL Dispatch System.
  *
  * Version 0.15 (15 June 2003)
  */

@@ -1,4 +1,7 @@
-/* SF-Lib - Event.h
+/**
+ * \file event.h
+ *
+ * SFLib - Simple event-based Wimp_Poll dispatch system.
  *
  * Version 0.10 (3 May 2010)
  */

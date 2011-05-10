@@ -1,4 +1,7 @@
-/* SF-Lib - URL.c
+/**
+ * \file: url.c
+ *
+ * SF-Lib - URL Dispatch System.
  *
  * Version 0.10 (22 June 2003)
  * Based on Nettle sources, but OSLib-ified.
@@ -37,8 +40,7 @@ static osbool		url_acornlaunch(const char *url);
 static osbool		url_bounce(wimp_message *mess);
 
 
-/**
- * Initialise the URL library, registering the necessary message handlers.
+/* Initialise the URL library, registering the necessary message handlers.
  *
  * This function is an external interface, documented in url.h.
  */
@@ -57,8 +59,7 @@ osbool url_initialise(void)
 }
 
 
-/**
- * Attempt to launch a URL.
+/* Attempt to launch a URL.
  *
  * This function is an external interface, documented in url.h.
  */

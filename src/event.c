@@ -121,8 +121,7 @@ static struct event_icon *event_find_icon(struct event_window *window, wimp_i i)
 static struct event_icon *event_create_icon(struct event_window *window, wimp_i i);
 static struct event_message *event_find_message(int message);
 
-/**
- * Accept and process a wimp event.
+/* Accept and process a wimp event.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -433,8 +432,7 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 }
 
 
-/**
- * Add a window redraw event handler for the specified window.
+/* Add a window redraw event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -452,8 +450,7 @@ osbool event_add_window_redraw_event(wimp_w w, void (*callback)(wimp_draw *draw)
 }
 
 
-/**
- * Add a window open event handler for the specified window.
+/* Add a window open event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -471,8 +468,7 @@ osbool event_add_window_open_event(wimp_w w, void (*callback)(wimp_open *open))
 }
 
 
-/**
- * Add a window close event handler for the specified window.
+/* Add a window close event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -490,8 +486,7 @@ osbool event_add_window_close_event(wimp_w w, void (*callback)(wimp_close *close
 }
 
 
-/**
- * Add a pointer leaving event handler for the specified window.
+/* Add a pointer leaving event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -509,8 +504,7 @@ osbool event_add_window_pointer_leaving_event(wimp_w w, void (*callback)(wimp_le
 }
 
 
-/**
- * Add a pointer entering event handler for the specified window.
+/* Add a pointer entering event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -528,8 +522,7 @@ osbool event_add_window_pointer_entering_event(wimp_w w, void (*callback)(wimp_e
 }
 
 
-/**
- * Add a mouse click (pointer) event handler for the specified window.
+/* Add a mouse click (pointer) event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -547,8 +540,7 @@ osbool event_add_window_mouse_event(wimp_w w, void (*callback)(wimp_pointer *poi
 }
 
 
-/**
- * Add a keypress event handler for the specified window.
+/* Add a keypress event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -566,8 +558,7 @@ osbool event_add_window_key_event(wimp_w w, void (*callback)(wimp_key *key))
 }
 
 
-/**
- * Add a scroll event handler for the specified window.
+/* Add a scroll event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -585,8 +576,7 @@ osbool event_add_window_scroll_event(wimp_w w, void (*callback)(wimp_scroll *scr
 }
 
 
-/**
- * Add a lose caret event handler for the specified window.
+/* Add a lose caret event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -604,8 +594,7 @@ osbool event_add_window_lose_caret_event(wimp_w w, void (*callback)(wimp_caret *
 }
 
 
-/**
- * Add a gain caret event handler for the specified window.
+/* Add a gain caret event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -623,8 +612,7 @@ osbool event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *
 }
 
 
-/**
- * Register a menu to the specified window: this will then be opened whenever
+/* Register a menu to the specified window: this will then be opened whenever
  * there is a menu click within the work area (even over icons).
  *
  * This function is an external interface, documented in event.h.
@@ -645,8 +633,7 @@ osbool event_add_window_menu(wimp_w w, wimp_menu *menu, osbool iconbar)
 }
 
 
-/**
- * Add a menu prepare event handler for the specified window.
+/* Add a menu prepare event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -664,8 +651,7 @@ osbool event_add_window_menu_prepare(wimp_w w, void (*callback)(wimp_w w, wimp_m
 }
 
 
-/**
- * Add a menu selection event handler for the specified window.
+/* Add a menu selection event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -683,8 +669,7 @@ osbool event_add_window_menu_selection(wimp_w w, void (*callback)(wimp_w w, wimp
 }
 
 
-/**
- * Add a menu close event handler for the specified window.
+/* Add a menu close event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -702,8 +687,7 @@ osbool event_add_window_menu_close(wimp_w w, void (*callback)(wimp_w w, wimp_men
 }
 
 
-/**
- * Add a menu warning event handler for the specified window.
+/* Add a menu warning event handler for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -721,8 +705,7 @@ osbool event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_m
 }
 
 
-/**
- * Add an icon click handler for the specified window and icon.
+/* Add an icon click handler for the specified window and icon.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -760,8 +743,7 @@ osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_p
 
 
 
-/**
- * Add a user data pointer for the specified window.
+/* Add a user data pointer for the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -779,8 +761,7 @@ osbool event_add_window_user_data(wimp_w w, void *data)
 }
 
 
-/**
- * Return the user data block associated with the specified window.
+/* Return the user data block associated with the specified window.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -798,8 +779,7 @@ void *event_get_window_user_data(wimp_w w)
 }
 
 
-/**
- * Remove a window and its associated event details from the records.
+/* Remove a window and its associated event details from the records.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -924,8 +904,7 @@ static struct event_window *event_create_window(wimp_w w)
 }
 
 
-/**
- * Remove an icon and its associated event details from the records.
+/* Remove an icon and its associated event details from the records.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -1028,8 +1007,7 @@ static struct event_icon *event_create_icon(struct event_window *window, wimp_i 
 }
 
 
-/**
- * Add a message handler for the given user message.
+/* Add a message handler for the given user message.
  *
  * This function is an external interface, documented in event.h.
  */
@@ -1088,8 +1066,7 @@ static struct event_message *event_find_message(int message)
 }
 
 
-/**
- * Set a handler for the next drag box event and any Null Polls in between.
+/* Set a handler for the next drag box event and any Null Polls in between.
  * If either handler is NULL it will not be called; both will be cancelled on
  * the next User_Drag_Box event to be received.
  *
@@ -1106,8 +1083,7 @@ osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data
 }
 
 
-/**
- * Set a variable to store a pointer to the currently open menu block.
+/* Set a variable to store a pointer to the currently open menu block.
  *
  * This function is an external interface, documented in event.h.
  */

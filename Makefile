@@ -110,6 +110,9 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 
 # Build the documentation
 
+documentation:
+	doxygen $(MANUAL)/Doxyfile
+
 #documentation: $(OUTDIR)/$(README)
 #
 #$(OUTDIR)/$(README): $(MANUAL)/$(MANSRC)
