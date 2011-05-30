@@ -328,6 +328,8 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 		 * anything else can get at it.
 		 */
 
+		special = FALSE;
+
 		if (event != wimp_USER_MESSAGE_ACKNOWLEDGE) {
 			switch (block->message.action) {
 			case message_MENUS_DELETED:
