@@ -1,6 +1,14 @@
-/* SF-Lib - Config.c
+/**
+ * \file: config.c
  *
- * Version 0.10 (17 August 2003)
+ * SF-Lib - Config.c
+ *
+ * (C) Stephen Fryatt, 2003-2011
+ *
+ * RISC OS Application Configuration.  Support for storing named integer,
+ * string and boolean parameters: each having a default value and the ability
+ * to be updated and read as required.  Changed values can be saved to and
+ * loaded from a textual choices file in the standard locations.
  */
 
 /* Acorn C Header files. */
@@ -11,9 +19,6 @@
 #include "oslib/os.h"
 #include "oslib/osfile.h"
 #include "oslib/fileswitch.h"
-
-/* #include "oslib/wimp.h"
- * #include "oslib/messagetrans.h" */
 
 /* ANSII C header files. */
 
@@ -28,537 +33,648 @@
 #include "general.h"
 #include "string.h"
 
-/* #include "errors.h" */
 
-/* ================================================================================================================== */
+typedef struct config_opt {
+	char			name[sf_MAX_CONFIG_NAME];
+	osbool			value;
+	osbool			initial;
+
+	struct config_opt	*next;
+} config_opt;
+
+typedef struct config_int {
+	char			name[sf_MAX_CONFIG_NAME];
+	int			value;
+	int			initial;
+
+	struct config_int	*next;
+} config_int;
+
+typedef struct config_str {
+	char			name[sf_MAX_CONFIG_NAME];
+	char			value[sf_MAX_CONFIG_STR];
+	char			initial[sf_MAX_CONFIG_STR];
+
+	struct config_str	*next;
+} config_str;
+
+
 
 /* Global variables. */
 
-static config_opt *opt_list = NULL;
-static config_int *int_list = NULL;
-static config_str *str_list = NULL;
+static config_opt		*opt_list = NULL;
+static config_int		*int_list = NULL;
+static config_str		*str_list = NULL;
 
-static char *choices_dir, *local_dir, *application_name;
+static char			*choices_dir = NULL;
+static char			*local_dir = NULL;
+static char			*application_name = NULL;
 
-/* ================================================================================================================== */
 
-int initialise_configuration (char *app_name, char *c_dir, char *l_dir)
+
+static void config_find_load_file(char *file, size_t len, char *leaf);
+static void config_find_save_file(char *file, size_t len, char *leaf);
+
+
+/**
+ * Initialise the config module for the given application.
+ *
+ * \param *app_name		The name of the application.
+ * \param *c_dir		The name of the application's Choices: folder.
+ * \param *l_dir		The application's directory path.
+ * \return			TRUE if the system was initialised OK; else FALSE.
+ */
+
+osbool config_initialise(char *app_name, char *c_dir, char *l_dir)
 {
-  application_name = (char *) malloc (strlen (app_name) + 1);
-  strcpy (application_name, app_name);
+	application_name = (char *) malloc (strlen (app_name) + 1);
+	if (application_name == NULL)
+		return FALSE;
 
-  local_dir = (char *) malloc (strlen (l_dir) + 1);
-  strcpy (local_dir, l_dir);
+	strcpy (application_name, app_name);
 
-  choices_dir = (char *) malloc (strlen (c_dir) + 1);
-  strcpy (choices_dir, c_dir);
+	local_dir = (char *) malloc (strlen (l_dir) + 1);
+	if (local_dir == NULL)
+		return FALSE;
 
-  return 0;
+	strcpy (local_dir, l_dir);
+
+	choices_dir = (char *) malloc (strlen (c_dir) + 1);
+	if (choices_dir == NULL)
+		return FALSE;
+
+	strcpy (choices_dir, c_dir);
+
+	return TRUE;
 }
 
-/* ================================================================================================================== */
 
-static config_opt *find_config_opt (char *name)
+/**
+ * Find an opt-config block based on its name.
+ *
+ * \param *name		The name of the block to find.
+ * \return		Pointer to the block, or NULL if not found.
+ */
+
+static config_opt *config_find_opt(char *name)
 {
-  config_opt *block = opt_list;
+	config_opt	*block = opt_list;
 
 
-  while (block != NULL && (strcmp (block->name, name) != 0))
-  {
-    block = block->next;
-  }
+	while (block != NULL && (strcmp(block->name, name) != 0))
+		block = block->next;
 
-  return block;
+	return block;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int init_config_opt (char *name, int value)
+/**
+ * Create and initialise a boolean config value.
+ *
+ * \param *name		The name of the config value.
+ * \param value		The initial value to assign
+ * \return		TRUE if successful; else FALSE.
+ */
+
+int config_opt_init(char *name, osbool value)
 {
-  config_opt *new;
+	config_opt	*new;
 
+	if ((new = (config_opt *) malloc(sizeof (config_opt))) == NULL)
+		return FALSE;
 
-  if ((new = (config_opt *) malloc (sizeof (config_opt))) == NULL)
-  {
-    return -1;
-  }
+	strcpy(new->name, name);
+	new->initial = value;
+	new->value = value;
 
-  strcpy (new->name, name);
-  new->initial = value;
-  new->value = value;
+	new->next = opt_list;
+	opt_list = new;
 
-  new->next = opt_list;
-  opt_list = new;
-
-  return 0;
+	return TRUE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int set_config_opt (char *name, int value)
+/**
+ * Set a boolean config value.
+ *
+ * \param *name		The name of the config value to set.
+ * \param value		The new value to assign.
+ * \return		TRUE if successful; else FALSE.
+ */
+
+osbool config_opt_set(char *name, osbool value)
 {
-  config_opt *option;
+	config_opt	*option;
 
+	if ((option = config_find_opt(name)) == NULL)
+		return FALSE;
 
-  if ((option = find_config_opt (name)) == NULL)
-  {
-    return -1;
-  }
+	option->value = value;
 
-  option->value = value;
-
-  return 0;
+	return TRUE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int read_config_opt (char *name)
+/**
+ * Read a boolean config value.
+ *
+ * \param *name		The name of the config value to read.
+ * \return		The value, or FALSE if not found.
+ */
+
+osbool read_config_opt(char *name)
 {
-  config_opt *option;
+	config_opt	*option;
 
+	if ((option = config_find_opt(name)) == NULL)
+		return FALSE;
 
-  if ((option = find_config_opt (name)) == NULL)
-  {
-    return 0;
-  }
-
-  return option->value;
+	return option->value;
 }
 
-/* ================================================================================================================== */
 
-static config_int *find_config_int (char *name)
+/**
+ * Find an int-config block based on its name.
+ *
+ * \param *name		The name of the block to find.
+ * \return		Pointer to the block, or NULL if not found.
+ */
+
+static config_int *config_find_int(char *name)
 {
-  config_int *block = int_list;
+	config_int	*block = int_list;
 
 
-  while (block != NULL && (strcmp (block->name, name) != 0))
-  {
-    block = block->next;
-  }
+	while (block != NULL && (strcmp(block->name, name) != 0))
+		block = block->next;
 
-  return block;
+	return block;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int init_config_int (char *name, int value)
+/**
+ * Create and initialise an integer config value.
+ *
+ * \param *name		The name of the config value.
+ * \param value		The initial value to assign
+ * \return		TRUE if successful; else FALSE.
+ */
+
+osbool config_int_init(char *name, int value)
 {
-  config_int *new;
+	config_int	*new;
 
+	if ((new = (config_int *) malloc(sizeof (config_int))) == NULL)
+		return FALSE;
 
-  if ((new = (config_int *) malloc (sizeof (config_int))) == NULL)
-  {
-    return -1;
-  }
+	strcpy(new->name, name);
+	new->initial = value;
+	new->value = value;
 
-  strcpy (new->name, name);
-  new->initial = value;
-  new->value = value;
+	new->next = int_list;
+	int_list = new;
 
-  new->next = int_list;
-  int_list = new;
-
-  return 0;
+	return TRUE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int set_config_int (char *name, int value)
+/**
+ * Set an integer config value.
+ *
+ * \param *name		The name of the config value to set.
+ * \param value		The new value to assign.
+ * \return		TRUE if successful; else FALSE.
+ */
+
+osbool config_int_set(char *name, int value)
 {
-  config_int *option;
+	config_int	*option;
 
+	if ((option = config_find_int(name)) == NULL)
+		return FALSE;
 
-  if ((option = find_config_int (name)) == NULL)
-  {
-    return -1;
-  }
+	option->value = value;
 
-  option->value = value;
-
-  return 0;
+	return TRUE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int read_config_int (char *name)
+/**
+ * Read an integer config value.
+ *
+ * \param *name		The name of the config value to read.
+ * \return		The value, or 0 if not found.
+ */
+
+int config_int_read(char *name)
 {
-  config_int *option;
+	config_int	*option;
 
+	if ((option = config_find_int(name)) == NULL)
+		return 0;
 
-  if ((option = find_config_int (name)) == NULL)
-  {
-    return 0;
-  }
-
-  return option->value;
+	return option->value;
 }
 
-/* ================================================================================================================== */
 
-static config_str *find_config_str (char *name)
+/**
+ * Find an str-config block based on its name.
+ *
+ * \param *name		The name of the block to find.
+ * \return		Pointer to the block, or NULL if not found.
+ */
+
+static config_str *config_find_str(char *name)
 {
-  config_str *block = str_list;
+	config_str	*block = str_list;
 
 
-  while (block != NULL && (strcmp (block->name, name) != 0))
-  {
-    block = block->next;
-  }
+	while (block != NULL && (strcmp(block->name, name) != 0))
+		block = block->next;
 
-  return block;
+	return block;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int init_config_str (char *name, char *value)
+/**
+ * Create and initialise a string config value.
+ *
+ * \param *name		The name of the config value.
+ * \param *value	The initial value to assign
+ * \return		TRUE if successful; else FALSE.
+ */
+
+osbool config_str_init(char *name, char *value)
 {
-  config_str *new;
+	config_str	*new;
 
+	if ((new = (config_str *) malloc(sizeof (config_str))) == NULL)
+		return FALSE;
 
-  if ((new = (config_str *) malloc (sizeof (config_str))) == NULL)
-  {
-    return -1;
-  }
+	strcpy(new->name, name);
+	strcpy(new->initial, value);
+	strcpy(new->value, value);
 
-  strcpy (new->name, name);
-  strcpy (new->initial, value);
-  strcpy (new->value, value);
+	new->next = str_list;
+	str_list = new;
 
-  new->next = str_list;
-  str_list = new;
-
-  return 0;
+	return TRUE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int set_config_str (char *name, char *value)
+/**
+ * Set a string config value.
+ *
+ * \param *name		The name of the config value to set.
+ * \param *value	The new value to assign.
+ * \return		TRUE if successful; else FALSE.
+ */
+
+osbool config_str_set(char *name, char *value)
 {
-  config_str *option;
+	config_str *option;
 
+	if ((option = config_find_str(name)) == NULL)
+		return FALSE;
 
-  if ((option = find_config_str (name)) == NULL)
-  {
-    return -1;
-  }
+	strcpy(option->value, value);
 
-  strcpy (option->value, value);
-
-  return 0;
+	return TRUE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-char *read_config_str (char *name)
+/**
+ * Read a string config value.
+ *
+ * \param *name		The name of the config value to read.
+ * \return		Pointer to the value, or to "" if not found.
+ */
+
+char *config_str_read(char *name)
 {
-  config_str *option;
+	config_str *option;
 
 
-  if ((option = find_config_str (name)) == NULL)
-  {
-    return "";
-  }
+	if ((option = config_find_str(name)) == NULL)
+		return "";
 
-  return option->value;
+	return option->value;
 }
 
-/* ================================================================================================================== */
 
-void find_config_load_file (char *file, size_t len, char *leaf)
+/**
+ * Get a filename for the file to load the choices settings from.  The global
+ * Choices: paths are tried first; fall back to the application folder.
+ *
+ * \param *file			A buffer to hold a full pathname.
+ * \param len			The size of the buffer.
+ * \param *leaf			The leaf file name to use.
+ */
+
+static void config_find_load_file(char *file, size_t len, char *leaf)
 {
-  snprintf (file, len, "Choices:%s.%s", choices_dir, leaf);
+	snprintf(file, len, "Choices:%s.%s", choices_dir, leaf);
 
-  if (osfile_read_no_path (file, NULL, NULL, NULL, NULL) != fileswitch_IS_FILE)
-  {
-    snprintf (file, len, "%s.%s", local_dir, leaf);
-    if (osfile_read_no_path (file, NULL, NULL, NULL, NULL) != fileswitch_IS_FILE)
-    {
-      *file = '\0';
-    }
-  }
+	if (osfile_read_no_path(file, NULL, NULL, NULL, NULL) != fileswitch_IS_FILE) {
+		snprintf(file, len, "%s.%s", local_dir, leaf);
+		if (osfile_read_no_path (file, NULL, NULL, NULL, NULL) != fileswitch_IS_FILE)
+			*file = '\0';
+	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-void find_config_save_file (char *file, size_t len, char *leaf)
+/**
+ * Get a filename for the file to save the choices settings to.  <Choices$Write>
+ * is tried first; if this fails the application folder is used.
+ *
+ * \param *file			A buffer to hold a full pathname.
+ * \param len			The size of the buffer.
+ * \param *leaf			The leaf file name to use.
+ */
+
+static void config_find_save_file(char *file, size_t len, char *leaf)
 {
-  int        var_len;
+	int		var_len;
 
+	*file = '\0';
 
-  *file = '\0';
+	os_read_var_val_size("Choices$Write", 0, os_VARTYPE_STRING, &var_len, NULL);
 
-  os_read_var_val_size ("Choices$Write", 0, os_VARTYPE_STRING, &var_len, NULL);
-  if (var_len == 0)
-  {
-    snprintf (file, len, "%s.%s", local_dir, leaf);
-  }
-  else
-  {
-    snprintf (file, len, "<Choices$Write>.%s", choices_dir);
-    if (osfile_read_no_path (file, NULL, NULL, NULL, NULL) == fileswitch_NOT_FOUND)
-    {
-      osfile_create_dir (file, 0);
-    }
+	if (var_len == 0) {
+		snprintf(file, len, "%s.%s", local_dir, leaf);
+	} else {
+		snprintf(file, len, "<Choices$Write>.%s", choices_dir);
+		if (osfile_read_no_path(file, NULL, NULL, NULL, NULL) == fileswitch_NOT_FOUND)
+			osfile_create_dir(file, 0);
 
-    snprintf (file, len, "<Choices$Write>.%s.%s", choices_dir, leaf);
-  }
+		snprintf(file, len, "<Choices$Write>.%s.%s", choices_dir, leaf);
+	}
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int read_config_token_pair (FILE *file, char *token, char *value, char *section)
+/**
+ * Load the currently saved configuration into memory, overriding any settings
+ * currently stored in memory.
+ *
+ * \return		TRUE if successful; else FALSE.
+ */
+
+osbool config_load(void)
 {
-  char line[1024], *stripped_line, *a, *b;
-  int  result = sf_READ_CONFIG_EOF,
-       read = 0;
+	char		file[1024], token[1024], contents[1024];
+	FILE		*in;
 
 
-  while (!read && (fgets (line, sizeof (line), file) != NULL))
-  {
-    if (*line != '#')
-    {
-      stripped_line = strip_surrounding_whitespace (line);
+	/* Find the options.  First try the Choices: file then the one in the application. */
 
-      if (wildcard_strcmp ("[*]", stripped_line, 1))
-      {
-        *strrchr (stripped_line, ']') = '\0';
-        if (section != NULL)
-        {
-          strcpy (section, stripped_line + 1);
-        }
-        result = sf_READ_CONFIG_NEW_SECTION;
-      }
-      else
-      {
-        a = NULL;
-        b = strchr (stripped_line, ':');
+	config_find_load_file(file, sizeof(file), "Choices");
 
-        if (b != NULL)
-        {
-          a = stripped_line;
+	if (file == NULL || *file == '\0')
+		return FALSE;
 
-          *b = '\0';
-          b += 1;
+	/* If a config file was found, use it. */
 
-          if (token != NULL)
-          {
-            strcpy (token, a);
-          }
+	in = fopen(file, "r");
 
-          if (value != NULL)
-          {
-            /* Remove external whitespace and enclosing quotes if presnt. */
+	if (in == NULL)
+		return FALSE;
 
-            b = strip_surrounding_whitespace (b);
+	while (config_read_token_pair(in, token, contents, NULL) != sf_READ_CONFIG_EOF) {
+		/* If the token can be matched to a current setting, save it. */
 
-            if (*b == '"' && *(strchr(b, '\0')-1) == '"')
-            {
-              b++;
-              *(strchr(b, '\0')-1) = '\0';
-            }
+		if (config_find_opt(token) != NULL)
+			config_opt_set(token, config_read_opt_string(contents));
+		else if (config_find_int(token) != NULL)
+			config_int_set(token, atoi (contents));
+		else if (config_find_str(token) != NULL)
+			config_str_set(token, contents);
+	}
 
-            strcpy (value, b);
-          }
+	fclose(in);
 
-          if (result != sf_READ_CONFIG_NEW_SECTION)
-          {
-            result = sf_READ_CONFIG_VALUE_RETURNED;
-          }
-
-          read = 1;
-        }
-        else
-        {
-          if (token != NULL)
-          {
-            *token = '\0';
-          }
-
-          if (value != NULL)
-          {
-            *value = '\0';
-          }
-        }
-      }
-    }
-  }
-
-
-  return (result);
+	return TRUE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int write_config_token_pair (FILE *file, char *token, char *value)
+/**
+ * Save the current configuration from memory into the applicable Choices
+ * file, recording only those values which differ from the defaults.
+ *
+ * \return		TRUE if successful; else FALSE.
+ */
+
+osbool config_save(void)
 {
-  int result;
+	char		file[1024];
+	FILE		*out;
+	config_opt	*opt_block;
+	config_int	*int_block;
+	config_str	*str_block;
 
-  if (isspace (*value) || isspace (*(strchr(value, '\0')-1)))
-  {
-    result = fprintf (file, "%s: \"%s\"\n", token, value);
-  }
-  else
-  {
-    result = fprintf (file, "%s: %s\n", token, value);
-  }
 
-  return (result);
+	config_find_save_file(file, sizeof(file), "Choices");
+
+	if (file == NULL || *file == '\0')
+		return FALSE;
+
+	out = fopen(file, "w");
+
+	if (out == NULL)
+		return FALSE;
+
+	fprintf(out, "# >Choices for %s\n\n", application_name);
+
+	/* Do the opt configs */
+
+	opt_block = opt_list;
+
+	while (opt_block != NULL) {
+		if (opt_block->value != opt_block->initial)
+			fprintf(out, "%s: %s\n", opt_block->name, config_return_opt_string(opt_block->value));
+
+		opt_block = opt_block->next;
+	}
+
+	/* Do the int configs */
+
+	int_block = int_list;
+
+	while (int_block != NULL) {
+		if (int_block->value != int_block->initial)
+			fprintf(out, "%s: %d\n", int_block->name, int_block->value);
+
+		int_block = int_block->next;
+	}
+
+	/* Do the str configs */
+
+	str_block = str_list;
+
+	while (str_block != NULL) {
+		if (strcmp(str_block->value, str_block->initial) != 0)
+			fprintf(out, "%s: \"%s\"\n", str_block->name, str_block->value);
+
+		str_block = str_block->next;
+	}
+
+	fclose(out);
+
+	return TRUE;
 }
 
-/* ================================================================================================================== */
 
-int load_configuration (void)
+/**
+ * Restore the default configuration settings.
+ *
+ * ** Currently Not Implemented **
+ *
+ * \return			TRUE if successful; else FALSE.
+ */
+
+osbool config_restore_default(void)
 {
-  char       file[1024], token[1024], contents[1024];
-  FILE       *in;
-
-
-  /* Find the options.  First try the Choices: file then the one in the application. */
-
-  find_config_load_file (file, sizeof(file), "Choices");
-
-  /* If a config file was found, use it. */
-
-  if (*file != '\0')
-  {
-    in = fopen (file, "r");
-
-    if (in != NULL)
-    {
-      while (read_config_token_pair (in, token, contents, NULL) != sf_READ_CONFIG_EOF)
-      {
-        /* Check if it's a option config... */
-
-        if (find_config_opt (token) != NULL)
-        {
-          set_config_opt (token, read_opt_string (contents));
-        }
-
-        /* Check if it's an int config... */
-
-        else if (find_config_int (token) != NULL)
-        {
-          set_config_int (token, atoi (contents));
-        }
-
-        /* Check if it's an str config... */
-
-        else if (find_config_str (token) != NULL)
-        {
-          set_config_str (token, contents);
-        }
-      }
-
-      fclose (in);
-    }
-  }
-
-  return 0;
+	return FALSE;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int save_configuration (void)
+/**
+ * Process lines from a file, until a valid token/value pair is found or EOF is
+ * reached.  Return values for the token and value in *token and *value; if a new
+ * section is encountered, return that in *section.
+ *
+ * Result code is: sf_READ_CONFIG_EOF, sf_READ_CONFIG_NEW_SECTION or
+ * sf_READ_CONFIG_VALUE_RETURNED.  New sections are returned with the first
+ * token in the section.
+ *
+ * No buffer overrun protection is performed.  Ensure *token, *value and *section
+ * are large enough.
+ *
+ * \param *file		The file to read from.
+ * \param *token	Pointer to buffer to hold a token name.
+ * \param *value	Pointer to buffer to hold a token value.
+ * \param *section	Pointer to buffer to hold a section name.
+ * \return		Result code.
+ */
+
+int config_read_token_pair(FILE *file, char *token, char *value, char *section)
 {
-  char       file[1024];
-  FILE       *out;
-
-  config_opt *opt_block;
-  config_int *int_block;
-  config_str *str_block;
+	char		line[1024], *stripped_line, *a, *b;
+	int		result = sf_READ_CONFIG_EOF;
+	osbool		read = FALSE;
 
 
-  find_config_save_file (file, sizeof(file), "Choices");
+	if (file == NULL)
+		return result;
 
-  if (*file != '\0')
-  {
-    out = fopen (file, "w");
+	while (!read && (fgets(line, sizeof(line), file) != NULL)) {
+		if (*line != '#') {
+			stripped_line = strip_surrounding_whitespace(line);
 
-    if (out != NULL)
-    {
-      fprintf (out, "# >Choices for %s\n\n", application_name);
+			if (wildcard_strcmp("[*]", stripped_line, 1)) {
+				*strrchr(stripped_line, ']') = '\0';
+				if (section != NULL)
+					strcpy(section, stripped_line + 1);
+				result = sf_READ_CONFIG_NEW_SECTION;
+			} else {
+				a = NULL;
+				b = strchr(stripped_line, ':');
 
-      /* Do the opt configs */
+				if (b != NULL) {
+					a = stripped_line;
+					*b++ = '\0';
 
-      opt_block = opt_list;
+					if (token != NULL)
+						strcpy(token, a);
 
-      while (opt_block != NULL)
-      {
-        if (opt_block->value != opt_block->initial)
-        {
-          fprintf (out, "%s: %s\n", opt_block->name, return_opt_string (opt_block->value));
-        }
+					if (value != NULL) {
+						/* Remove external whitespace and enclosing quotes if presnt. */
 
-        opt_block = opt_block->next;
-      }
+						b = strip_surrounding_whitespace(b);
 
-      /* Do the int configs */
+						if (*b == '"' && *(strchr(b, '\0')-1) == '"') {
+							b++;
+							*(strchr(b, '\0')-1) = '\0';
+						}
 
-      int_block = int_list;
+						strcpy(value, b);
+					}
 
-      while (int_block != NULL)
-      {
-        if (int_block->value != int_block->initial)
-        {
-          fprintf (out, "%s: %d\n", int_block->name, int_block->value);
-        }
+					if (result != sf_READ_CONFIG_NEW_SECTION)
+						result = sf_READ_CONFIG_VALUE_RETURNED;
 
-        int_block = int_block->next;
-      }
+					read = TRUE;
+				} else {
+					if (token != NULL)
+						*token = '\0';
 
-      /* Do the str configs */
+					if (value != NULL)
+						*value = '\0';
+				}
+			}
+		}
+	}
 
-      str_block = str_list;
-
-      while (str_block != NULL)
-      {
-        if (strcmp (str_block->value, str_block->initial) != 0)
-        {
-          fprintf (out, "%s: \"%s\"\n", str_block->name, str_block->value);
-        }
-
-        str_block = str_block->next;
-      }
-
-      /* Do the rest... */
-
-      fclose (out);
-    }
-  }
-
-  return 0;
+	return result;
 }
 
-/* ================================================================================================================== */
 
-int restore_default_configuration (void)
+/**
+ * Write a token/value pair to file, enclosing parameters that contain
+ * leading or trailing whitespace in quotes.
+ *
+ * \param *file			The file handle to write to.
+ * \param *token		Pointer to a string containing the token.
+ * \param *value		Pointer to a string containing a representation of the value.
+ * \return			The number of bytes written, or negative for an error.
+ */
+
+int config_write_token_pair(FILE *file, char *token, char *value)
 {
-  return 0;
+	int	result = -1;
+
+	if (file == NULL)
+		return result;
+
+	if (isspace(*value) || isspace(*(strchr(value, '\0')-1)))
+		result = fprintf(file, "%s: \"%s\"\n", token, value);
+	else
+		result = fprintf(file, "%s: %s\n", token, value);
+
+	return result;
 }
 
-/* ================================================================================================================== */
 
-char *return_opt_string (int opt)
+/**
+ * Return a pointer to a string representing the supplied boolean value.
+ *
+ * \param opt		The boolean value to return a string for.
+ * \return		Pointer to a string representing the value ("Yes" or "No").
+ */
+
+char *config_return_opt_string(osbool opt)
 {
-  if (opt)
-  {
-    return ("Yes");
-  }
-  else
-  {
-    return ("No");
-  }
+	if (opt == TRUE)
+		return ("Yes");
+	else
+		return ("No");
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int read_opt_string (char *str)
+/**
+ * Test a string and return TRUE or FALSE depending on whether it is "Yes"
+ * or "No".
+ *
+ * \param *str		The string to be tested.
+ * \return		TRUE if the string is "Yes" or "True"; else FALSE.
+ */
+
+osbool config_read_opt_string(char *str)
 {
-  char line[256];
+	char		line[256];
 
-  strcpy (line, str);
-  convert_string_tolower (line);
+	strcpy(line, str);
+	convert_string_tolower(line);
 
-  return (strcmp (line, "yes") == 0);
+	return (strcmp(line, "yes") == 0 || strcmp(line, "true")) ? TRUE : FALSE;
 }
+
