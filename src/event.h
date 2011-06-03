@@ -108,7 +108,7 @@ osbool event_add_window_mouse_event(wimp_w w, void (*callback)(wimp_pointer *poi
  * \return		TRUE if the handler was registered; else FALSE.
  */
 
-osbool event_add_window_key_event(wimp_w w, void (*callback)(wimp_key *key));
+osbool event_add_window_key_event(wimp_w w, osbool (*callback)(wimp_key *key));
 
 
 /**

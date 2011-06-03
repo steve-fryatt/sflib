@@ -60,7 +60,7 @@ struct event_window {
 	void				(*leaving)(wimp_leaving *leaving);
 	void				(*entering)(wimp_entering *entering);
 	void				(*pointer)(wimp_pointer *pointer);
-	void				(*key)(wimp_key *key);
+	osbool				(*key)(wimp_key *key);
 	void				(*scroll)(wimp_scroll *scroll);
 	void				(*lose_caret)(wimp_caret *caret);
 	void				(*gain_caret)(wimp_caret *caret);
@@ -260,7 +260,8 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 			win = event_find_window(block->key.w);
 
 			if (win != NULL && win->key != NULL) {
-				(win->key)((wimp_key *) block);
+				if (!(win->key)((wimp_key *) block))
+					wimp_process_key(block->key.c);
 				return TRUE;
 			}
 		}
@@ -547,7 +548,7 @@ osbool event_add_window_mouse_event(wimp_w w, void (*callback)(wimp_pointer *poi
  * This function is an external interface, documented in event.h.
  */
 
-osbool event_add_window_key_event(wimp_w w, void (*callback)(wimp_key *key))
+osbool event_add_window_key_event(wimp_w w, osbool (*callback)(wimp_key *key))
 {
 	struct event_window	*block;
 
