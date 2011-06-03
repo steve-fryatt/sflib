@@ -3,8 +3,7 @@
  *
  * SF-Lib - URL Dispatch System.
  *
- * Version 0.10 (22 June 2003)
- * Based on Nettle sources, but OSLib-ified.
+ * * (C) Stephen Fryatt, 2003-2011
  *
  * The following steps are taken in a url broadcast:
  *  1) Try ANT broadcast

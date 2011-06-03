@@ -3,7 +3,7 @@
  *
  * SFLib - Simple event-based Wimp_Poll dispatch system.
  *
- * Version 0.10 (3 May 2010)
+ * (C) Stephen Fryatt, 2010-2011
  */
 
 /* OS-Lib header files. */

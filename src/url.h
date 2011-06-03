@@ -3,7 +3,7 @@
  *
  * SF-Lib - URL Dispatch System.
  *
- * Version 0.15 (15 June 2003)
+ * (C) Stephen Fryatt, 2003-2011
  */
 
 #ifndef SFLIB_URL
