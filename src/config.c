@@ -182,7 +182,7 @@ osbool config_opt_set(char *name, osbool value)
  * \return		The value, or FALSE if not found.
  */
 
-osbool read_config_opt(char *name)
+osbool config_opt_read(char *name)
 {
 	config_opt	*option;
 
