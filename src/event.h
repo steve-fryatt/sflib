@@ -219,6 +219,19 @@ osbool event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_m
 osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_pointer *pointer));
 
 
+/* Add a pop-up menu handler for the specified window and icon.
+ *
+ * \param w		The window handle to attach the action to.
+ * \param i		The icon handle to attach the action to.
+ * \param *menu		The menu to use for the popup.
+ * \param field		The display field icon for the popup (for an automatic
+ *			menu; -1 for a manual menu).
+ * \return		TRUE if the handler was registered; else FALSE.
+ */
+
+osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i field);
+
+
 /**
  * Add a user data pointer for the specified window.
  *

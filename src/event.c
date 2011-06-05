@@ -20,15 +20,28 @@
 #include <assert.h>
 #include <stdlib.h>
 
+enum event_menu_type {
+	EVENT_MENU_NONE = 0,
+	EVENT_MENU_WINDOW,
+	EVENT_MENU_POPUP_AUTO,
+	EVENT_MENU_POPUP_MANUAL
+};
 
 enum event_icon_type {
 	EVENT_ICON_NONE = 0,
 	EVENT_ICON_CLICK,
-	EVENT_ICON_RADIO
+	EVENT_ICON_RADIO,
+	EVENT_ICON_POPUP_AUTO,
+	EVENT_ICON_POPUP_MANUAL
 };
 
 struct event_icon_click {
-	osbool				(*callback)(wimp_pointer *pointer);
+	osbool				(*callback)(wimp_pointer *pointer);	/**< Callback function for the icon click.			*/
+};
+
+struct event_icon_popup {
+	wimp_menu			*menu;					/**< The menu associated with the popup.			*/
+	wimp_i				field;					/**< The display field icon attached to the popup menu.		*/
 };
 
 
@@ -37,6 +50,7 @@ struct event_icon_action {
 
 	union {
 		struct event_icon_click		click;
+		struct event_icon_popup		popup;
 	} data;
 
 	struct event_icon_action	*next;
@@ -100,9 +114,14 @@ struct event_message {
 
 static struct event_message	*event_message_list = NULL;
 static struct event_window	*event_window_list = NULL;
+
 static struct event_window	*current_menu = NULL;
+static enum event_menu_type	current_menu_type = EVENT_MENU_NONE;
+static struct event_icon	*current_menu_icon = NULL;
+static struct event_icon_action	*current_menu_action = NULL;
 
 static wimp_menu		**menu_handle = NULL;
+
 
 /* User Drag Event Data */
 
@@ -222,6 +241,9 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 					menu = create_standard_menu(win->menu, (wimp_pointer *) block);
 				}
 				current_menu = win;
+				current_menu_type = EVENT_MENU_WINDOW;
+				current_menu_icon = NULL;
+				current_menu_action = NULL;
 				if (menu_handle != NULL)
 					*menu_handle = menu;
 				return TRUE;
@@ -271,17 +293,42 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 		if (current_menu != NULL) {
 			wimp_get_pointer_info(&pointer);
 
-			if (current_menu->menu_selection != NULL)
-				(current_menu->menu_selection)(current_menu->w, current_menu->menu, (wimp_selection *) block);
+			menu = NULL;
+
+			switch (current_menu_type) {
+			case EVENT_MENU_WINDOW:
+				menu = current_menu->menu;
+				break;
+			case EVENT_MENU_POPUP_AUTO:
+			case EVENT_MENU_POPUP_MANUAL:
+				menu = current_menu_action->data.popup.menu;
+				break;
+			default:
+				/* Something's wrong: tidy up and get out. */
+				current_menu = NULL;
+				current_menu_type = EVENT_MENU_NONE;
+				current_menu_icon = NULL;
+				current_menu_action = NULL;
+				if (menu_handle != NULL)
+					*menu_handle = NULL;
+				return TRUE;
+				break;
+			}
+
+			if (current_menu->menu_selection != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
+				(current_menu->menu_selection)(current_menu->w, menu, (wimp_selection *) block);
 
 			if (pointer.buttons == wimp_CLICK_ADJUST) {
-				if (current_menu->menu_prepare != NULL)
-					(current_menu->menu_prepare)(current_menu->w, current_menu->menu, NULL);
-				wimp_create_menu(current_menu->menu, 0, 0);
+				if (current_menu->menu_prepare != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
+					(current_menu->menu_prepare)(current_menu->w, menu, NULL);
+				wimp_create_menu(menu, 0, 0);
 			} else {
-				if (current_menu->menu_close != NULL)
-					(current_menu->menu_close)(current_menu->w, current_menu->menu);
+				if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
+					(current_menu->menu_close)(current_menu->w, menu);
 				current_menu = NULL;
+				current_menu_type = EVENT_MENU_NONE;
+				current_menu_icon = NULL;
+				current_menu_action = NULL;
 				if (menu_handle != NULL)
 					*menu_handle = NULL;
 			}
@@ -335,9 +382,12 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 			switch (block->message.action) {
 			case message_MENUS_DELETED:
 				if (current_menu != NULL) {
-					if (current_menu->menu_close != NULL)
+					if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
 						(current_menu->menu_close)(current_menu->w, current_menu->menu);
 					current_menu = NULL;
+					current_menu_type = EVENT_MENU_NONE;
+					current_menu_icon = NULL;
+					current_menu_action = NULL;
 					if (menu_handle != NULL)
 						*menu_handle = NULL;
 					special = TRUE;
@@ -346,7 +396,7 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 
 			case message_MENU_WARNING:
 				if (current_menu != NULL) {
-					if (current_menu->menu_warning != NULL)
+					if (current_menu->menu_warning != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
 						(current_menu->menu_warning)(current_menu->w, current_menu->menu, (wimp_message_menu_warning *) &(block->message.data));
 					special = TRUE;
 				}
@@ -414,6 +464,7 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 {
 	struct event_icon_action	*action;
 	osbool				handled = TRUE;
+	wimp_menu			*menu;
 
 	action = icon->actions;
 
@@ -423,6 +474,19 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 			if (action->data.click.callback != NULL)
 				handled = action->data.click.callback(pointer);
 			break;
+
+		case EVENT_ICON_POPUP_MANUAL:
+			if (window->menu_prepare != NULL)
+				(window->menu_prepare)(window->w, action->data.popup.menu, pointer);
+			menu = create_popup_menu(action->data.popup.menu, pointer);
+
+			current_menu = window;
+			current_menu_type = EVENT_MENU_POPUP_MANUAL;
+			current_menu_icon = icon;
+			current_menu_action = action;
+			if (menu_handle != NULL)
+				*menu_handle = menu;
+			handled = TRUE;
 
 		default:
 			break;
@@ -737,6 +801,47 @@ osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_p
 	action->type = EVENT_ICON_CLICK;
 
 	action->data.click.callback = callback;
+
+	action->next = icon->actions;
+	icon->actions = action;
+
+	return TRUE;
+}
+
+
+/* Add a pop-up menu handler for the specified window and icon.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i field)
+{
+	struct event_window		*window;
+	struct event_icon		*icon;
+	struct event_icon_action	*action;
+
+	window = event_create_window(w);
+
+	if (window == NULL)
+		return FALSE;
+
+	icon = event_create_icon(window, i);
+
+	if (icon == NULL)
+		return FALSE;
+
+	action = malloc(sizeof(struct event_icon_action));
+
+	if (action == NULL)
+		return FALSE;
+
+	if (field == -1)
+		action->type = EVENT_ICON_POPUP_MANUAL;
+	else
+		action->type = EVENT_ICON_POPUP_AUTO;
+
+	action->data.popup.menu = menu;
+	action->data.popup.field = field;
 
 	action->next = icon->actions;
 	icon->actions = action;
