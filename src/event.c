@@ -121,6 +121,7 @@ static struct event_icon	*current_menu_icon = NULL;
 static struct event_icon_action	*current_menu_action = NULL;
 
 static wimp_menu		**menu_handle = NULL;
+static wimp_menu		*new_client_menu = NULL;			/**< Used for returning menu updates from callbacks. */
 
 
 /* User Drag Event Data */
@@ -225,8 +226,11 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 					&& win->menu != NULL) {
 				/* Process window menus on Menu clicks. */
 
+				new_client_menu = NULL;
 				if (win->menu_prepare != NULL)
 					(win->menu_prepare)(win->w, win->menu, (wimp_pointer *) block);
+				if (new_client_menu != NULL)
+					win->menu = new_client_menu;
 				if (win->menu_ibar) {
 					int entry = 0, entries = 0, lines = 0;
 
@@ -319,8 +323,24 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				(current_menu->menu_selection)(current_menu->w, menu, (wimp_selection *) block);
 
 			if (pointer.buttons == wimp_CLICK_ADJUST) {
+				new_client_menu = NULL;
 				if (current_menu->menu_prepare != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
 					(current_menu->menu_prepare)(current_menu->w, menu, NULL);
+				if (new_client_menu != NULL) {
+					menu = new_client_menu;
+					switch (current_menu_type) {
+					case EVENT_MENU_WINDOW:
+						current_menu->menu = menu;
+						break;
+					case EVENT_MENU_POPUP_MANUAL:
+						current_menu_action->data.popup.menu = menu;
+						break;
+					default:
+						break;
+					}
+					if (menu_handle != NULL)
+						*menu_handle = menu;
+				}
 				wimp_create_menu(menu, 0, 0);
 			} else {
 				if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
@@ -476,8 +496,11 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 			break;
 
 		case EVENT_ICON_POPUP_MANUAL:
+			new_client_menu = NULL;
 			if (window->menu_prepare != NULL)
 				(window->menu_prepare)(window->w, action->data.popup.menu, pointer);
+			if (new_client_menu != NULL)
+				action->data.popup.menu = new_client_menu;
 			menu = create_popup_menu(action->data.popup.menu, pointer);
 
 			current_menu = window;
@@ -1201,5 +1224,17 @@ osbool event_set_menu_pointer(wimp_menu **menu)
 	menu_handle = menu;
 
 	return TRUE;
+}
+
+
+/**
+ * Change the menu block associated with the current _menu_prepare() callback.
+ *
+ * \param *menu			The new menu block.
+ */
+
+void event_set_menu_block(wimp_menu *menu)
+{
+	new_client_menu = menu;
 }
 

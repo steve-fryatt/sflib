@@ -310,5 +310,14 @@ osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data
 
 osbool event_set_menu_pointer(wimp_menu **menu_handle);
 
+
+/**
+ * Change the menu block associated with the current _menu_prepare() callback.
+ *
+ * \param *menu			The new menu block.
+ */
+
+void event_set_menu_block(wimp_menu *menu);
+
 #endif
 
