@@ -327,21 +327,25 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				if (current_menu->menu_prepare != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
 					(current_menu->menu_prepare)(current_menu->w, menu, NULL);
 				if (new_client_menu != NULL) {
-					menu = new_client_menu;
 					switch (current_menu_type) {
 					case EVENT_MENU_WINDOW:
-						current_menu->menu = menu;
+						current_menu->menu = new_client_menu;
 						break;
 					case EVENT_MENU_POPUP_MANUAL:
-						current_menu_action->data.popup.menu = menu;
+						current_menu_action->data.popup.menu = new_client_menu;
 						break;
 					default:
+						new_client_menu = NULL;
 						break;
 					}
-					if (menu_handle != NULL)
-						*menu_handle = menu;
+					if (menu_handle != NULL && new_client_menu != NULL)
+						*menu_handle = new_client_menu;
 				}
-				wimp_create_menu(menu, 0, 0);
+				if (new_client_menu == NULL || menu == new_client_menu) {
+					if (new_client_menu != NULL)
+						menu = new_client_menu;
+					wimp_create_menu(menu, 0, 0);
+				}
 			} else {
 				if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
 					(current_menu->menu_close)(current_menu->w, menu);
