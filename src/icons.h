@@ -1,10 +1,16 @@
-/* SF-Lib - Icons.h
+/**
+ * \file: icons.h
  *
- * Version 0.10 (5 May 2003)
+ * SF-Lib - Icons.h
+ *
+ * (C) Stephen Fryatt, 2003-2011
+ *
+ * RISC OS Wimp Icon Support.  Support for manipulating icons and their
+ * contents.
  */
 
-#ifndef _SFLIB_ICONS
-#define _SFLIB_ICONS
+#ifndef SFLIB_ICONS
+#define SFLIB_ICONS
 
 #include <stddef.h>
 
@@ -17,8 +23,8 @@ size_t indirected_icon_length(wimp_w w, wimp_i i);
 
 int get_validation_command (char *buffer, wimp_w w, wimp_i i, char command);
 
-int icon_printf(wimp_w w, wimp_i i, char *cntrl_string, ...);
-char *icon_strncpy(wimp_w w, wimp_i i, char *s);
+int icons_printf(wimp_w w, wimp_i i, char *cntrl_string, ...);
+char *icons_strncpy(wimp_w w, wimp_i i, char *s);
 
 void set_icon_selected (wimp_w w, wimp_i i, int selected);
 void set_icon_shaded (wimp_w w, wimp_i i, int shaded);
@@ -43,3 +49,4 @@ void redraw_icons_in_window (wimp_w window, int icons, ...);
 void insert_text_into_icon (wimp_w w, wimp_i i, int index, char *text, int n);
 
 #endif
+

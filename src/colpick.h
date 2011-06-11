@@ -1,32 +1,57 @@
-/* SF-Lib - colpick.h
+/**
+ * \file: colpick.h
  *
- * Version 0.10 (19 October 2004)
+ * SF-Lib - Colpick.h
+ *
+ * (C) Stephen Fryatt, 2004-2011
+ *
+ * Simple Wimp colour selection support.
  */
 
-#ifndef _SFLIB_COLPICK
-#define _SFLIB_COLPICK
+#ifndef SFLIB_COLPICK
+#define SFLIB_COLPICK
 
-/* ================================================================================================================== */
+#include "oslib/wimp.h"
 
-void open_simple_colour_window (wimp_w w, wimp_i i);
 
-/* Register the opening of a simple colour picker window, by recording the window and icon number of the
- * parent icon.
+/**
+ * Initialise a colour picker window, supplying details of the parent window
+ * and icon which display the selected colour.  These will be updated if
+ * colpick_select_colour() is subsequently called.
  *
- * ------------------------------------------------------------------------------------------------------------------ */
-
-
-void select_simple_colour_window (int colour);
-
-/* Deal with a selection made from a simple colour window, by setting the parent icon to show the colour passed in.
+ * The specified icon *must* be indirected, with space for at least two
+ * digits plus terminator.
  *
- * ------------------------------------------------------------------------------------------------------------------ */
+ * \param w		The parent window.
+ * \param i		The parent icon, which will be updated on completion.
+ */
+
+void colpick_open_window(wimp_w w, wimp_i i);
 
 
-void set_colour_icon (wimp_w w, wimp_i i, int colour);
-
-/* Set an icon up to show a colour using number and background.
+/**
+ * Update the parent icon previously selected by colpick_open_window to
+ * display the given Wimp colour.
  *
- * ------------------------------------------------------------------------------------------------------------------ */
+ * \param colour	The colour to display.
+ */
+
+void colpick_select_colour(wimp_colour colour);
+
+
+/**
+ * Set the given icon to display the specified Wimp colour, using colour
+ * and colour number.
+ *
+ * The specified icon must be indirected, with space for at least two
+ * digits plus terminator.
+ *
+ * \param w		The handle of the window containing the icon.
+ * \param i		The icon to update.
+ * \param colour	The colour to display.
+ */
+
+void colpick_set_icon_colour(wimp_w w, wimp_i i, wimp_colour colour);
 
 #endif
+

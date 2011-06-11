@@ -1,9 +1,12 @@
 /**
- * \file icons.c
+ * \file: icons.c
  *
- * SFLib -- Icon handling routines.
+ * SF-Lib - Icons.c
  *
- * Version 0.10 (5 May 2003)
+ * (C) Stephen Fryatt, 2003-2011
+ *
+ * RISC OS Wimp Icon Support.  Support for manipulating icons and their
+ * contents.
  */
 
 /* OS-Lib header files. */
@@ -205,7 +208,7 @@ int get_validation_command (char *buffer, wimp_w w, wimp_i i, char command)
  * \return			The number of characters printed.
  */
 
-int icon_printf(wimp_w w, wimp_i i, char *cntrl_string, ...)
+int icons_printf(wimp_w w, wimp_i i, char *cntrl_string, ...)
 {
 	int			ret = 0;
 	va_list			ap;
@@ -238,7 +241,7 @@ int icon_printf(wimp_w w, wimp_i i, char *cntrl_string, ...)
  * \return			A pointer to the copied string.
  */
 
-char *icon_strncpy(wimp_w w, wimp_i i, char *s)
+char *icons_strncpy(wimp_w w, wimp_i i, char *s)
 {
 	wimp_icon_state		icon;
 	os_error		*error;
@@ -612,3 +615,4 @@ void insert_text_into_icon (wimp_w w, wimp_i i, int index, char *text, int n)
   wimp_set_caret_position (w, i, 0, 0, -1, index+copy);
   wimp_set_icon_state (w, i, 0, 0);
 }
+
