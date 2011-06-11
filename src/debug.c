@@ -1,6 +1,11 @@
-/* SF-Lib - Debug.c
+/**
+ * \file: debug.c
  *
- * Version 0.10 (16 November 2003)
+ * SF-Lib - Debug.c
+ *
+ * (C) Stephen Fryatt, 2003-2011
+ *
+ * Debug support for writing data to Reporter.
  */
 
 /* Acorn C Header files. */
@@ -20,19 +25,24 @@
 
 #include "debug.h"
 
-/* ==================================================================================================================
- * Stand-alone functions
+
+/* Print a string to Reporter, using the standard printf() syntax and
+ * functionality.  Expanded text is limited to 256 characters including
+ * a null terminator.
+ *
+ * This function is an external interface, documented in debug.c.
  */
 
-int debug_printf (char *cntrl_string, ...)
+int debug_printf(char *cntrl_string, ...)
 {
-  char    s[256];
-  int     ret;
-  va_list ap;
+	char		s[256];
+	int		ret;
+	va_list		ap;
 
-  va_start(ap, cntrl_string);
-  ret = vsnprintf (s, sizeof(s), cntrl_string, ap);
-  report_text0 (s);
+	va_start(ap, cntrl_string);
+	ret = vsnprintf(s, sizeof(s), cntrl_string, ap);
+	report_text0(s);
 
-  return (ret);
+	return ret;
 }
+
