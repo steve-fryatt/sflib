@@ -34,41 +34,53 @@
 #include "string.h"
 
 
-typedef struct config_opt {
-	char			name[sf_MAX_CONFIG_NAME];
-	osbool			value;
-	osbool			initial;
+/**
+ * Structure for storing boolean config settings.
+ */
 
-	struct config_opt	*next;
+typedef struct config_opt {
+	char			name[sf_MAX_CONFIG_NAME];			/**< The name of the config value.				*/
+	osbool			value;						/**< The current value.						*/
+	osbool			initial;					/**< The initial, or default, value.				*/
+
+	struct config_opt	*next;						/**< Pointer to the next boolean config value, or NULL.		*/
 } config_opt;
 
-typedef struct config_int {
-	char			name[sf_MAX_CONFIG_NAME];
-	int			value;
-	int			initial;
+/**
+ * Structure for storing integer config settings.
+ */
 
-	struct config_int	*next;
+typedef struct config_int {
+	char			name[sf_MAX_CONFIG_NAME];			/**< The name of the config value.				*/
+	int			value;						/**< The current value.						*/
+	int			initial;					/**< The initial, or default, value.				*/
+
+	struct config_int	*next;						/**< Pointer to the next integer config value, or NULL.		*/
 } config_int;
 
+
+/**
+ * Structure for storing text config settings.
+ */
+
 typedef struct config_str {
-	char			name[sf_MAX_CONFIG_NAME];
-	char			value[sf_MAX_CONFIG_STR];
-	char			initial[sf_MAX_CONFIG_STR];
+	char			name[sf_MAX_CONFIG_NAME];			/**< The name of the config value.				*/
+	char			value[sf_MAX_CONFIG_STR];			/**< The current value.						*/
+	char			initial[sf_MAX_CONFIG_STR];			/**< The initial, or default, value.				*/
 
-	struct config_str	*next;
+	struct config_str	*next;						/**< Pointer to the next text config value, or NULL.		*/
 } config_str;
-
 
 
 /* Global variables. */
 
-static config_opt		*opt_list = NULL;
-static config_int		*int_list = NULL;
-static config_str		*str_list = NULL;
+static config_opt		*opt_list = NULL;				/**< The chain of boolean config values.			*/
+static config_int		*int_list = NULL;				/**< The chain of integer config values.			*/
+static config_str		*str_list = NULL;				/**< The chain of textual config values.			*/
 
-static char			*choices_dir = NULL;
-static char			*local_dir = NULL;
-static char			*application_name = NULL;
+static char			*choices_dir = NULL;				/**< The name of the application's folder in Choices:.		*/
+static char			*local_dir = NULL;				/**< The full path to the application's own folder.		*/
+static char			*application_name = NULL;			/**< The application name as registered with the Wimp.		*/
 
 
 

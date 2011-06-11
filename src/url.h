@@ -4,6 +4,15 @@
  * SF-Lib - URL Dispatch System.
  *
  * (C) Stephen Fryatt, 2003-2011
+ *
+ * URL dispatch code, which takes the following steps to broadcast a URL to other
+ * applications on the machine:
+ *
+ *  1) Try ANT broadcast
+ *  2) If that bounces, try Acorn URI dispatch [broadcast + load]
+ *  3) If that succeeds, wait for success or failure wimp message
+ *  4) If either fails, try ANT URL_Open
+ *  5) If that fails, give error message
  */
 
 #ifndef SFLIB_URL
@@ -13,29 +22,38 @@
 */
 
 
+/**
+ * The string_value data type used in the ANT Open URL message block.
+ */
+
 typedef union {
-	char				*ptr;
-	int				offset;
+	char				*ptr;					/**< String pointer to shared memory if >= 236.					*/
+	int				offset;					/**< Offset into message block if <236 (0 indicates data not present).		*/
 } string_value;
 
 
+/**
+ * The ANT Open URL ("MOpenURL") message block, for use in the ANT Internet
+ * Suite's protocol.
+ */
+
 typedef struct {
-	wimp_MESSAGE_HEADER_MEMBERS
+	wimp_MESSAGE_HEADER_MEMBERS						/**< The standard Wimp message headers.						*/
 	union {
-		char			url[236];
+		char			url[236];				/**< The URL to open if it is <236 characters long.				*/
 		struct {
-			int		tag;
-			string_value	url;
-			int		flags;
-			string_value	body_file;
-			string_value	target;
-			string_value	body_mimetype;
-		} indirect;
+			int		tag;					/**< Zero tag to identify the use of the extended message format.		*/
+			string_value	url;					/**< The URL to open.								*/
+			int		flags;					/**< Flag word (bit 0 defined; all others reserved).				*/
+			string_value	body_file;				/**< Body file name, if applicable (offset 0 if not present).			*/
+			string_value	target;					/**< Frame target, if applicable (offset 0 if not present).			*/
+			string_value	body_mimetype;				/**< Document body mimetype, if applicable (offset 0 if not present).		*/
+		} indirect;							/**< The extended message body if not a standard URL of <236 characters.	*/
 	} data;
 } url_message;
 
 
-#define message_ANT_OPEN_URL  0x4af80        /* ANT url broadcast wimp message number. */
+#define message_ANT_OPEN_URL  0x4af80						/**< ANT url broadcast wimp message number. */
 
 
 /**

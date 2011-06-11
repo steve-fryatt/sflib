@@ -18,12 +18,12 @@
 
 /* ================================================================================================================== */
 
-#define sf_MAX_CONFIG_NAME 32
-#define sf_MAX_CONFIG_STR  1024
+#define sf_MAX_CONFIG_NAME 32							/**< The maximum length of a config value name.		*/
+#define sf_MAX_CONFIG_STR  1024							/**< The maximum length of a textual config value.	*/
 
-#define sf_READ_CONFIG_EOF 0
-#define sf_READ_CONFIG_VALUE_RETURNED 1
-#define sf_READ_CONFIG_NEW_SECTION 2
+#define sf_READ_CONFIG_EOF 0							/**< Nothing returned; End Of File.			*/
+#define sf_READ_CONFIG_VALUE_RETURNED 1						/**< Value returned.					*/
+#define sf_READ_CONFIG_NEW_SECTION 2						/**< Start of section; section and value returned.	*/
 
 
 /**

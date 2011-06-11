@@ -27,10 +27,10 @@
  */
 
 enum event_menu_type {
-	EVENT_MENU_NONE = 0,							/**< No menu: should not be used.					*/
-	EVENT_MENU_WINDOW,							/**< Window menu: the menu opened when clicking Menu over a window.	*/
-	EVENT_MENU_POPUP_AUTO,							/**< Popup Auto menu: popup menus handled automatically.		*/
-	EVENT_MENU_POPUP_MANUAL							/**< Popup Manual menu: popup menus handled via client events.		*/
+	EVENT_MENU_NONE = 0,												/**< No menu: should not be used.					*/
+	EVENT_MENU_WINDOW,												/**< Window menu: the menu opened when clicking Menu over a window.	*/
+	EVENT_MENU_POPUP_AUTO,												/**< Popup Auto menu: popup menus handled automatically.		*/
+	EVENT_MENU_POPUP_MANUAL												/**< Popup Manual menu: popup menus handled via client events.		*/
 };
 
 /**
@@ -39,11 +39,11 @@ enum event_menu_type {
  */
 
 enum event_icon_type {
-	EVENT_ICON_NONE = 0,							/**< No action: should not be used.					*/
-	EVENT_ICON_CLICK,							/**< Click: pass a click event back to the client's handler.		*/
-	EVENT_ICON_RADIO,							/**< Radio: reselct the icon after Adjust clicks.			*/
-	EVENT_ICON_POPUP_AUTO,							/**< Popup Auto: open a Popup Auto menu.				*/
-	EVENT_ICON_POPUP_MANUAL							/**< Popup Manual: open a Popup Manual menu.				*/
+	EVENT_ICON_NONE = 0,												/**< No action: should not be used.					*/
+	EVENT_ICON_CLICK,												/**< Click: pass a click event back to the client's handler.		*/
+	EVENT_ICON_RADIO,												/**< Radio: reselct the icon after Adjust clicks.			*/
+	EVENT_ICON_POPUP_AUTO,												/**< Popup Auto: open a Popup Auto menu.				*/
+	EVENT_ICON_POPUP_MANUAL												/**< Popup Manual: open a Popup Manual menu.				*/
 };
 
 /**
@@ -51,7 +51,7 @@ enum event_icon_type {
  */
 
 struct event_icon_click {
-	osbool				(*callback)(wimp_pointer *pointer);	/**< Callback function for the icon click.				*/
+	osbool				(*callback)(wimp_pointer *pointer);						/**< Callback function for the icon click.				*/
 };
 
 /**
@@ -60,72 +60,93 @@ struct event_icon_click {
  */
 
 struct event_icon_popup {
-	wimp_menu			*menu;					/**< The menu associated with the popup.				*/
-	wimp_i				field;					/**< The display field icon attached to the popup menu.			*/
+	wimp_menu			*menu;										/**< The menu associated with the popup.				*/
+	wimp_i				field;										/**< The display field icon attached to the popup menu.			*/
 };
 
+/**
+ * Details of an icon click action: one or more of these can be chained to
+ * a struct event_icon, and each will be actioned when a click event
+ * is received.
+ */
 
 struct event_icon_action {
-	enum event_icon_type		type;
+	enum event_icon_type		type;										/**< The event type, which determines what data is in the union.	*/
 
 	union {
-		struct event_icon_click		click;
-		struct event_icon_popup		popup;
-	} data;
+		struct event_icon_click		click;									/**< Data for an EVENT_ICON_CLICK.					*/
+		struct event_icon_popup		popup;									/**< Data for an EVENT_ICON_POPUP_AUTO or EVENT_ICON_POPUP_MANUAL.	*/
+	} data;														/**< The data for the icon event.					*/
 
-	struct event_icon_action	*next;
+	struct event_icon_action	*next;										/**< Pointer to the next action for the icon, or NULL.			*/
 };
+
+/**
+ * Details of an icon in a window.
+ */
 
 struct event_icon {
-	wimp_i				i;
+	wimp_i				i;										/**< The Wimp icon handle for the icon.					*/
 
-	struct event_icon_action	*actions;
+	struct event_icon_action	*actions;									/**< Pointer to chain of actions which relate to the icon.		*/
 
-	struct event_icon		*next;
+	struct event_icon		*next;										/**< Pointer to the next icon in the window, or NULL.			*/
 };
 
-/* Window data structure. */
+/**
+ * Details of a window, with all of the event handlers relating to it.
+ */
 
 struct event_window {
-	wimp_w				w;
-	void				(*redraw)(wimp_draw *draw);
-	void				(*open)(wimp_open *open);
-	void				(*close)(wimp_close *close);
-	void				(*leaving)(wimp_leaving *leaving);
-	void				(*entering)(wimp_entering *entering);
-	void				(*pointer)(wimp_pointer *pointer);
-	osbool				(*key)(wimp_key *key);
-	void				(*scroll)(wimp_scroll *scroll);
-	void				(*lose_caret)(wimp_caret *caret);
-	void				(*gain_caret)(wimp_caret *caret);
+	wimp_w				w;										/**< The Wimp window handle for the window.				*/
 
-	wimp_menu			*menu;
-	osbool				menu_ibar;
-	void				(*menu_prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer);
-	void				(*menu_selection)(wimp_w w, wimp_menu *m, wimp_selection *selection);
-	void				(*menu_close)(wimp_w w, wimp_menu *m);
-	void				(*menu_warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning);
+	void				(*redraw)(wimp_draw *draw);							/**< Callback handler for Window Redraw events, or NULL.		*/
+	void				(*open)(wimp_open *open);							/**< Callback handler for Window Open events, or NULL.			*/
+	void				(*close)(wimp_close *close);							/**< Callback handler for Window Close events, or NULL.			*/
+	void				(*leaving)(wimp_leaving *leaving);						/**< Callback handler for Pointer Leaving events, or NULL.		*/
+	void				(*entering)(wimp_entering *entering);						/**< Callback handler for Pointer Entering events, or NULL.		*/
+	void				(*pointer)(wimp_pointer *pointer);						/**< Callback handler for Pointer events, or NULL.			*/
+	osbool				(*key)(wimp_key *key);								/**< Callback handler for Keypress events, or NULL.			*/
+	void				(*scroll)(wimp_scroll *scroll);							/**< Callback handler for Scroll events, or NULL.			*/
+	void				(*lose_caret)(wimp_caret *caret);						/**< Callback handler for Lose Caret events, or NULL.			*/
+	void				(*gain_caret)(wimp_caret *caret);						/**< Callback handler for Gain Caret events, or NULL.			*/
 
-	struct event_icon		*icons;
+	wimp_menu			*menu;										/**< Wimp window block for the Window Menu, or NULL.			*/
+	void				(*menu_prepare)(wimp_w w, wimp_menu *m, wimp_pointer *pointer);			/**< Callback handler for Menu Prepare events, or NULL.			*/
+	void				(*menu_selection)(wimp_w w, wimp_menu *m, wimp_selection *selection);		/**< Callback handler for Menu Selection events, or NULL.		*/
+	void				(*menu_close)(wimp_w w, wimp_menu *m);						/**< Callback handler for Menu Close events, or NULL.			*/
+	void				(*menu_warning)(wimp_w w, wimp_menu *m, wimp_message_menu_warning *warning);	/**< Callback handler for Menu Warning events, or NULL.			*/
 
-	void				*data;
-	struct event_window		*next;
+	struct event_icon		*icons;										/**< Pointer to the chain of icons in the window, or NULL.		*/
+
+	void				*data;										/**< Client data pointer.						*/
+	struct event_window		*next;										/**< Pointer to the next window in the chain, or NULL.			*/
 };
 
-/* Message dispatch structures. */
+/**
+ * Details of an action to be carried out on receipt of a Wimp Message.
+ * One or more of these structures can be chained to a
+ * struct event_message, and each will be called in sequence until
+ * one of the handlers claims the event.
+ */
 
 struct event_message_action {
-	enum event_message_type		type;
-	osbool				(*action)(wimp_message *message);
+	enum event_message_type		type;										/**< The type of action: Standard, Recorded, Acknowledge, etc.		*/
+	osbool				(*action)(wimp_message *message);						/**< Callback handler to be called when the requirements are met.	*/
 
-	struct event_message_action	*next;
+	struct event_message_action	*next;										/**< Pointer to the next handler in the chain, or NULL.			*/
 };
 
-struct event_message {
-	unsigned int			message;
-	struct event_message_action	*actions;
+/**
+ * Details of a Wimp Message, with a list of actions to be carried out
+ * on receipt.
+ */
 
-	struct event_message		*next;
+struct event_message {
+	unsigned int			message;									/**< The Wimp Message number.						*/
+	struct event_message_action	*actions;									/**< Pointer to a chain of actions for the message, or NULL.		*/
+
+	struct event_message		*next;										/**< Pointer to the next message in the chain, or NULL.			*/
 };
 
 /**
@@ -251,7 +272,7 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 					(win->menu_prepare)(win->w, win->menu, (wimp_pointer *) block);
 				if (new_client_menu != NULL)
 					win->menu = new_client_menu;
-				if (win->menu_ibar)
+				if (win->w == wimp_ICON_BAR)
 					menu = menus_create_iconbar_menu(win->menu, (wimp_pointer *) block);
 				else
 					menu = menus_create_standard_menu(win->menu, (wimp_pointer *) block);
@@ -728,16 +749,14 @@ osbool event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *
  * This function is an external interface, documented in event.h.
  */
 
-osbool event_add_window_menu(wimp_w w, wimp_menu *menu, osbool iconbar)
+osbool event_add_window_menu(wimp_w w, wimp_menu *menu)
 {
 	struct event_window	*block;
 
 	block = event_create_window(w);
 
-	if (block != NULL) {
+	if (block != NULL)
 		block->menu = menu;
-		block->menu_ibar = iconbar;
-	}
 
 	return (block == NULL) ? FALSE: TRUE;
 }
@@ -1071,7 +1090,6 @@ static struct event_window *event_create_window(wimp_w w)
 		block->gain_caret = NULL;
 
 		block->menu = NULL;
-		block->menu_ibar = 0;
 
 		block->menu_prepare = NULL;
 		block->menu_selection = NULL;

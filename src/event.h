@@ -11,12 +11,22 @@
 
 #include "oslib/types.h"
 
+/**
+ * Categorization of Wimp Message types.  A bitfield, where:
+ *
+ * - Bit 0 = Wimp Message (17)
+ * - Bit 1 = Wimp Message Recorded (18)
+ * - Bit 2 = Wimp Message Acknowledge (19)
+ *
+ * Flags can be |'d together as required.
+ */
+
 enum event_message_type {
-	EVENT_MESSAGE_NONE = 0,
-	EVENT_MESSAGE = 1,
-	EVENT_MESSAGE_RECORDED = 2,
-	EVENT_MESSAGE_INCOMING = 3,
-	EVENT_MESSAGE_ACKNOWLEDGE = 4
+	EVENT_MESSAGE_NONE = 0,							/**< No Messages will be handled.					*/
+	EVENT_MESSAGE = 1,							/**< Handle only Wimp Message (17).					*/
+	EVENT_MESSAGE_RECORDED = 2,						/**< Handle only Wimp Message Recorded (18).				*/
+	EVENT_MESSAGE_INCOMING = 3,						/**< Handle incoming messages (Wimp Message and Wimp Message Recorded.	*/
+	EVENT_MESSAGE_ACKNOWLEDGE = 4						/**< Handle only Wimp Message Acknowledge (19).				*/
 };
 
 /**
@@ -146,18 +156,19 @@ osbool event_add_window_gain_caret_event(wimp_w w, void (*callback)(wimp_caret *
 
 /**
  * Register a menu to the specified window: this will then be opened whenever
- * there is a menu click within the work area (even over icons).
+ * there is a menu click within the work area (even over icons).  If the
+ * window handle is wimp_ICON_BAR then the menu is treated as an iconbar
+ * menu.
  *
  * If a menu is registered, no events related to it will be passed back from
  * event_process_event() -- even if specific handlers are registed as NULL.
  *
  * \param  w		The window handle to attach the menu to.
  * \param  *menu	The menu handle.
- * \param  iconbar	TRUE if the menu is an iconbar menu; else FALSE.
  * \return		TRUE if the handler was registered; else FALSE.
  */
 
-osbool event_add_window_menu(wimp_w w, wimp_menu *menu, osbool iconbar);
+osbool event_add_window_menu(wimp_w w, wimp_menu *menu);
 
 
 /**
@@ -320,7 +331,7 @@ osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data
  * \return			TRUE if the variable was registerd; else FALSE.
  */
 
-osbool event_set_menu_pointer(wimp_menu **menu_handle);
+osbool event_set_menu_pointer(wimp_menu **menu);
 
 
 /**

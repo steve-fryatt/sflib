@@ -276,7 +276,7 @@ void menus_tick_entry(wimp_menu *menu, int entry, osbool tick)
  * This is an external interface, documented in menus.h
  */
 
-void menus_shade_entry(wimp_menu *menu, int entry, int shade)
+void menus_shade_entry(wimp_menu *menu, int entry, osbool shade)
 {
 	if (menu == NULL)
 		return;

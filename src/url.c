@@ -5,7 +5,9 @@
  *
  * * (C) Stephen Fryatt, 2003-2011
  *
- * The following steps are taken in a url broadcast:
+ * URL dispatch code, which takes the following steps to broadcast a URL to other
+ * applications on the machine:
+ *
  *  1) Try ANT broadcast
  *  2) If that bounces, try Acorn URI dispatch [broadcast + load]
  *  3) If that succeeds, wait for success or failure wimp message
