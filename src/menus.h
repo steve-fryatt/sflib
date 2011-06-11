@@ -1,26 +1,138 @@
-/* SF-Lib - Menus.h
+/**
+ * \file: menus.h
  *
- * Version 0.10 (5 May 2003)
+ * SF-Lib - Menus.h
+ *
+ * (C) Stephen Fryatt, 2003-2011
+ *
+ * RISC OS Wimp Menu Support.  Support for loading menu definitions from
+ * file, creating menus on screen, and manipulating menu contents.
  */
 
-#ifndef _SFLIB_MENUS
-#define _SFLIB_MENUS
+#ifndef SFLIB_MENUS
+#define SFLIB_MENUS
 
-/* ================================================================================================================== */
+#include <stdlib.h>
+#include "oslib/wimp.h"
+
+/**
+ * Pointer to a menu template block, which holds all of the loaded menu
+ * definition blocks and any indirected data.
+ */
 
 typedef int * menu_template;
 
-menu_template load_menus (char *filename, wimp_w *dbox_list, wimp_menu *menus[]);
-int load_menus_dbox(menu_template data, char *tag, wimp_w dbox);
 
-wimp_menu *create_standard_menu (wimp_menu *menu, wimp_pointer *pointer);
-wimp_menu *create_iconbar_menu (wimp_menu *menu, wimp_pointer *pointer, int entries, int lines);
-wimp_menu *create_popup_menu (wimp_menu *menu, wimp_pointer *pointer);
+/**
+ * Load a menu template block into memory, optionally linking in dialogue
+ * boxes and returning the menu block addresses in the supplied array.
+ *
+ * \param *filename	The filename of the menu template block to be loaded.
+ * \param dbox_list[]	Pointer to an array of dialogue boxes, or NULL for
+ *			a new format file with named dboxes which are
+ *			linked via menus_link_dbox().
+ * \param *menus[]	Pointer to an array to hold the menu block pointers.
+ * \param len		The number of entries in the menu block array.
+ * \return		The menu template handle for the file, NULL for failure.
+ */
 
-void tick_menu_item (wimp_menu *menu, int item, int tick);
-void shade_menu_item (wimp_menu *menu, int item, int shade);
+menu_template menus_load_templates(char *filename, wimp_w dbox_list[], wimp_menu *menus[], size_t len);
 
-char *menu_text (wimp_menu *menu, int item);
-char *indirected_menu_text (wimp_menu *menu, int item);
+
+/**
+ * Link a window handle into a menu template block as a dialogue box.
+ *
+ * \param data		The menu templates to link to.
+ * \param *tag		The dialogue box tag in the menu templates.
+ * \param dbox		The window handle to link.
+ * \return		TRUE if the link was successful; else FALSE.
+ */
+
+osbool menus_link_dbox(menu_template data, char *tag, wimp_w dbox);
+
+
+/**
+ * Open a menu at the specified pointer position, located according to
+ * Style Guide requirements.
+ *
+ * \param *menu		The menu to open.
+ * \param *pointer	The details of the pointer position.
+ * \return		Pointer to the opened menu block, or NULL on failure.
+ */
+
+wimp_menu *menus_create_standard_menu(wimp_menu *menu, wimp_pointer *pointer);
+
+
+/**
+ * Open an iconbar menu at the specified pointer position, located according to
+ * Style Guide requirements and positioned correctly in the Y direction
+ * based on the number of entries in the menu.
+ *
+ * \param *menu		The menu to open.
+ * \param *pointer	The details of the pointer position.
+ * \return		Pointer to the opened menu block, or NULL on failure.
+ */
+
+wimp_menu *menus_create_iconbar_menu(wimp_menu *menu, wimp_pointer *pointer);
+
+
+/**
+ * Open a popup menu at the specified pointer position, located according to
+ * Style Guide requirements and assuming that the icon under the pointer is
+ * the popup meny icon which launched the menu.
+ *
+ * \param *menu		The menu to open.
+ * \param *pointer	The details of the pointer position.
+ * \return		Pointer to the opened menu block, or NULL on failure.
+ */
+
+wimp_menu *menus_create_popup_menu(wimp_menu *menu, wimp_pointer *pointer);
+
+
+/**
+ * Set the ticked status of an entry in a menu block.
+ *
+ * \param *menu		The menu block to update.
+ * \param entry		The entry to update.
+ * \param tick		TRUE to tick the entry; FALSE to clear it.
+ */
+
+void menus_tick_entry(wimp_menu *menu, int entry, osbool tick);
+
+
+/**
+ * Set the shaded status of an entry in a menu block.
+ *
+ * \param *menu		The menu block to update.
+ * \param entry		The entry to update.
+ * \param shade		TRUE to shade the entry; FALSE to clear it.
+ */
+
+void menus_shade_entry(wimp_menu *menu, int entry, osbool shade);
+
+
+/**
+ * Return a pointer to the text of a menu entry, ignoring its indirected
+ * status.
+ *
+ * \param *menu		The menu block to read.
+ * \param entry		The entry to read.
+ * \return		Pointer to the start of the entry text.
+ */
+
+char *menus_get_text_addr(wimp_menu *menu, int entry);
+
+
+/**
+ * Return a pointer to the text of a menu entry.
+ *
+ * \param *menu		The menu block to read.
+ * \param entry		The entry to read.
+ * \return		Pointer to the start of the entry text, or NULL if not
+ *			indirected.
+ */
+
+char *menus_get_indirected_text_addr(wimp_menu *menu, int entry);
 
 #endif
+

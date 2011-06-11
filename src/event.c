@@ -1,9 +1,9 @@
 /**
  * \file event.c
  *
- * SFLib - Simple event-based Wimp_Poll dispatch system.
- *
  * (C) Stephen Fryatt, 2010-2011
+ *
+ * SFLib - Simple event-based Wimp_Poll dispatch system.
  */
 
 /* OS-Lib header files. */
@@ -13,6 +13,7 @@
 /* SFLib Header Files. */
 
 #include "event.h"
+#include "icons.h"
 #include "menus.h"
 
 /* ANSII C header files. */
@@ -20,28 +21,47 @@
 #include <assert.h>
 #include <stdlib.h>
 
+/**
+ * Menu types, to identify which type of menu handler needs to be called
+ * to process incoming menu events.
+ */
+
 enum event_menu_type {
-	EVENT_MENU_NONE = 0,
-	EVENT_MENU_WINDOW,
-	EVENT_MENU_POPUP_AUTO,
-	EVENT_MENU_POPUP_MANUAL
+	EVENT_MENU_NONE = 0,							/**< No menu: should not be used.					*/
+	EVENT_MENU_WINDOW,							/**< Window menu: the menu opened when clicking Menu over a window.	*/
+	EVENT_MENU_POPUP_AUTO,							/**< Popup Auto menu: popup menus handled automatically.		*/
+	EVENT_MENU_POPUP_MANUAL							/**< Popup Manual menu: popup menus handled via client events.		*/
 };
+
+/**
+ * Icon types, to identify which type of icon handler needs to be called
+ * to process incoming icon events.
+ */
 
 enum event_icon_type {
-	EVENT_ICON_NONE = 0,
-	EVENT_ICON_CLICK,
-	EVENT_ICON_RADIO,
-	EVENT_ICON_POPUP_AUTO,
-	EVENT_ICON_POPUP_MANUAL
+	EVENT_ICON_NONE = 0,							/**< No action: should not be used.					*/
+	EVENT_ICON_CLICK,							/**< Click: pass a click event back to the client's handler.		*/
+	EVENT_ICON_RADIO,							/**< Radio: reselct the icon after Adjust clicks.			*/
+	EVENT_ICON_POPUP_AUTO,							/**< Popup Auto: open a Popup Auto menu.				*/
+	EVENT_ICON_POPUP_MANUAL							/**< Popup Manual: open a Popup Manual menu.				*/
 };
+
+/**
+ * Specific details of the EVENT_ICON_CLICK icon action type.
+ */
 
 struct event_icon_click {
-	osbool				(*callback)(wimp_pointer *pointer);	/**< Callback function for the icon click.			*/
+	osbool				(*callback)(wimp_pointer *pointer);	/**< Callback function for the icon click.				*/
 };
 
+/**
+ * Specific details of the EVENT_ICON_POPUP_AUTO and EVENT_ICON_POPUP_MANUAL
+ * icon action types.
+ */
+
 struct event_icon_popup {
-	wimp_menu			*menu;					/**< The menu associated with the popup.			*/
-	wimp_i				field;					/**< The display field icon attached to the popup menu.		*/
+	wimp_menu			*menu;					/**< The menu associated with the popup.				*/
+	wimp_i				field;					/**< The display field icon attached to the popup menu.			*/
 };
 
 
@@ -231,19 +251,10 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 					(win->menu_prepare)(win->w, win->menu, (wimp_pointer *) block);
 				if (new_client_menu != NULL)
 					win->menu = new_client_menu;
-				if (win->menu_ibar) {
-					int entry = 0, entries = 0, lines = 0;
-
-					do {
-						entries ++;
-						if ((win->menu->entries[entry].menu_flags & wimp_MENU_SEPARATE) != 0)
-							lines++;
-					} while ((win->menu->entries[entry++].menu_flags & wimp_MENU_LAST) == 0);
-
-					menu = create_iconbar_menu (win->menu, (wimp_pointer *) block, entries, lines);
-				} else {
-					menu = create_standard_menu(win->menu, (wimp_pointer *) block);
-				}
+				if (win->menu_ibar)
+					menu = menus_create_iconbar_menu(win->menu, (wimp_pointer *) block);
+				else
+					menu = menus_create_standard_menu(win->menu, (wimp_pointer *) block);
 				current_menu = win;
 				current_menu_type = EVENT_MENU_WINDOW;
 				current_menu_icon = NULL;
@@ -499,13 +510,18 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 				handled = action->data.click.callback(pointer);
 			break;
 
+		case EVENT_ICON_RADIO:
+			if (pointer->buttons == wimp_CLICK_ADJUST)
+				set_icon_selected(pointer->w, pointer->i, TRUE);
+			break;
+
 		case EVENT_ICON_POPUP_MANUAL:
 			new_client_menu = NULL;
 			if (window->menu_prepare != NULL)
 				(window->menu_prepare)(window->w, action->data.popup.menu, pointer);
 			if (new_client_menu != NULL)
 				action->data.popup.menu = new_client_menu;
-			menu = create_popup_menu(action->data.popup.menu, pointer);
+			menu = menus_create_popup_menu(action->data.popup.menu, pointer);
 
 			current_menu = window;
 			current_menu_type = EVENT_MENU_POPUP_MANUAL;
@@ -828,6 +844,41 @@ osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_p
 	action->type = EVENT_ICON_CLICK;
 
 	action->data.click.callback = callback;
+
+	action->next = icon->actions;
+	icon->actions = action;
+
+	return TRUE;
+}
+
+
+/* Add a radio icon handler for the specified window and icon.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_add_window_icon_radio(wimp_w w, wimp_i i)
+{
+	struct event_window		*window;
+	struct event_icon		*icon;
+	struct event_icon_action	*action;
+
+	window = event_create_window(w);
+
+	if (window == NULL)
+		return FALSE;
+
+	icon = event_create_icon(window, i);
+
+	if (icon == NULL)
+		return FALSE;
+
+	action = malloc(sizeof(struct event_icon_action));
+
+	if (action == NULL)
+		return FALSE;
+
+	action->type = EVENT_ICON_RADIO;
 
 	action->next = icon->actions;
 	icon->actions = action;

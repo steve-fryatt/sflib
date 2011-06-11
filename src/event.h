@@ -1,9 +1,9 @@
 /**
  * \file event.h
  *
- * SFLib - Simple event-based Wimp_Poll dispatch system.
- *
  * (C) Stephen Fryatt, 2010-2011
+ *
+ * SFLib - Simple event-based Wimp_Poll dispatch system.
  */
 
 #ifndef SFLIB_EVENT
@@ -219,7 +219,19 @@ osbool event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_m
 osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_pointer *pointer));
 
 
-/* Add a pop-up menu handler for the specified window and icon.
+/**
+ * Add a radio icon handler for the specified window and icon.
+ *
+ * \param w		The window handle to attach the action to.
+ * \param i		The icon handle to attach the action to.
+ * \return		TRUE if the handler was registered; else FALSE.
+ */
+
+osbool event_add_window_icon_radio(wimp_w w, wimp_i i);
+
+
+/**
+ * Add a pop-up menu handler for the specified window and icon.
  *
  * \param w		The window handle to attach the action to.
  * \param i		The icon handle to attach the action to.
