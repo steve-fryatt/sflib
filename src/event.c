@@ -533,7 +533,7 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 
 		case EVENT_ICON_RADIO:
 			if (pointer->buttons == wimp_CLICK_ADJUST)
-				set_icon_selected(pointer->w, pointer->i, TRUE);
+				icons_set_selected(pointer->w, pointer->i, TRUE);
 			break;
 
 		case EVENT_ICON_POPUP_MANUAL:
