@@ -65,7 +65,7 @@ osbool url_initialise(void)
  * This function is an external interface, documented in url.h.
  */
 
-void launch_url (const char *url)
+void url_launch(const char *url)
 {
 	if (!url_antbroadcast(url))
 		wimp_msgtrans_info_report("URLFailed");

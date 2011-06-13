@@ -72,6 +72,6 @@ osbool url_initialise(void);
  * \param *url		The URL to launch.
  */
 
-void launch_url(const char *url);
+void url_launch(const char *url);
 
 #endif
