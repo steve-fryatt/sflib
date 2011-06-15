@@ -30,8 +30,7 @@
 #include <ctype.h>
 
 
-/**
- * Copy the text of an icon (indirected or otherwise) into the supplied buffer.
+/* Copy the text of an icon (indirected or otherwise) into the supplied buffer.
  *
  * No attempt is made to spot buffer overruns.
  *
@@ -58,8 +57,7 @@ char *icons_copy_text(wimp_w w, wimp_i i, char *buffer)
 }
 
 
-/**
- * Return a pointer to the indirected text buffer of an icon.
+/* Return a pointer to the indirected text buffer of an icon.
  *
  * This is an external interface, documented in icons.h
  */
