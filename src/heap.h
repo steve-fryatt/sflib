@@ -1,21 +1,66 @@
-/* SF-Lib - Heap.h
+/**
+ * \file: heap.h
  *
- * Version 0.10 (20 September 2003)
+ * SF-Lib - Heap.h
+ *
+ * (C) Stephen Fryatt, 2003-2011
+ *
+ * Flexlib-based static heap implementation, providing malloc-like calls
+ * on an OS_Heap managed heap inside the first block of a flex heap.
  */
 
-#ifndef _SFLIB_HEAP
-#define _SFLIB_HEAP
+#ifndef SFLIB_HEAP
+#define SFLIB_HEAP
 
-/* ================================================================================================================== */
+#include <stdlib.h>
 
-int heap_init (void);
+/**
+ * Initialise the heap.  Flex must have been initialised via flex_init() before
+ * this is called.
+ */
 
-void * heap_alloc (int size);
-void heap_free (void *ptr);
+int heap_initialise(void);
 
-void *heap_extend (void *ptr, int new_size);
 
-int heap_size (void *ptr);
+/**
+ * Allocate a block of memory from the heap.
+ *
+ * \param size		The amount of memory to claim, in bytes.
+ * \return		Pointer to the claimed memory, or NULL on failure.
+ */
 
+void * heap_alloc(size_t size);
+
+
+/**
+ * Free a block of memory previously claimed from the heap.
+ *
+ * \param *ptr		Pointer to the block of memory to be freed.
+ */
+
+void heap_free(void *ptr);
+
+
+/**
+ * Change the size of a block of memory previously claimed from the heap.
+ * This may result in the block moving.
+ *
+ * \param *ptr		Pointer to the block of memory to change.
+ * \param new_size	The new size for the block.
+ * \return		Pointer to the block of memory after update.
+ */
+
+void *heap_extend(void *ptr, size_t new_size);
+
+
+/**
+ * Find the size of a block of memory previously claimed from the heap.
+ *
+ * \param *ptr		Pointer to the block of memory of interest.
+ * \return		The size of the block.
+ */
+
+size_t heap_size(void *ptr);
 
 #endif
+
