@@ -49,9 +49,9 @@ char *icons_copy_text(wimp_w w, wimp_i i, char *buffer)
 	wimp_get_icon_state(&icon);
 
 	if (icon.icon.flags & wimp_ICON_INDIRECTED)
-		ctrl_strcpy(buffer, icon.icon.data.indirected_text.text);
+		string_ctrl_strcpy(buffer, icon.icon.data.indirected_text.text);
 	else
-		ctrl_strcpy(buffer, icon.icon.data.text);
+		string_ctrl_strcpy(buffer, icon.icon.data.text);
 
 	return buffer;
 }
@@ -146,12 +146,12 @@ osbool icons_get_validation_command(char *buffer, wimp_w w, wimp_i i, char comma
 	if (copy == NULL)
 		return FALSE;
 
-	ctrl_strcpy(copy, val);
+	string_ctrl_strcpy(copy, val);
 	part = strtok(copy, ";");
 
 	while (part != NULL) {
 		if (toupper(*part) == command) {
-			ctrl_strcpy(buffer, part + 1);
+			string_ctrl_strcpy(buffer, part + 1);
 			found = TRUE;
 		}
 
@@ -431,7 +431,7 @@ void icons_put_caret_at_end(wimp_w window, wimp_i icon)
 		icon_state.i = icon;
 		wimp_get_icon_state(&icon_state);
 
-		index = ctrl_strlen(icon_state.icon.data.indirected_text.text);
+		index = string_ctrl_strlen(icon_state.icon.data.indirected_text.text);
 	}
 
 	wimp_set_caret_position(window, icon, 0, 0, -1, index);
@@ -555,7 +555,7 @@ void icons_insert_text(wimp_w w, wimp_i i, int index, char *text, int n)
 	 * amount of the new text to be copied in.
 	 */
 
-	len = ctrl_strlen(icon_state.icon.data.indirected_text.text) + 1;
+	len = string_ctrl_strlen(icon_state.icon.data.indirected_text.text) + 1;
 	copy = icon_state.icon.data.indirected_text.size - len;
 	if (copy > n)
 		copy = n;

@@ -1,6 +1,11 @@
-/* SF-Lib - String.c
+/**
+ * \file: string.c
  *
- * Version 0.10 (5 May 2003)
+ * SF-Lib - String.c
+ *
+ * (C) Stephen Fryatt, 2003-2011
+ *
+ * Generic and RISC OS-specific string handling functions.
  */
 
 /* OS-Lib header files. */
@@ -17,250 +22,287 @@
 #include <ctype.h>
 #include <string.h>
 
-/* ================================================================================================================== */
 
-char *terminate_ctrl_str (char *s1)
-{
-  while (*s1 >= os_VDU_SPACE)
-  {
-    s1++;
-  }
-
-  *s1 = '\0';
-
-  return (s1);
-}
-
-/* ================================================================================================================== */
-
-char *ctrl_strcpy (char *s1, const char *s2)
-{
-  char *s = s1;
-
-  while (*s2 >= os_VDU_SPACE)
-  {
-    *s1++ = *s2++;
-  }
-  *s1 = '\0';
-
-  return (s);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-char *ctrl_strcat (char *s1, const char *s2)
-{
-  char *s = s1;
-
-  while (*s1 >= os_VDU_SPACE)
-  {
-    s1++;
-  }
-
-  while (*s2 >= os_VDU_SPACE)
-  {
-    *s1++ = *s2++;
-  }
-  *s1 = '\0';
-
-  return (s);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-size_t ctrl_strlen (char *s)
-{
-  int len = 0;
-
-  while (*s++ >= os_VDU_SPACE)
-  {
-    len++;
-  }
-
-  return ((size_t) len);
-}
-
-/* ================================================================================================================== */
-
-char *strip_surrounding_whitespace (char *string)
-{
-  char *start, *end;
-
-  if (*string == '\0')
-  {
-    return (string);
-  }
-
-  start = string;
-  while (isspace (*start))
-  {
-    start++;
-  }
-
-  end = strrchr (string, '\0') - 1;
-  while (isspace (*end))
-  {
-    *end-- = '\0';
-  }
-
-  return (start);
-}
-
-/* ================================================================================================================== */
-
-char *convert_string_toupper (char *string)
-{
-  char *start;
-
-  start = string;
-
-  while (*string != '\0')
-  {
-    *string = toupper (*string);
-    string++;
-  }
-
-  return (start);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-char *convert_string_tolower (char *string)
-{
-  char *start;
-
-  start = string;
-
-  while (*string != '\0')
-  {
-    *string = tolower (*string);
-    string++;
-  }
-
-  return (start);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-int strcmp_no_case (char *s1, char *s2)
-{
-  while (*s1 != '\0' && *s2 != '\0' && (toupper(*s1) - toupper(*s2)) == 0)
-  {
-    s1++;
-    s2++;
-  }
-
-  return (toupper(*s1) - toupper(*s2));
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-char *strstr_no_case (char *s1, char *s2)
-{
-  char *s1c, *s2c;
-
-  while (*s1 != '\0')
-  {
-    s1c = s1;
-    s2c = s2;
-
-    while (*s1c != '\0' && *s2c != '\0' && toupper(*s1c) == toupper(*s2c))
-    {
-      s1c++;
-      s2c++;
-    }
-
-    if (*s2c == '\0')
-    {
-      break;
-    }
-    s1++;
-  }
-
-  return (s1);
-}
-
-/* ================================================================================================================== */
-
-char *find_leafname (char *string)
-{
-  char *start;
-
-  start = strrchr (string, '.');
-
-  if (start != NULL)
-  {
-    start++;
-  }
-  else
-  {
-    start = string;
-  }
-
-  return (start);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-char *find_pathname (char *string)
-{
-  char *start;
-
-  start = strrchr (string, '.');
-
-  if (start != NULL)
-  {
-    *start = '\0';
-  }
-
-  return (string);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-char *find_extension (char *string)
-{
-  char *leaf, *ext;
-
-  leaf = find_leafname (string);
-
-  ext = strrchr (leaf, '/');
-
-  if (ext != NULL)
-  {
-    ext++;
-  }
-  else
-  {
-    ext = strchr (leaf, '\0');
-  }
-
-  return (ext);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-char *lose_extension (char *string)
-{
-  char *leaf, *ext;
-
-  leaf = find_leafname (string);
-
-  ext = strrchr (leaf, '/');
-
-  if (ext != NULL)
-  {
-    *ext = '\0';
-  }
-
-  return (leaf);
-}
-
-/**
- * Convert a textual n.nn version number into an integer in the form nnn.
+/* Zero-terminate a ctrl-terminated string, overwriting the terminator
+ * in the supplied buffer.
  *
- * \param *string		The string to parse into a version number.
- * \return			The numeric version number, or -1 if failed.
+ * This is an external interface, documented in string.h
+ */
+
+char *string_ctrl_zero_terminate(char *s1)
+{
+	if (s1 == NULL)
+		return NULL;
+
+	while (*s1 >= os_VDU_SPACE)
+		s1++;
+
+	*s1 = '\0';
+
+	return s1;
+}
+
+
+/* Perform a strcpy() on a source string that is ctrl-terminated.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_ctrl_strcpy(char *s1, const char *s2)
+{
+	char	*s = s1;
+
+	if (s1 == NULL)
+		return NULL;
+
+	while (*s2 >= os_VDU_SPACE)
+		*s1++ = *s2++;
+
+	*s1 = '\0';
+
+	return s;
+}
+
+
+/* Perform a strcat() on two strings that are ctrl-terminated.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_ctrl_strcat(char *s1, const char *s2)
+{
+	char	*s = s1;
+
+	while (*s1 >= os_VDU_SPACE)
+		s1++;
+
+	while (*s2 >= os_VDU_SPACE)
+		*s1++ = *s2++;
+
+	*s1 = '\0';
+
+	return s;
+}
+
+
+/* Perform a strlen() on a string that is ctrl-terminated.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+size_t string_ctrl_strlen(char *s)
+{
+	int	len = 0;
+
+	while (*s++ >= os_VDU_SPACE)
+		len++;
+
+	return (size_t) len;
+}
+
+
+/* Convert a string to upper case.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_toupper(char *string)
+{
+	char	*start;
+
+	start = string;
+
+	while (*string != '\0') {
+		*string = toupper(*string);
+		string++;
+	}
+
+	return start;
+}
+
+
+/* Convert a string to lower case.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_tolower(char *string)
+{
+	char	*start;
+
+	start = string;
+
+	while (*string != '\0') {
+		*string = tolower (*string);
+		string++;
+	}
+
+	return start;
+}
+
+
+/* Perform a strcmp() case-insensitively on two strings, returning
+ * a value less than, equal to or greater than zero depending on
+ * their relative values.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+int string_nocase_strcmp(char *s1, char *s2)
+{
+	while (*s1 != '\0' && *s2 != '\0' && (toupper(*s1) - toupper(*s2)) == 0) {
+		s1++;
+		s2++;
+	}
+
+	return (toupper(*s1) - toupper(*s2));
+}
+
+
+/* Perform an strstr() case-insensitively on two strings, searching
+ * one string for the other substring and returning a pointer to the
+ * found location.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_nocase_strstr(char *s1, char *s2)
+{
+	char	*s1c, *s2c;
+
+	while (*s1 != '\0') {
+		s1c = s1;
+		s2c = s2;
+
+		while (*s1c != '\0' && *s2c != '\0' && toupper(*s1c) == toupper(*s2c)) {
+			s1c++;
+			s2c++;
+		}
+
+		if (*s2c == '\0')
+			break;
+
+		s1++;
+	}
+
+	return s1;
+}
+
+
+/* Strip whitespace from the supplied string.  Space at the end is
+ * removed by overwiting the first character with zero; the returned
+ * pointer is set to the first non-space character in the buffer.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_strip_surrounding_whitespace(char *string)
+{
+	char	*start, *end;
+
+	if (string == NULL || *string == '\0')
+		return string;
+
+	start = string;
+	while (isspace(*start))
+		start++;
+
+	end = strrchr(string, '\0') - 1;
+	while (isspace(*end))
+		*end-- = '\0';
+
+	return start;
+}
+
+
+/* Given a RISC OS filename, return a pointer to the part that represents the
+ * leafname (ie the part after the final '.').
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_find_leafname(char *filename)
+{
+	char	*leaf;
+
+	leaf = strrchr(filename, '.');
+
+	if (leaf != NULL)
+		leaf++;
+	else
+		leaf = filename;
+
+	return leaf;
+}
+
+
+/* Given a RISC OS filename, return a pointer to the part that represents the
+ * pathname (ie the part before the final '.') and terminate the name at
+ * the leafname.  The passed string is modified.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_find_pathname(char *filename)
+{
+	char	*leaf;
+
+	leaf = strrchr(filename, '.');
+
+	if (leaf != NULL)
+		*leaf = '\0';
+
+	return filename;
+}
+
+
+/* Given a RISC OS filename, return a pointer to the part that represents the
+ * file extension (ie the part of the leafname after the final '/').  If no
+ * extension is present, a pointer to an empty string is returned.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_find_extension(char *filename)
+{
+	char	*leaf, *ext;
+
+	leaf = string_find_leafname(filename);
+	ext = strrchr(leaf, '/');
+
+	if (ext != NULL)
+		ext++;
+	else
+		ext = strchr (leaf, '\0');
+
+	return ext;
+}
+
+
+/* Given a RISC OS filename, remove any filetype extension (the part including,
+ * and following, the final '/'), terminating the name at the location of the
+ * '/' and returning the remaining leafname.  The passed string is modified.
+ *
+ * This is an external interface, documented in string.h
+*/
+
+char *string_strip_extension(char *filename)
+{
+	char	*leaf, *ext;
+
+	leaf = string_find_leafname(filename);
+	ext = strrchr(leaf, '/');
+
+	if (ext != NULL)
+		*ext = '\0';
+
+	return leaf;
+}
+
+
+/* Convert a textual n.nn version number into an integer in the form nnn.
+ *
+ * This is an external interface, documented in string.h
  */
 
 int string_convert_version_number(char *string)

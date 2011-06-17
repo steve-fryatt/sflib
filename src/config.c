@@ -580,7 +580,7 @@ int config_read_token_pair(FILE *file, char *token, char *value, char *section)
 
 	while (!read && (fgets(line, sizeof(line), file) != NULL)) {
 		if (*line != '#') {
-			stripped_line = strip_surrounding_whitespace(line);
+			stripped_line = string_strip_surrounding_whitespace(line);
 
 			if (wildcard_strcmp("[*]", stripped_line, 1)) {
 				*strrchr(stripped_line, ']') = '\0';
@@ -601,7 +601,7 @@ int config_read_token_pair(FILE *file, char *token, char *value, char *section)
 					if (value != NULL) {
 						/* Remove external whitespace and enclosing quotes if presnt. */
 
-						b = strip_surrounding_whitespace(b);
+						b = string_strip_surrounding_whitespace(b);
 
 						if (*b == '"' && *(strchr(b, '\0')-1) == '"') {
 							b++;
@@ -685,7 +685,7 @@ osbool config_read_opt_string(char *str)
 	char		line[256];
 
 	strcpy(line, str);
-	convert_string_tolower(line);
+	string_tolower(line);
 
 	return (strcmp(line, "yes") == 0 || strcmp(line, "true")) ? TRUE : FALSE;
 }

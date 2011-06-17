@@ -224,7 +224,7 @@ int receive_reply_data_save_block (wimp_message *message, char **data_ptr)
   /* Initialise global variables. */
 
   data_length = datasave->est_size;
-  ctrl_strcpy (filename, datasave->file_name);
+  string_ctrl_strcpy (filename, datasave->file_name);
   data_type = datasave->file_type;
   bytes_xfered = 0;
   buffer_offered = 5; //datasave->est_size + 1; /* +1 to allow a RAM xfer to complete in one go if possible. */
@@ -276,7 +276,7 @@ int receive_reply_data_save_function (wimp_message *message, int (*load_function
   /* Initialise global variables. */
 
   data_length = datasave->est_size;
-  ctrl_strcpy (filename, datasave->file_name);
+  string_ctrl_strcpy (filename, datasave->file_name);
   data_type = datasave->file_type;
   bytes_xfered = 0;
   buffer_offered = 5; //datasave->est_size + 1; /* +1 to allow a RAM xfer to complete in one go if possible. */
@@ -400,7 +400,7 @@ void receive_init_quick_data_load_function (wimp_message *message, int (*load_fu
   /* Initialise global variables. */
 
   data_length = dataload->est_size;
-  ctrl_strcpy (filename, dataload->file_name);
+  string_ctrl_strcpy (filename, dataload->file_name);
   data_type = dataload->file_type;
   bytes_xfered = 0;
   buffer_offered = 5; //datasave->est_size + 1; /* +1 to allow a RAM xfer to complete in one go if possible. */
