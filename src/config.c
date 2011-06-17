@@ -30,7 +30,6 @@
 /* SF-Lib header files. */
 
 #include "config.h"
-#include "general.h"
 #include "string.h"
 
 
@@ -582,7 +581,7 @@ int config_read_token_pair(FILE *file, char *token, char *value, char *section)
 		if (*line != '#') {
 			stripped_line = string_strip_surrounding_whitespace(line);
 
-			if (wildcard_strcmp("[*]", stripped_line, 1)) {
+			if (string_wildcard_compare("[*]", stripped_line, 1)) {
 				*strrchr(stripped_line, ']') = '\0';
 				if (section != NULL)
 					strcpy(section, stripped_line + 1);

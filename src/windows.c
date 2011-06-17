@@ -16,6 +16,7 @@
 
 /* SF-Lib header files. */
 
+#include "general.h"
 #include "windows.h"
 
 /* ANSII C header files. */
@@ -163,23 +164,15 @@ void windows_open_centred_at_pointer(wimp_w w, wimp_pointer *p)
 void windows_open_centred_on_screen(wimp_w w)
 {
 	wimp_window_state	window;
-	int			width, height, mode_width, mode_height, shift;
+	int			width, height;
 
 	window.w = w;
 	wimp_get_window_state(&window);
 	width = window.visible.x1 - window.visible.x0;
 	height = window.visible.y1 - window.visible.y0;
 
-	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_XWIND_LIMIT, &mode_width);
-	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_XEIG_FACTOR, &shift);
-	mode_width = mode_width << shift;
-
-	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_YWIND_LIMIT, &mode_height);
-	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_YEIG_FACTOR, &shift);
-	mode_height = mode_height << shift;
-
-	window.visible.x0 = (mode_width - width) / 2;
-	window.visible.y0 = (mode_height - height) / 2;
+	window.visible.x0 = (general_mode_width() - width) / 2;
+	window.visible.y0 = (general_mode_height() - height) / 2;
 
 	if (window.visible.y0 < sf_ICONBAR_HEIGHT)
 		window.visible.y0 = sf_ICONBAR_HEIGHT;

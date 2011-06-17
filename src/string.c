@@ -141,6 +141,53 @@ char *string_tolower(char *string)
 }
 
 
+/**
+ * Compare two strings to see if they match. One string can contain
+ * the wildards # for any single character and * for any zero or
+ * more characters.  The comparison can be case-insensitive if required.
+ *
+ * \param *s1		The string to search for, with wildcards.
+ * \param *s2		The string to test.
+ * \param any_case	TRUE for a case-insensitive search; else FALSE.
+ * \return		TRUE if the strings match; else FALSE.
+ */
+
+osbool string_wildcard_compare(char *s1, char *s2, osbool any_case)
+{
+	char c1 = *s1, c2 = *s2;
+
+	if (any_case) {
+		c1 = tolower(c1);
+		c2 = tolower(c2);
+	}
+
+	if (c2 == 0) {
+		while (*s1 == '*')
+			s1++;
+		return (*s1 == 0);
+	}
+
+	if (c1 == c2 || c1 == '#')
+		return string_wildcard_compare(&s1[1], &s2[1], any_case);
+
+	if (c1 == '*') {
+		osbool ok = FALSE;
+
+		if (s1[1] == 0)
+			return TRUE;
+
+		while (!ok && *s2 != 0) {
+			ok = ok || string_wildcard_compare(&s1[1], s2, any_case);
+			s2++;
+		}
+
+		return ok;
+	}
+
+	return FALSE;
+}
+
+
 /* Perform a strcmp() case-insensitively on two strings, returning
  * a value less than, equal to or greater than zero depending on
  * their relative values.

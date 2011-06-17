@@ -76,6 +76,20 @@ char *string_tolower(char *string);
 
 
 /**
+ * Compare two strings to see if they match. One string can contain
+ * the wildards # for any single character and * for any zero or
+ * more characters.  The comparison can be case-insensitive if required.
+ *
+ * \param *s1		The string to search for, with wildcards.
+ * \param *s2		The string to test.
+ * \param any_case	TRUE for a case-insensitive search; else FALSE.
+ * \return		TRUE if the strings match; else FALSE.
+ */
+
+osbool string_wildcard_compare(char *s1, char *s2, osbool any_case);
+
+
+/**
  * Perform a strcmp() case-insensitively on two strings, returning
  * a value less than, equal to or greater than zero depending on
  * their relative values.
