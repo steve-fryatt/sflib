@@ -1,54 +1,65 @@
-/* SF-Lib - Stack.c
+/**
+ * \file: stack.c
  *
- * Version 0.10 (3 February 2005)
+ * SF-Lib - Stack.c
+ *
+ * (C) Stephen Fryatt, 2005-2011
+ *
+ * Simplistic integer stack implementation.
  */
 
 /* SFLib header files. */
 
 #include "stack.h"
 
-/* ANSII C header files. */
 
-/* ================================================================================================================== */
+#define STACK_SIZE 200								/**< The stack size.		*/
 
-/* ================================================================================================================== */
 
-static int stack[sf_stack_STACK_SIZE], ptr = 0;
+static int	stack[STACK_SIZE];						/**< The stack data.		*/
+static int	ptr = 0;							/**< The stack pointer.		*/
 
-/* ================================================================================================================== */
 
-void stack_push (int val)
+/* Push a value on to the stack.
+ *
+ * This is an external interface, documented in stack.h
+ */
+
+void stack_push(int val)
 {
-  if (ptr < sf_stack_STACK_SIZE)
-  {
-    stack[ptr++] = val;
-  }
+	if (ptr < STACK_SIZE)
+		stack[ptr++] = val;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int stack_pull (void)
+/* Pull (remove completely) a value from the top of the stack.
+ *
+ * This is an external interface, documented in stack.h
+ */
+
+int stack_pull(void)
 {
-  int val = 0;
+	int	val = 0;
 
-  if (ptr > 0)
-  {
-    val = stack[--ptr];
-  }
+	if (ptr > 0)
+		val = stack[--ptr];
 
-  return (val);
+	return val;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------ */
 
-int stack_pop (void)
+/* Pop (read without removing) a value from the top of the stack.
+ *
+ * This is an external interface, documented in stack.h
+ */
+
+int stack_pop(void)
 {
-  int val = 0;
+	int	val = 0;
 
-  if (ptr > 0)
-  {
-    val = stack[ptr-1];
-  }
+	if (ptr > 0)
+		val = stack[ptr-1];
 
-  return (val);
+	return val;
 }
+

@@ -1,19 +1,41 @@
-/* SF-Lib - Stack.h
+/**
+ * \file: stack.h
  *
- * Version 0.10 (3 Februaty 2005)
+ * SF-Lib - Stack.h
+ *
+ * (C) Stephen Fryatt, 2005-2011
+ *
+ * Simplistic integer stack implementation.
  */
 
-#ifndef _SFLIB_STACK
-#define _SFLIB_STACK
+#ifndef SFLIB_STACK
+#define SFLIB_STACK
 
-/* ================================================================================================================== */
+/**
+ * Push a value on to the stack.
+ *
+ * \param val		The value to push on to the stack.
+ */
 
-#define sf_stack_STACK_SIZE 200
+void stack_push(int val);
 
-/* ================================================================================================================== */
 
-void stack_push (int val);
-int  stack_pull (void);
-int  stack_pop (void);
+/**
+ * Pull (remove completely) a value from the top of the stack.
+ *
+ * \return		The top value from the stack, or 0 if empty.
+ */
+
+int stack_pull(void);
+
+
+/**
+ * Pop (read without removing) a value from the top of the stack.
+ *
+ * \return		The top value from the stack, or 0 if empty.
+ */
+
+int stack_pop(void);
 
 #endif
+
