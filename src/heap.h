@@ -17,9 +17,11 @@
 /**
  * Initialise the heap.  Flex must have been initialised via flex_init() before
  * this is called.
+ *
+ * \return		TRUE if the heap was initialised; else FALSE.
  */
 
-int heap_initialise(void);
+osbool heap_initialise(void);
 
 
 /**

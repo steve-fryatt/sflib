@@ -44,7 +44,7 @@ static int	heap_block_size = HEAP_GRANULARITY;
  * This is an external interface, documented in heap.h
  */
 
-int heap_initialise(void)
+osbool heap_initialise(void)
 {
 	os_error	*error;
 
@@ -54,7 +54,7 @@ int heap_initialise(void)
 	if (error != NULL);
 		wimp_program_report(error);
 
-	return 1;
+	return TRUE;
 }
 
 
