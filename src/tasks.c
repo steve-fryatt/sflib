@@ -68,7 +68,7 @@ osbool test_for_duplicate_task (char *task_name, wimp_t handle, char *message, c
     msgs_param_lookup (message, mbuf, sizeof(mbuf), task_name, NULL, NULL, NULL);
     msgs_lookup (buttons, bbuf, sizeof(bbuf));
 
-    result = wimp_question_report (mbuf, bbuf);
+    result = error_report_question (mbuf, bbuf);
 
     exit = (result == 1);
   }

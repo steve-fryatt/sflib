@@ -1,6 +1,11 @@
-/* SF-Lib - Errors.c
+/**
+ * \file: errors.c
  *
- * Version 0.15 (10 August 2003)
+ * SF-Lib - Errors.c
+ *
+ * (C) Stephen Fryatt, 2003-2011
+ *
+ * Wimp error handling and message box support.
  */
 
 /* OS-Lib header files. */
@@ -19,214 +24,264 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* ================================================================================================================== */
 
-#define sf_errors_NO_CUSTOM_BUTTONS ""
+#define ERROR_BUTTON_LENGTH 255							/**< The size of the buffer for expanding custom button message tokens.		*/
 
-/* ================================================================================================================== */
 
-static char                       *app_name = NULL, *app_sprite = NULL;
-static void                       *close_down_function;
+static char			*app_name = NULL;				/**< The application name, as used in error messages.				*/
+static char			*app_sprite = NULL;				/**< The application sprite, as used in error messages.				*/
+static void			*close_down_function;				/**< Unused.									*/
 
-/* ================================================================================================================== */
+static wimp_error_box_selection		error_wimp_os_report(os_error *error,
+		wimp_error_box_flags type, wimp_error_box_flags buttons, char *custom_buttons);
 
-void error_initialise (char *name, char *sprite, void (*closedown)(void))
+
+
+/* Initialise the error message module.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+void error_initialise(char *name, char *sprite, void (*closedown)(void))
 {
-  char     lookup_buffer[256];
+	char	lookup_buffer[256];
 
-  close_down_function = closedown;
+	close_down_function = closedown;
 
-  if (name != NULL)
-  {
-    if (app_name != NULL)
-    {
-      free (app_name);
-    }
+	if (name != NULL) {
+		if (app_name != NULL)
+			free(app_name);
 
-    msgs_lookup (name, lookup_buffer, sizeof (lookup_buffer));
+		msgs_lookup(name, lookup_buffer, sizeof(lookup_buffer));
+		app_name = strdup(lookup_buffer);
+	}
 
-    app_name = (char *) malloc (strlen (lookup_buffer) + 1);
-    strcpy (app_name, lookup_buffer);
-  }
+	if (sprite != NULL) {
+		if (app_sprite != NULL)
+			free(app_sprite);
 
-  if (sprite != NULL)
-  {
-    if (app_sprite != NULL)
-    {
-      free (app_sprite);
-    }
-
-    msgs_lookup (sprite, lookup_buffer, sizeof (lookup_buffer));
-
-    app_sprite = (char *) malloc (strlen (lookup_buffer) + 1);
-    strcpy (app_sprite, lookup_buffer);
-  }
-}
-
-/* ================================================================================================================== */
-
-wimp_error_box_selection wimp_os_error_report (os_error *error, wimp_error_box_flags buttons)
-{
-  wimp_error_box_selection result;
-
-  if (error != NULL)
-  {
-    result = wimp_report (error, wimp_ERROR_BOX_CATEGORY_ERROR, buttons, NULL);
-  }
-  else
-  {
-    result = wimp_ERROR_BOX_SELECTED_NOTHING;
-  }
-
-  return (result);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-wimp_error_box_selection wimp_msgtrans_error_report (char *token)
-{
-  os_error error;
-
-  error.errnum = 255; /* A dummy error number, which should probably be checked. */
-  msgs_lookup (token, error.errmess, os_ERROR_LIMIT);
-
-  return (wimp_report (&error, wimp_ERROR_BOX_CATEGORY_ERROR, wimp_ERROR_BOX_OK_ICON, NULL));
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-wimp_error_box_selection wimp_error_report (char *message)
-{
-  os_error error;
-
-  error.errnum = 255; /* A dummy error number, which should probably be checked. */
-  strcpy (error.errmess, message);
-
-  return (wimp_report (&error, wimp_ERROR_BOX_CATEGORY_ERROR, wimp_ERROR_BOX_OK_ICON, NULL));
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-wimp_error_box_selection wimp_msgtrans_info_report (char *token)
-{
-  os_error error;
-
-  error.errnum = 255; /* A dummy error number, which should probably be checked. */
-  msgs_lookup (token, error.errmess, os_ERROR_LIMIT);
-
-  return (wimp_report (&error, wimp_ERROR_BOX_CATEGORY_INFO, wimp_ERROR_BOX_OK_ICON, NULL));
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-wimp_error_box_selection wimp_info_report (char *message)
-{
-  os_error error;
-
-  error.errnum = 255; /* A dummy error number, which should probably be checked. */
-  strcpy (error.errmess, message);
-
-  return (wimp_report (&error, wimp_ERROR_BOX_CATEGORY_INFO, wimp_ERROR_BOX_OK_ICON, NULL));
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-wimp_error_box_selection wimp_msgtrans_question_report (char *token, char *buttons)
-{
-  os_error error;
-  char     button_text[sf_errors_BUTTONS_MAX];
-
-  error.errnum = 255; /* A dummy error number, which should probably be checked. */
-  msgs_lookup (token, error.errmess, os_ERROR_LIMIT);
-
-  if (buttons == NULL)
-  {
-    return (wimp_report (&error, wimp_ERROR_BOX_CATEGORY_QUESTION,
-                         wimp_ERROR_BOX_OK_ICON | wimp_ERROR_BOX_CANCEL_ICON, NULL));
-  }
-  else
-  {
-    msgs_lookup (buttons, button_text, sf_errors_BUTTONS_MAX);
-    return (wimp_report (&error, wimp_ERROR_BOX_CATEGORY_QUESTION, 0, button_text));
-  }
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-wimp_error_box_selection wimp_question_report (char *message, char *buttons)
-{
-  os_error error;
-
-  error.errnum = 255; /* A dummy error number, which should probably be checked. */
-  strcpy (error.errmess, message);
-
-  if (buttons == NULL)
-  {
-    return (wimp_report (&error, wimp_ERROR_BOX_CATEGORY_QUESTION,
-                         wimp_ERROR_BOX_OK_ICON | wimp_ERROR_BOX_CANCEL_ICON, NULL));
-  }
-  else
-  {
-    return (wimp_report (&error, wimp_ERROR_BOX_CATEGORY_QUESTION, 0, buttons));
-  }
-}
-
-/* ================================================================================================================== */
-
-void wimp_msgtrans_fatal_report (char *token)
-{
-  os_error error;
-
-  error.errnum = 255; /* A dummy error number, which should probably be checked. */
-  msgs_lookup (token, error.errmess, os_ERROR_LIMIT);
-
-  wimp_report (&error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
-  exit (1);
-}
-
-/* ------------------------------------------------------------------------------------------------------------------ */
-
-void wimp_fatal_report (char *message)
-{
-  os_error error;
-
-  error.errnum = 255; /* A dummy error number, which should probably be checked. */
-  strcpy (error.errmess, message);
-
-  wimp_report (&error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
-  exit (1);
+		msgs_lookup(sprite, lookup_buffer, sizeof(lookup_buffer));
+		app_sprite = strdup(lookup_buffer);
+	}
 }
 
 
-/* ================================================================================================================== */
+/**
+ * Display a Wimp error box on the screen, using the specified type.  Either use
+ * the specified standard buttons, or a set of custom buttons.
+ *
+ * \param *error		An Error Block defining the error and the message
+ *				to display.
+ * \param type			The error box type, from wimp_ERROR_BOX_CATEGORY_INFO,
+ *				wimp_ERROR_BOX_CATEGORY_ERROR, wimp_ERROR_BOX_CATEGORY_PROGRAM
+ *				or wimp_ERROR_BOX_CATEGORY_QUESTION.
+ * \param buttons		The buttons to use, if *custom_buttons is NULL, from
+ *				wimp_ERROR_BOX_OK_ICON and wimp_ERROR_BOX_CANCEL_ICON .
+ * \param *custom_buttons	A comma-separated list of custom button texts.
+ * \return			The selected button, counting from 1.
+ */
 
-void wimp_program_report (os_error *error)
+static wimp_error_box_selection error_wimp_os_report(os_error *error, wimp_error_box_flags type,
+		wimp_error_box_flags buttons, char *custom_buttons)
 {
-  if (error != NULL)
-  {
-    wimp_report (error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
-    exit (1);
-  }
+	wimp_error_box_selection	click;
+	wimp_error_box_flags		flags;
+
+	if (custom_buttons != NULL && *custom_buttons != '\0') {
+		flags = wimp_ERROR_BOX_GIVEN_CATEGORY | (type << wimp_ERROR_BOX_CATEGORY_SHIFT);
+		click = wimp_report_error_by_category(error, flags, app_name, app_sprite, wimpspriteop_AREA, custom_buttons) - 2;
+	} else {
+		flags = wimp_ERROR_BOX_GIVEN_CATEGORY | buttons | (type << wimp_ERROR_BOX_CATEGORY_SHIFT);
+		click = wimp_report_error_by_category(error, flags, app_name, app_sprite, wimpspriteop_AREA, NULL);
+	}
+
+	return click;
 }
 
-/* ================================================================================================================== */
 
-wimp_error_box_selection wimp_report (os_error *error, wimp_error_box_flags type, wimp_error_box_flags buttons,
-                                      char *custom_buttons)
+/* Display a Wimp error box of type wimp_ERROR_BOX_CATEGORY_ERROR, containing
+ * details of the error as contained in an Error Block.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+wimp_error_box_selection error_report_os_error(os_error *error, wimp_error_box_flags buttons)
 {
-  wimp_error_box_selection click;
-  wimp_error_box_flags     flags;
-
-  if (custom_buttons != NULL && *custom_buttons != '\0')
-  {
-    flags = wimp_ERROR_BOX_GIVEN_CATEGORY | (type << wimp_ERROR_BOX_CATEGORY_SHIFT);
-    click = wimp_report_error_by_category (error, flags, app_name, app_sprite, wimpspriteop_AREA, custom_buttons) - 2;
-  }
-  else
-  {
-    flags = wimp_ERROR_BOX_GIVEN_CATEGORY | buttons | (type << wimp_ERROR_BOX_CATEGORY_SHIFT);
-    click = wimp_report_error_by_category (error, flags, app_name, app_sprite, wimpspriteop_AREA, NULL);
-  }
-
-  return (click);
+	if (error != NULL)
+		return error_wimp_os_report(error, wimp_ERROR_BOX_CATEGORY_ERROR, buttons, NULL);
+	else
+		return wimp_ERROR_BOX_SELECTED_NOTHING;
 }
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_INFO, containg the
+ * message looked up via the given MessageTrans token and an OK button.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+wimp_error_box_selection error_msgs_report_info(char *token)
+{
+	os_error	error;
+
+	error.errnum = 255; /* A dummy error number, which should probably be checked. */
+	msgs_lookup(token, error.errmess, os_ERROR_LIMIT);
+
+	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_INFO, wimp_ERROR_BOX_OK_ICON, NULL);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_INFO, containg the
+ * given message and an OK button.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+wimp_error_box_selection error_report_info(char *message)
+{
+	os_error	error;
+
+	error.errnum = 255; /* A dummy error number, which should probably be checked. */
+	strncpy(error.errmess, message, os_ERROR_LIMIT);
+
+	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_INFO, wimp_ERROR_BOX_OK_ICON, NULL);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_ERROR, containg the
+ * message looked up via the given MessageTrans token and an OK button.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+
+wimp_error_box_selection error_msgs_report_error(char *token)
+{
+	os_error	error;
+
+	error.errnum = 255; /* A dummy error number, which should probably be checked. */
+	msgs_lookup(token, error.errmess, os_ERROR_LIMIT);
+
+	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_ERROR, wimp_ERROR_BOX_OK_ICON, NULL);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_ERROR, containg the
+ * given message and an OK button.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+wimp_error_box_selection error_report_error(char *message)
+{
+	os_error	error;
+
+	error.errnum = 255; /* A dummy error number, which should probably be checked. */
+	strncpy(error.errmess, message, os_ERROR_LIMIT);
+
+	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_ERROR, wimp_ERROR_BOX_OK_ICON, NULL);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_QUESTION, containg the
+ * message looked up via the given MessageTrans token and either OK and
+ * Cancel buttons or buttons as specified in the comma-separated list
+ * contained in the buttons token.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+wimp_error_box_selection error_msgs_report_question(char *token, char *buttons)
+{
+	os_error	error;
+	char		button_text[ERROR_BUTTON_LENGTH];
+
+	error.errnum = 255; /* A dummy error number, which should probably be checked. */
+	msgs_lookup(token, error.errmess, os_ERROR_LIMIT);
+
+	if (buttons == NULL) {
+		return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION,
+				wimp_ERROR_BOX_OK_ICON | wimp_ERROR_BOX_CANCEL_ICON, NULL);
+	} else {
+		msgs_lookup(buttons, button_text, ERROR_BUTTON_LENGTH);
+		return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION, 0, button_text);
+	}
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_QUESTION, containg the
+ * given message and either OK and Cancel buttons or buttons as specified in
+ * the comma-separated list.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+wimp_error_box_selection error_report_question(char *message, char *buttons)
+{
+	os_error	error;
+
+	error.errnum = 255; /* A dummy error number, which should probably be checked. */
+	strncpy(error.errmess, message, os_ERROR_LIMIT);
+
+	if (buttons == NULL)
+		return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION,
+				wimp_ERROR_BOX_OK_ICON | wimp_ERROR_BOX_CANCEL_ICON, NULL);
+	else
+		return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION, 0, buttons);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_PROGRAM, containg the
+ * message looked up via the given MessageTrans token and a Cancel button.
+ *
+ * This function never returns.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+void error_msgs_report_fatal(char *token)
+{
+	os_error	error;
+
+	error.errnum = 255; /* A dummy error number, which should probably be checked. */
+	msgs_lookup(token, error.errmess, os_ERROR_LIMIT);
+
+	error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
+	exit(1);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_PROGRAM, containg the
+ * given message and a Cancel button.
+ *
+ * This function never returns.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+void error_report_fatal(char *message)
+{
+	os_error	error;
+
+	error.errnum = 255; /* A dummy error number, which should probably be checked. */
+	strncpy(error.errmess, message, os_ERROR_LIMIT);
+
+	error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
+	exit(1);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_PROGRAM, containg
+ * details of the error in an Error Block and a Cancel button.
+ *
+ * This function never returns.
+ */
+
+void error_report_program(os_error *error)
+{
+	if (error != NULL) {
+		error_wimp_os_report(error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
+		exit(1);
+	}
+}
+

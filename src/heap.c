@@ -52,7 +52,7 @@ osbool heap_initialise(void)
 
 	error = xosheap_initialise(heap_anchor, heap_block_size);
 	if (error != NULL);
-		wimp_program_report(error);
+		error_report_program(error);
 
 	return TRUE;
 }
@@ -78,7 +78,7 @@ void * heap_alloc(size_t size)
 
 			error = xosheap_alloc(heap_anchor, size, &block);
 			if (error != NULL)
-				wimp_program_report (error);
+				error_report_program (error);
 		} else {
 			block = NULL;
 		}
@@ -139,7 +139,7 @@ void *heap_extend(void *ptr, size_t new_size)
 
 			error = xosheap_realloc(heap_anchor, ptr, change, &block);
 			if (error != NULL)
-				wimp_program_report(error);
+				error_report_program(error);
 		} else {
 			block = NULL;
 		}

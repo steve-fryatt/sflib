@@ -76,7 +76,7 @@ int send_start_data_save_block (wimp_w w, wimp_i i, os_coord pos, int ref, char 
   error = xwimp_send_message_to_window (wimp_USER_MESSAGE_RECORDED, (wimp_message *) &datasave, w, i, NULL);
   if (error != NULL)
   {
-    wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+    error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
     return -1;
   }
 
@@ -117,7 +117,7 @@ int send_start_data_save_function (wimp_w w, wimp_i i, os_coord pos, int ref, in
   error = xwimp_send_message_to_window (wimp_USER_MESSAGE_RECORDED, (wimp_message *) &datasave, w, i, NULL);
   if (error != NULL)
   {
-    wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+    error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
     return -1;
   }
 
@@ -137,7 +137,7 @@ int send_reply_data_save_ack (wimp_message *message)
     error = xosfile_save_stamped (datasaveack->file_name, data_type, (byte const *) *data, (byte const *) *data+data_length);
     if (error != NULL)
     {
-      wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+      error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
       return -1;
     }
   }
@@ -155,7 +155,7 @@ int send_reply_data_save_ack (wimp_message *message)
   error = xwimp_send_message (wimp_USER_MESSAGE, (wimp_message *) datasaveack, datasaveack->sender);
   if (error != NULL)
   {
-    wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+    error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
     return -1;
   }
 
@@ -181,7 +181,7 @@ int send_reply_ram_fetch (wimp_message *message, wimp_t task_handle)
                                   ramfetch->sender, ramfetch->addr, bytes_sent_this_time);
     if (error != NULL)
     {
-      wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+      error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
       return -1;
     }
 
@@ -204,7 +204,7 @@ int send_reply_ram_fetch (wimp_message *message, wimp_t task_handle)
     error = xwimp_send_message (message_type, (wimp_message *) ramfetch, ramfetch->sender);
     if (error != NULL)
     {
-      wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+      error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
       return -1;
     }
   }
@@ -236,7 +236,7 @@ int receive_reply_data_save_block (wimp_message *message, char **data_ptr)
 
   if (flex_alloc ((flex_ptr) data, buffer_offered) == 0)
   {
-    wimp_msgtrans_error_report ("NoRAMforXFer");
+    error_msgs_report_error ("NoRAMforXFer");
     return -1;
   }
 
@@ -256,7 +256,7 @@ int receive_reply_data_save_block (wimp_message *message, char **data_ptr)
   error = xwimp_send_message (wimp_USER_MESSAGE_RECORDED, (wimp_message *) &ramfetch, datasave->sender);
   if (error != NULL)
   {
-    wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+    error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
     flex_free ((flex_ptr) data);
 
     return -1;
@@ -297,7 +297,7 @@ int receive_reply_data_save_function (wimp_message *message, int (*load_function
   error = xwimp_send_message (wimp_USER_MESSAGE, (wimp_message *) datasave, datasave->sender);
   if (error != NULL)
   {
-    wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+    error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
 
     return -1;
   }
@@ -317,7 +317,7 @@ int recieve_reply_ram_transmit (wimp_message *message, char *name)
   {
     if (flex_extend ((flex_ptr) data, flex_size ((flex_ptr) data) + buffer_offered) == 0)
     {
-      wimp_msgtrans_error_report ("NoRAMforXFer");
+      error_msgs_report_error ("NoRAMforXFer");
       flex_free ((flex_ptr) data);
 
       return -1;
@@ -333,7 +333,7 @@ int recieve_reply_ram_transmit (wimp_message *message, char *name)
     error = xwimp_send_message (wimp_USER_MESSAGE_RECORDED, (wimp_message *) ramtransmit, ramtransmit->sender);
     if (error != NULL)
     {
-      wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+      error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
       flex_free ((flex_ptr) data);
 
       return -1;
@@ -381,7 +381,7 @@ int receive_bounced_ram_fetch (wimp_message *message)
     error = xwimp_send_message (wimp_USER_MESSAGE, (wimp_message *) &saved_message, saved_message.sender);
     if (error != NULL)
     {
-      wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+      error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
 
       return -1;
     }
@@ -428,7 +428,7 @@ int receive_reply_data_load (wimp_message *message, char *name)
   error = xwimp_send_message (wimp_USER_MESSAGE_RECORDED, (wimp_message *) dataload, dataload->sender);
   if (error != NULL)
   {
-    wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+    error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
     return -1;
   }
 
@@ -439,7 +439,7 @@ int receive_reply_data_load (wimp_message *message, char *name)
     error = xosfile_read_stamped_no_path (dataload->file_name, NULL, NULL, NULL, &size, NULL, &type);
     if (error != NULL)
     {
-      wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+      error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
       return -1;
     }
 
@@ -450,14 +450,14 @@ int receive_reply_data_load (wimp_message *message, char *name)
 
     if (flex_alloc ((flex_ptr) data, size) == 0)
     {
-      wimp_msgtrans_error_report ("NoRAMforXFer");
+      error_msgs_report_error ("NoRAMforXFer");
       return -1;
     }
 
     error = xosfile_load_stamped_no_path (dataload->file_name, (byte *) *data, NULL, NULL, NULL, NULL, NULL);
     if (error != NULL)
     {
-      wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+      error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
       flex_free ((flex_ptr) data);
 
       return -1;
@@ -474,7 +474,7 @@ int receive_reply_data_load (wimp_message *message, char *name)
     error = xosfile_delete (dataload->file_name, NULL, NULL, NULL, NULL, NULL);
     if (error != NULL)
     {
-      wimp_os_error_report (error, wimp_ERROR_BOX_CANCEL_ICON);
+      error_report_os_error (error, wimp_ERROR_BOX_CANCEL_ICON);
       flex_free ((flex_ptr) data);
 
       return -1;

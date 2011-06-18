@@ -1,38 +1,151 @@
-/* SF-Lib - Errors.h
+/**
+ * \file: errors.h
  *
- * Version 0.15 (15 June 2003)
+ * SF-Lib - Errors.h
+ *
+ * (C) Stephen Fryatt, 2003-2011
+ *
+ * Wimp error handling and message box support.
  */
 
-#ifndef _SFLIB_ERRORS
-#define _SFLIB_ERRORS
+#ifndef SFLIB_ERRORS
+#define SFLIB_ERRORS
 
 #include "oslib/messagetrans.h"
 #include "oslib/wimp.h"
 
-/* ================================================================================================================== */
 
-#define sf_errors_BUTTONS_MAX 255
-
-/* ================================================================================================================== */
-
-void error_initialise (char *name, char *sprite, void closedown(void));
-
-/* wimp_ERROR_BOX_OK_ICON
- * wimp_ERROR_BOX_CANCEL_ICON
+/**
+ * Initialise the error message module.
+ *
+ * \param *name			MessageTrans token for the application name.
+ * \param *sprite		MessageTrans token for the application sprite.
+ * \param *closedown		Callback handler (unused; set to NULL).
  */
 
-wimp_error_box_selection wimp_os_error_report (os_error *error, wimp_error_box_flags buttons);
-wimp_error_box_selection wimp_msgtrans_error_report (char *token);
-wimp_error_box_selection wimp_error_report (char *message);
-wimp_error_box_selection wimp_msgtrans_info_report (char *token);
-wimp_error_box_selection wimp_info_report (char *message);
-wimp_error_box_selection wimp_msgtrans_question_report (char *token, char *buttons);
-wimp_error_box_selection wimp_question_report (char *message, char *buttons);
-void wimp_msgtrans_fatal_report (char *token); /* Never returns... */
-void wimp_fatal_report (char *message); /* Never returns... */
-void wimp_program_report (os_error *error); /* Never returns... */
+void error_initialise(char *name, char *sprite, void (*closedown)(void));
 
-wimp_error_box_selection wimp_report (os_error *error, wimp_error_box_flags type, wimp_error_box_flags buttons,
-                                      char *custom_buttons);
+
+/**
+ * Display a Wimp error box of type wimp_ERROR_BOX_CATEGORY_ERROR, containing
+ * details of the error as contained in an Error Block.
+ *
+ * \param *error		An Error Block defining the error and the
+ *				message to display.
+ * \param buttons		The buttons to include in the error message.
+ * \return			The selection made.
+ */
+
+wimp_error_box_selection error_report_os_error(os_error *error, wimp_error_box_flags buttons);
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_INFO, containg the
+ * message looked up via the given MessageTrans token and an OK button.
+ *
+ * \param *token		The MessageTrans token for the message.
+ * \return			The selection made.
+ */
+
+wimp_error_box_selection error_msgs_report_info(char *token);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_INFO, containg the
+ * given message and an OK button.
+ *
+ * \param *message		The text of the message.
+ * \return			The selection made.
+ */
+
+wimp_error_box_selection error_report_info(char *message);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_ERROR, containg the
+ * message looked up via the given MessageTrans token and an OK button.
+ *
+ * \param *token		The MessageTrans token for the message.
+ * \return			The selection made.
+ */
+
+wimp_error_box_selection error_msgs_report_error(char *token);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_ERROR, containg the
+ * given message and an OK button.
+ *
+ * \param *message		The text of the message.
+ * \return			The selection made.
+ */
+
+wimp_error_box_selection error_report_error(char *message);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_QUESTION, containg the
+ * message looked up via the given MessageTrans token and either OK and
+ * Cancel buttons or buttons as specified in the comma-separated list
+ * contained in the buttons token.
+ *
+ * \param *token		The MessageTrans token for the message.
+ * \param *buttons		The MessageTrans token for the buttons, or NULL
+ *				to use OK and Cancel.
+ * \return			The selection made.
+ */
+
+wimp_error_box_selection error_msgs_report_question(char *token, char *buttons);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_QUESTION, containg the
+ * given message and either OK and Cancel buttons or buttons as specified in
+ * the comma-separated list.
+ *
+ * \param *message		The text of the message.
+ * \param *buttons		A comma-separated list of buttons, or NULL
+ *				to use OK and Cancel.
+ * \return			The selection made.
+ */
+
+wimp_error_box_selection error_report_question(char *message, char *buttons);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_PROGRAM, containg the
+ * message looked up via the given MessageTrans token and a Cancel button.
+ *
+ * This function never returns.
+ *
+ * \param *token		The MessageTrans token for the message.
+ */
+
+void error_msgs_report_fatal(char *token);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_PROGRAM, containg the
+ * given message and a Cancel button.
+ *
+ * This function never returns.
+ *
+ * \param *message		The text of the message.
+ */
+
+void error_report_fatal(char *message);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_PROGRAM, containg
+ * details of the error in an Error Block and a Cancel button.
+ *
+ * This function never returns.
+ *
+ * \param *error		An Error Block defining the error and the
+ *				message to display.
+ */
+
+void error_report_program(os_error *error);
 
 #endif
+

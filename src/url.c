@@ -68,7 +68,7 @@ osbool url_initialise(void)
 void url_launch(const char *url)
 {
 	if (!url_antbroadcast(url))
-		wimp_msgtrans_info_report("URLFailed");
+		error_msgs_report_info("URLFailed");
 }
 
 
@@ -94,7 +94,7 @@ static osbool url_antbroadcast(const char *url)
 
 	error = xwimp_send_message(wimp_USER_MESSAGE_RECORDED, (wimp_message *) &urlblock, wimp_BROADCAST);
 	if (error != NULL) {
-		wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
+		error_report_os_error(error, wimp_ERROR_BOX_CANCEL_ICON);
 		return FALSE;
 	}
 
@@ -186,12 +186,12 @@ static osbool url_bounce(wimp_message *mess)
 		error = xuri_request_uri(0, buf, sizeof buf, result->handle, NULL);
 
 		if (error) {
-			wimp_os_error_report(error, wimp_ERROR_BOX_CANCEL_ICON);
+			error_report_os_error(error, wimp_ERROR_BOX_CANCEL_ICON);
 			return TRUE;
 		}
 
 		if (!url_antload(buf))
-			wimp_msgtrans_info_report("URLFailed");
+			error_msgs_report_info("URLFailed");
 
 		/* we haven't acknowledged the returnresult message, so the URI
 		 * handler task will automatically free the URI */
