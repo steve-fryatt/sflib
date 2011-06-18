@@ -11,7 +11,6 @@
 #ifndef SFLIB_TRANSFER
 #define SFLIB_TRANSFER
 
-/* ================================================================================================================== */
 
 /* Requires the following MessageTrans tokens to be defined in the application's Messages file.
  *
