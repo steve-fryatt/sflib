@@ -19,6 +19,7 @@
 #include "icons.h"
 #include "string.h"
 #include "debug.h"
+#include "msgs.h"
 #include "string.h"
 
 /* ANSII C header files. */
@@ -210,14 +211,40 @@ char *icons_strncpy(wimp_w w, wimp_i i, char *s)
 	if (error != NULL)
 		return NULL;
 
-	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) ==
+	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) !=
 			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
-		strncpy(icon.icon.data.indirected_text.text, s,
+		return NULL;
+
+	strncpy(icon.icon.data.indirected_text.text, s,
 				icon.icon.data.indirected_text.size);
 
 	return icon.icon.data.indirected_text.text;
 }
 
+
+char *icons_msgs_lookup(wimp_w w, wimp_i i, char *token)
+{
+	return icons_msgs_param_lookup(w, i, token, NULL, NULL, NULL, NULL);
+}
+
+
+char *icons_msgs_param_lookup(wimp_w w, wimp_i i, char *token, char *a, char *b, char *c, char *d)
+{
+	wimp_icon_state		icon;
+	os_error		*error;
+
+	icon.w = w;
+	icon.i = i;
+	error = xwimp_get_icon_state(&icon);
+	if (error != NULL)
+		return NULL;
+
+	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) !=
+			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
+		return NULL;
+
+	return msgs_param_lookup(token, icon.icon.data.indirected_text.text, icon.icon.data.indirected_text.size, a, b, c, d);
+}
 
 /* Change the selected state of an icon.
  *

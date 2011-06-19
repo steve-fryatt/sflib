@@ -106,6 +106,35 @@ char *icons_strncpy(wimp_w w, wimp_i i, char *s);
 
 
 /**
+ * Perform a MessageTrans lookup into an icon, assuming that it is indirected.
+ *
+ *
+ * \param w		The handle of the windown containing the icon.
+ * \param i		The target icon handle.
+ * \param *token	The message token to look up.
+ * \return		A pointer to the result.
+ */
+
+char *icons_msgs_lookup(wimp_w w, wimp_i i, char *token);
+
+/**
+ * Perform a MessageTrans lookup into an icon, assuming that it is indirected,
+ * substituting the supplied parameters.
+ *
+ * \param w		The handle of the windown containing the icon.
+ * \param i		The target icon handle.
+ * \param *token	The message token to look up.
+ * \param *a		Parameter for %0.
+ * \param *b		Parameter for %1.
+ * \param *c		Parameter for %2.
+ * \param *d		Parameter for %3.
+ * \return		A pointer to the result.
+ */
+
+char *icons_msgs_param_lookup(wimp_w w, wimp_i i, char *token, char *a, char *b, char *c, char *d);
+
+
+/**
  * Change the selected state of an icon.
  *
  * \param w		The handle of the windown containing the icon.
