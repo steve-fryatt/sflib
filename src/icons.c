@@ -184,9 +184,12 @@ int icons_printf(wimp_w w, wimp_i i, char *cntrl_string, ...)
 	if (error != NULL)
 		return 0;
 
-	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) ==
+	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) !=
 			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
-		ret = vsnprintf(icon.icon.data.indirected_text.text,
+		return 0;
+
+	va_start(ap, cntrl_string);
+	ret = vsnprintf(icon.icon.data.indirected_text.text,
 				icon.icon.data.indirected_text.size,
 				cntrl_string, ap);
 
