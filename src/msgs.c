@@ -150,7 +150,7 @@ osbool msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, c
 	error = xmessagetrans_lookup(message_block, token, buffer, buffer_size, a, b, c, d, NULL, NULL);
 
 	if (error == NULL)
-		return FALSE;
+		return TRUE;
 
 	if (strlen(text) < buffer_size) {
 		strcpy(buffer, text);
@@ -159,6 +159,6 @@ osbool msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, c
 		*(buffer + buffer_size - 1) = '\0';
 	}
 
-	return TRUE;
+	return FALSE;
 }
 
