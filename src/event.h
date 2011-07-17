@@ -235,10 +235,12 @@ osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_p
  *
  * \param w		The window handle to attach the action to.
  * \param i		The icon handle to attach the action to.
+ * \param complete	TRUE if no further action is required; FALSE to
+ *			enable the generic click handler to be called.
  * \return		TRUE if the handler was registered; else FALSE.
  */
 
-osbool event_add_window_icon_radio(wimp_w w, wimp_i i);
+osbool event_add_window_icon_radio(wimp_w w, wimp_i i, osbool complete);
 
 
 /**

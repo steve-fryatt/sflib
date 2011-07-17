@@ -55,6 +55,14 @@ struct event_icon_click {
 };
 
 /**
+ * Specific details of the EVENT_ICON_RADIO icon action type.
+ */
+
+struct event_icon_radio {
+	osbool				complete;									/**< TRUE if no further processing is required by the task.		*/
+};
+
+/**
  * Specific details of the EVENT_ICON_POPUP_AUTO and EVENT_ICON_POPUP_MANUAL
  * icon action types.
  */
@@ -75,6 +83,7 @@ struct event_icon_action {
 
 	union {
 		struct event_icon_click		click;									/**< Data for an EVENT_ICON_CLICK.					*/
+		struct event_icon_radio		radio;									/**< Data for an EVENT_ICON_RADIO.					*/
 		struct event_icon_popup		popup;									/**< Data for an EVENT_ICON_POPUP_AUTO or EVENT_ICON_POPUP_MANUAL.	*/
 	} data;														/**< The data for the icon event.					*/
 
@@ -534,6 +543,7 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 		case EVENT_ICON_RADIO:
 			if (pointer->buttons == wimp_CLICK_ADJUST)
 				icons_set_selected(pointer->w, pointer->i, TRUE);
+			handled = !action->data.radio.complete;
 			break;
 
 		case EVENT_ICON_POPUP_MANUAL:
@@ -876,7 +886,7 @@ osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_p
  * This function is an external interface, documented in event.h.
  */
 
-osbool event_add_window_icon_radio(wimp_w w, wimp_i i)
+osbool event_add_window_icon_radio(wimp_w w, wimp_i i, osbool complete)
 {
 	struct event_window		*window;
 	struct event_icon		*icon;
@@ -898,6 +908,8 @@ osbool event_add_window_icon_radio(wimp_w w, wimp_i i)
 		return FALSE;
 
 	action->type = EVENT_ICON_RADIO;
+
+	action->data.radio.complete = complete;
 
 	action->next = icon->actions;
 	icon->actions = action;
