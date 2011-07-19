@@ -177,7 +177,7 @@ static wimp_menu		*new_client_menu = NULL;			/**< Used for returning menu update
 /* User Drag Event Data */
 
 static void (*event_drag_end)(wimp_dragged *dragged, void *data) = NULL;
-static int (*event_drag_null_poll)(void *data) = NULL;
+static osbool (*event_drag_null_poll)(void *data) = NULL;
 static void *event_drag_data = NULL;
 
 /**
@@ -1289,7 +1289,7 @@ static struct event_message *event_find_message(int message)
  * This function is an external interface, documented in event.h.
  */
 
-osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data), int (*drag_null_poll)(void *data), void *data)
+osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data), osbool (*drag_null_poll)(void *data), void *data)
 {
 	event_drag_end = drag_end;
 	event_drag_null_poll = drag_null_poll;

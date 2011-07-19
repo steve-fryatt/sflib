@@ -314,8 +314,8 @@ osbool event_add_message_handler(unsigned int message, enum event_message_type t
  * If either handler is NULL it will not be called; both will be cancelled on
  * the next User_Drag_Box event to be received.
  *
- * Null Polls can be passed on to the application by returning 1 from
- * (drag_null_poll)(); returning 0 causes event_process_event() to also return 0.
+ * Null Polls can be passed on to the application by returning FALSE from
+ * (drag_null_poll)(); returning TRUE causes event_process_event() to also return TRUE.
  *
  * \param  *drag_end		A callback function for the drag end event.
  * \param  *drag_null_poll	A callback function for Null Polls during the drag.
@@ -323,7 +323,7 @@ osbool event_add_message_handler(unsigned int message, enum event_message_type t
  * \return			TRUE if the handler was registerd; else FALSE.
  */
 
-osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data), int (*drag_null_poll)(void *data), void *data);
+osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data), osbool (*drag_null_poll)(void *data), void *data);
 
 
 /**
