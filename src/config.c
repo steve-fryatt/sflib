@@ -686,6 +686,6 @@ osbool config_read_opt_string(char *str)
 	strcpy(line, str);
 	string_tolower(line);
 
-	return (strcmp(line, "yes") == 0 || strcmp(line, "true")) ? TRUE : FALSE;
+	return (strcmp(line, "yes") == 0 || strcmp(line, "true") == 0) ? TRUE : FALSE;
 }
 
