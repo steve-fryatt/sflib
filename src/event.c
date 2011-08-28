@@ -198,14 +198,15 @@ static struct event_message *event_find_message(int message);
 
 osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 {
-	struct event_window		*win = NULL;
-	struct event_icon		*icon = NULL;
-	struct event_message		*message = NULL;
-	struct event_message_action	*action = NULL;
-	enum event_message_type		type;
-	wimp_pointer			pointer;
-	wimp_menu			*menu;
-	osbool				handled, special;
+	struct event_window			*win = NULL;
+	struct event_icon			*icon = NULL;
+	struct event_message			*message = NULL;
+	struct event_message_action		*action = NULL;
+	enum event_message_type			type;
+	wimp_pointer				pointer;
+	wimp_menu				*menu;
+	osbool					handled, special;
+	wimp_full_message_menus_deleted		*menus_deleted;
 
 	switch (event) {
 	case wimp_NULL_REASON_CODE:
@@ -446,7 +447,8 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 		if (event != wimp_USER_MESSAGE_ACKNOWLEDGE) {
 			switch (block->message.action) {
 			case message_MENUS_DELETED:
-				if (current_menu != NULL) {
+				menus_deleted = (wimp_full_message_menus_deleted *) block;
+				if (current_menu != NULL && current_menu->menu == menus_deleted->menu) {
 					if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
 						(current_menu->menu_close)(current_menu->w, current_menu->menu);
 					current_menu = NULL;
