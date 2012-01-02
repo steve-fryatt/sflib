@@ -4,6 +4,101 @@
  * (C) Stephen Fryatt, 2010-2011
  *
  * SFLib - Simple event-based Wimp_Poll dispatch system.
+ *
+ * EventLib provides a simple message dispatch system for Wimp_Poll events.
+ * Support for Redraw_Window, Open_Window, Close_Window, Pointer_Leaving_Window,
+ * Pointer_Entering_Window, Mouse_Click, Key_Pressed, Scroll_Request,
+ * Lose_Caret and Gain_Caret are provided on a window-by-window basis, with
+ * details being passed to the appropriate event handler if one has been
+ * registered. In addition, menus are handled with additional code to provide a
+ * window-by-window implementation. Support for attaching additional events
+ * to specific icons within dialogue boxes is provided.
+ *
+ * Support for User Messages is provided on a message-by-message basis, while
+ * dragging is supported on a one-off basis for the current claimant of the
+ * drag box. Null polls are not supported outside of dragging.
+ *
+ * All unclaimed and unrouted events are passed back to the caller, to be
+ * handled via other methods.
+ *
+ * ==Standard Event Support
+ *
+ * Standard events (those listed above) are handed on a window-by-window basis,
+ * with details being sent to the hander registered for the window referenced
+ * in the block supplied via Wimp_Poll.  If no suitable handler is registered,
+ * then event_process_event() returns FALSE to show that the event has not been
+ * handled by EventLib.
+ *
+ * Standard event handlers can not return their status to EventLib, so the
+ * fact that a handler has been called is considered to mean that it has been
+ * handled.
+ *
+ * ==Icon Click Handlers
+ *
+ * It is possible to register specific handlers to process clicks on icons
+ * within a window. These cause specific actions to be carried out, either in
+ * place of or in addition to the generic Mouse Click handler.  Each of the
+ * handlers associated with an icon will be called in turn, regardless of
+ * whether any 'claim' the event.
+ *
+ * If any of the individual icon handlers are deemed to have 'claimed' the
+ * event, then the Mouse Click hander associated with the parent window will not
+ * then be called.
+ *
+ * ==Menus
+ *
+ * EventLib provides support for menu handling which simplifies the
+ * implementation of Style Guide compliant interfaces. Two types of menu are
+ * supported: 'window' menus registered via event_add_window_menu(), and
+ * 'pop-up' menus registred via event_add_window_icon_popup().
+ *
+ * Window menus are conventional menus which open at the pointer when the
+ * Menu button is pressed. If the window is the iconbar, then the menu is
+ * treated as an iconbar menu and opened in an appropriate location relative
+ * to the base of the screen. Pop-Up menus are associated with an icon in a
+ * window, and open aligned to its right-hand side: usually they will be used
+ * in conjunction with a "gright" icon and a text field.
+ *
+ * Four 'events' are created by EventLib to streamline menu handling, which
+ * can be registered for a window in the same way as the 'real' events returned
+ * from Wimp_Poll. These events hide all Menu_Selection events from the client,
+ * but also hide some Mouse_Click and User_Message events when these relate to
+ * a menu being handled by EventLib.  If an event handler is registerd for a
+ * window, it is called for all associated window and pop-up menus.
+ *
+ * Menu Prepare events occur when one of EventLib's menus is about to be opened
+ * on a mouse click or re-opened in response to an Adjust-click selection, and
+ * should be used to prepare the menu (ticking or shading entries).  The event
+ * can also be used to substitute a new menu handle, allowing menus to be
+ * created dynamically.
+ *
+ * Once a menu is open, Menu Warning events are sent whenever a submenu warning
+ * message is received.  A Menu Selection event is sent when a selection is
+ * made (with Select or Adjust).  A Menu Close event is sent when the menu
+ * closes, either via a Select-click selection, or via a click away from the
+ * menu itself.
+ *
+ * It follows from the above that any Mouse Click event handler associated
+ * with a window will never be called to process Menu-clicks if the window has
+ * a Window menu associated with it.
+ *
+ *
+ * ==User Messages
+ *
+ * User Message handlers can be added via event_add_message_handler(), which
+ * takes a message number, the 'type' of message ('standard', recorded,
+ * acknowledge or some combination as specified by enum event_message_type),
+ * and a function to be called to handle receipt of matching events from
+ * the system.
+ *
+ * The callback function takes a standard wimp_message block pointer to hold
+ * details of the receved message.  It returns with TRUE if the message should
+ * be 'claimed' (and hence not passed on to any further registered handlers),
+ * or FALSE if the message should not be 'claimed' (and hence offered to the
+ * next handler registered with EventLib).  In general, handlers for
+ * informational 'broadcast' messages should always return FALSE to ensure that
+ * all interested parties see the message.
+ *
  */
 
 #ifndef SFLIB_EVENT
@@ -25,7 +120,7 @@ enum event_message_type {
 	EVENT_MESSAGE_NONE = 0,							/**< No Messages will be handled.					*/
 	EVENT_MESSAGE = 1,							/**< Handle only Wimp Message (17).					*/
 	EVENT_MESSAGE_RECORDED = 2,						/**< Handle only Wimp Message Recorded (18).				*/
-	EVENT_MESSAGE_INCOMING = 3,						/**< Handle incoming messages (Wimp Message and Wimp Message Recorded.	*/
+	EVENT_MESSAGE_INCOMING = 3,						/**< Handle incoming messages (Wimp Message and Wimp Message Recorded).	*/
 	EVENT_MESSAGE_ACKNOWLEDGE = 4						/**< Handle only Wimp Message Acknowledge (19).				*/
 };
 
@@ -221,6 +316,11 @@ osbool event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_m
 /**
  * Add an icon click handler for the specified window and icon.
  *
+ * The vallback is sent a pointer to the wimp_pointer data for the click.  If
+ * it wishes to claim the event (and prevent it being seen by the generic
+ * click handler for the parent window) it should return TRUE; otherwise it
+ * should return FALSE.
+ *
  * \param w		The window handle to attach the action to.
  * \param i		The icon handle to attach the action to.
  * \param *callback()	The callback to use when the icon is clicked.
@@ -231,7 +331,9 @@ osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_p
 
 
 /**
- * Add a radio icon handler for the specified window and icon.
+ * Add a radio icon handler for the specified window and icon.  If complete is
+ * TRUE, then the handler will 'claim' events and they will not be passed
+ * on to the generic click handler for the window.
  *
  * \param w		The window handle to attach the action to.
  * \param i		The icon handle to attach the action to.
@@ -299,6 +401,11 @@ void event_delete_icon(wimp_w w, wimp_i i);
 
 /**
  * Add a message handler for the given user message.
+ *
+ * Handlers are passed a pointer to the message data. If they return TRUE then
+ * the user message is taken to have been 'claimed' and is not passed on to any
+ * other registered handlers; if they return FALSE, then message is 'unclaimed'
+ * and will be passed to the next registered handler in the chain.
  *
  * \param message		The message number.
  * \param type			The type of message to handle ("Normal", Recorded, Acknowledge)

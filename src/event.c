@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * Menu types, to identify which type of menu handler needs to be called
@@ -207,6 +208,7 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 	wimp_menu				*menu;
 	osbool					handled, special;
 	wimp_full_message_menus_deleted		*menus_deleted;
+	int					line;
 
 	switch (event) {
 	case wimp_NULL_REASON_CODE:
@@ -361,7 +363,15 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				break;
 			}
 
-			if (current_menu->menu_selection != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
+			if (current_menu_type == EVENT_MENU_POPUP_AUTO) {
+				if (block->selection.items[0] != -1) {
+					icons_strncpy(current_menu->w, current_menu_action->data.popup.field,
+							menus_get_text_addr(menu, block->selection.items[0]));
+					wimp_set_icon_state(current_menu->w, current_menu_action->data.popup.field, 0, 0);
+				}
+			}
+
+			if (current_menu->menu_selection != NULL)
 				(current_menu->menu_selection)(current_menu->w, menu, (wimp_selection *) block);
 
 			if (pointer.buttons == wimp_CLICK_ADJUST) {
@@ -374,6 +384,7 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 						current_menu->menu = new_client_menu;
 						break;
 					case EVENT_MENU_POPUP_MANUAL:
+					case EVENT_MENU_POPUP_AUTO:
 						current_menu_action->data.popup.menu = new_client_menu;
 						break;
 					default:
@@ -386,6 +397,16 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				if (new_client_menu == NULL || menu == new_client_menu) {
 					if (new_client_menu != NULL)
 						menu = new_client_menu;
+					if (current_menu_type == EVENT_MENU_POPUP_AUTO) {
+						line = 0;
+						do {
+							if (strcmp(menus_get_text_addr(menu, line),
+									icons_get_indirected_text_addr(current_menu->w, current_menu_action->data.popup.field)) == 0)
+								menu->entries[line].menu_flags |= wimp_MENU_TICKED;
+							else
+								menu->entries[line].menu_flags &= ~wimp_MENU_TICKED;
+						} while ((menu->entries[line++].menu_flags & wimp_MENU_LAST) == 0);
+					}
 					wimp_create_menu(menu, 0, 0);
 				}
 			} else {
@@ -534,6 +555,7 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 	struct event_icon_action	*action;
 	osbool				handled = TRUE;
 	wimp_menu			*menu;
+	int				line;
 
 	action = icon->actions;
 
@@ -550,18 +572,29 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 			handled = action->data.radio.complete;
 			break;
 
+		case EVENT_ICON_POPUP_AUTO:
 		case EVENT_ICON_POPUP_MANUAL:
 			new_client_menu = NULL;
 			if (window->menu_prepare != NULL)
 				(window->menu_prepare)(window->w, action->data.popup.menu, pointer);
 			if (new_client_menu != NULL)
 				action->data.popup.menu = new_client_menu;
+			if (action->type == EVENT_ICON_POPUP_AUTO) {
+				line = 0;
+				do {
+					if (strcmp(menus_get_text_addr(action->data.popup.menu, line),
+							icons_get_indirected_text_addr(window->w, action->data.popup.field)) == 0)
+						action->data.popup.menu->entries[line].menu_flags |= wimp_MENU_TICKED;
+					else
+						action->data.popup.menu->entries[line].menu_flags &= ~wimp_MENU_TICKED;
+				} while ((action->data.popup.menu->entries[line++].menu_flags & wimp_MENU_LAST) == 0);
+			}
 			menu = menus_create_popup_menu(action->data.popup.menu, pointer);
 
 			current_menu = window;
-			current_menu_type = EVENT_MENU_POPUP_MANUAL;
 			current_menu_icon = icon;
 			current_menu_action = action;
+			current_menu_type = (action->type == EVENT_ICON_POPUP_AUTO) ? EVENT_MENU_POPUP_AUTO : EVENT_MENU_POPUP_MANUAL;
 			if (menu_handle != NULL)
 				*menu_handle = menu;
 			handled = TRUE;
