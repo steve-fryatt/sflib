@@ -91,9 +91,13 @@ all: $(OUTDIR)/$(RUNIMAGE)
 
 OBJS := $(addprefix $(OBJDIR)/, $(OBJS))
 
-$(OUTDIR)/$(RUNIMAGE): $(OBJS)
+$(OUTDIR)/$(RUNIMAGE): $(OBJS) $(OBJDIR)
 	$(AR) -rcuv $(OUTDIR)/$(RUNIMAGE) $(OBJS)
 
+# Create a folder to hold the object files.
+
+$(OBJDIR):
+	$(MKDIR) $(OBJDIR)
 
 # Build the object files, and identify their dependencies.
 
