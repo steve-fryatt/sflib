@@ -64,5 +64,15 @@ void *heap_extend(void *ptr, size_t new_size);
 
 size_t heap_size(void *ptr);
 
+
+/**
+ * Perform a strdup() on a string, using memory cliamed by heap_alloc().
+ *
+ * \param *string	Pointer to the string to be duplicated.
+ * \reyirn		Pointer to the duplicate string, or NULL on failure.
+ */
+
+char *heap_strdup(char *string);
+
 #endif
 

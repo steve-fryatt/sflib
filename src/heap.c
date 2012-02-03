@@ -10,6 +10,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 /* Acorn C header files. */
 
@@ -162,5 +163,22 @@ void *heap_extend(void *ptr, size_t new_size)
 size_t heap_size(void *ptr)
 {
 	return *((size_t *) ptr - 1);
+}
+
+
+/* Perform a strdup() on a string, using memory cliamed by heap_alloc().
+ *
+ * This is an external interface, documented in heap.h
+ */
+
+char *heap_strdup(char *string)
+{
+	size_t		size = strlen(string) + 1;
+	char		*new = heap_alloc(size);
+
+	if (new != NULL)
+		strncpy(new, string, size);
+
+	return new;
 }
 
