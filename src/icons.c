@@ -335,6 +335,53 @@ void icons_set_group_shaded(wimp_w window, osbool shaded, int icons, ...)
 }
 
 
+/* Change the deleted state of a group of icons, depending upon the state
+ * of another icon.  If the icon is deselected, then the icons in the
+ * group will be shaded, and vice-versa.
+ *
+ * This is an external interface, documented in icons.h
+ */
+
+void icons_set_group_deleted_when_off(wimp_w window, wimp_i icon, int icons, ...)
+{
+	int		i, state;
+	va_list		ap;
+
+	va_start(ap, icons);
+
+	state = !icons_get_selected(window, icon);
+
+	for (i=0; i<icons; i++)
+		icons_set_deleted(window, va_arg(ap, wimp_i), state);
+
+	va_end(ap);
+}
+
+
+/* Change the deleted state of a group of icons, depending upon the state
+ * of another icon.  If the icon is selected, then the icons in the
+ * group will be shaded, and vice-versa.
+ *
+ * This is an external interface, documented in icons.h
+ */
+
+void icons_set_group_deleted_when_on(wimp_w window, wimp_i icon, int icons, ...)
+{
+	int		i, state;
+	va_list	ap;
+
+	va_start(ap, icons);
+
+	state = icons_get_selected(window, icon);
+
+	for (i=0; i<icons; i++)
+		icons_set_deleted(window, va_arg(ap, wimp_i), state);
+
+	va_end(ap);
+}
+
+
+
 /* Change the shaded state of a group of icons, depending upon the state
  * of another icon.  If the icon is deselected, then the icons in the
  * group will be shaded, and vice-versa.
