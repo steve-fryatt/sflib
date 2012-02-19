@@ -1054,7 +1054,7 @@ osbool event_set_window_icon_popup_selection(wimp_w w, wimp_i i, unsigned select
  * This function is an external interface, documented in event.h.
  */
 
-unsigned event_get_window_icon_popup_selection(wimp_w w, wimp_i i, unsigned selection)
+unsigned event_get_window_icon_popup_selection(wimp_w w, wimp_i i)
 {
 	struct event_window *window;
 	struct event_icon *icon;

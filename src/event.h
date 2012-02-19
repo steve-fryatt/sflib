@@ -379,7 +379,7 @@ osbool event_set_window_icon_popup_selection(wimp_w w, wimp_i i, unsigned select
  * \return 			The selected item, counting from 0.
  */
 
-unsigned event_get_window_icon_popup_selection(wimp_w w, wimp_i i, unsigned selection);
+unsigned event_get_window_icon_popup_selection(wimp_w w, wimp_i i);
 
 
 /**
