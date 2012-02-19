@@ -206,7 +206,10 @@ void icons_set_group_shaded(wimp_w window, osbool shaded, int icons, ...);
  * of another icon.  If the icon is deselected, then the icons in the
  * group will be shaded, and vice-versa.
  *
- * This is an external interface, documented in icons.h
+ * \param window	The window containing the icons.
+ * \param icon		The icon whose selected state controls the deletion.
+ * \param icons		The number of icons on the group.
+ * \param ...		The icon handles for each of the icons in the group.
  */
 
 void icons_set_group_deleted_when_off(wimp_w window, wimp_i icon, int icons, ...);
@@ -217,7 +220,10 @@ void icons_set_group_deleted_when_off(wimp_w window, wimp_i icon, int icons, ...
  * of another icon.  If the icon is selected, then the icons in the
  * group will be shaded, and vice-versa.
  *
- * This is an external interface, documented in icons.h
+ * \param window	The window containing the icons.
+ * \param icon		The icon whose selected state controls the deletion.
+ * \param icons		The number of icons on the group.
+ * \param ...		The icon handles for each of the icons in the group.
  */
 
 void icons_set_group_deleted_when_on(wimp_w window, wimp_i icon, int icons, ...);
