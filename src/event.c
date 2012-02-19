@@ -371,7 +371,7 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				break;
 			}
 
-			if (current_menu_type == EVENT_MENU_POPUP_AUTO && block->selection.items[0])
+			if (current_menu_type == EVENT_MENU_POPUP_AUTO && block->selection.items[0] != -1)
 				event_set_auto_menu_selection(current_menu, current_menu_action, block->selection.items[0]);
 
 			if (current_menu->menu_selection != NULL)
