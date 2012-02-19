@@ -21,6 +21,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+
+#define EVENT_TOKEN_INDEX_LEN 12											/**< The number of digits in a message token index.			*/
 
 /**
  * Menu types, to identify which type of menu handler needs to be called
@@ -71,6 +74,9 @@ struct event_icon_radio {
 struct event_icon_popup {
 	wimp_menu			*menu;										/**< The menu associated with the popup.				*/
 	wimp_i				field;										/**< The display field icon attached to the popup menu.			*/
+	char				*token;										/**< The message token group to be used for the field entries.		*/
+	char				*token_number;									/**< Pointer to the end of the token name, to place the index.		*/
+	unsigned			selection;									/**< The currently selected item in the menu.				*/
 };
 
 /**
@@ -186,8 +192,11 @@ static void *event_drag_data = NULL;
  */
 
 static osbool event_process_icon(struct event_window *window, struct event_icon *icon, wimp_pointer *pointer);
+static void event_prepare_auto_menu(struct event_window *window, struct event_icon_action *action);
+static void event_set_auto_menu_selection(struct event_window *window, struct event_icon_action *action, unsigned selection);
 static struct event_window *event_find_window(wimp_w w);
 static struct event_window *event_create_window(wimp_w w);
+static void event_delete_icon_block(struct event_window *window, struct event_icon *icon);
 static struct event_icon *event_find_icon(struct event_window *window, wimp_i i);
 static struct event_icon *event_create_icon(struct event_window *window, wimp_i i);
 static struct event_message *event_find_message(int message);
@@ -208,7 +217,6 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 	wimp_menu				*menu;
 	osbool					handled, special;
 	wimp_full_message_menus_deleted		*menus_deleted;
-	int					line;
 
 	switch (event) {
 	case wimp_NULL_REASON_CODE:
@@ -363,13 +371,8 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				break;
 			}
 
-			if (current_menu_type == EVENT_MENU_POPUP_AUTO) {
-				if (block->selection.items[0] != -1) {
-					icons_strncpy(current_menu->w, current_menu_action->data.popup.field,
-							menus_get_text_addr(menu, block->selection.items[0]));
-					wimp_set_icon_state(current_menu->w, current_menu_action->data.popup.field, 0, 0);
-				}
-			}
+			if (current_menu_type == EVENT_MENU_POPUP_AUTO && block->selection.items[0])
+				event_set_auto_menu_selection(current_menu, current_menu_action, block->selection.items[0]);
 
 			if (current_menu->menu_selection != NULL)
 				(current_menu->menu_selection)(current_menu->w, menu, (wimp_selection *) block);
@@ -397,16 +400,8 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 				if (new_client_menu == NULL || menu == new_client_menu) {
 					if (new_client_menu != NULL)
 						menu = new_client_menu;
-					if (current_menu_type == EVENT_MENU_POPUP_AUTO) {
-						line = 0;
-						do {
-							if (strcmp(menus_get_text_addr(menu, line),
-									icons_get_indirected_text_addr(current_menu->w, current_menu_action->data.popup.field)) == 0)
-								menu->entries[line].menu_flags |= wimp_MENU_TICKED;
-							else
-								menu->entries[line].menu_flags &= ~wimp_MENU_TICKED;
-						} while ((menu->entries[line++].menu_flags & wimp_MENU_LAST) == 0);
-					}
+					if (current_menu_type == EVENT_MENU_POPUP_AUTO)
+						event_prepare_auto_menu(current_menu, current_menu_action);
 					wimp_create_menu(menu, 0, 0);
 				}
 			} else {
@@ -555,7 +550,6 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 	struct event_icon_action	*action;
 	osbool				handled = TRUE;
 	wimp_menu			*menu;
-	int				line;
 
 	action = icon->actions;
 
@@ -579,16 +573,8 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 				(window->menu_prepare)(window->w, action->data.popup.menu, pointer);
 			if (new_client_menu != NULL)
 				action->data.popup.menu = new_client_menu;
-			if (action->type == EVENT_ICON_POPUP_AUTO) {
-				line = 0;
-				do {
-					if (strcmp(menus_get_text_addr(action->data.popup.menu, line),
-							icons_get_indirected_text_addr(window->w, action->data.popup.field)) == 0)
-						action->data.popup.menu->entries[line].menu_flags |= wimp_MENU_TICKED;
-					else
-						action->data.popup.menu->entries[line].menu_flags &= ~wimp_MENU_TICKED;
-				} while ((action->data.popup.menu->entries[line++].menu_flags & wimp_MENU_LAST) == 0);
-			}
+			if (action->type == EVENT_ICON_POPUP_AUTO)
+				event_prepare_auto_menu(window, action);
 			menu = menus_create_popup_menu(action->data.popup.menu, pointer);
 
 			current_menu = window;
@@ -960,7 +946,7 @@ osbool event_add_window_icon_radio(wimp_w w, wimp_i i, osbool complete)
  * This function is an external interface, documented in event.h.
  */
 
-osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i field)
+osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i field, char *token)
 {
 	struct event_window		*window;
 	struct event_icon		*icon;
@@ -986,6 +972,20 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 	else
 		action->type = EVENT_ICON_POPUP_AUTO;
 
+	if (token == NULL) {
+		action->data.popup.token = NULL;
+		action->data.popup.token_number = NULL;
+	} else {
+		action->data.popup.token = malloc(strlen(token) + EVENT_TOKEN_INDEX_LEN + 1);
+		if (action->data.popup.token != NULL) {
+			strcpy(action->data.popup.token, token);
+			action->data.popup.token_number = action->data.popup.token + strlen(token);
+		} else {
+			action->data.popup.token_number = NULL;
+		}
+	}
+
+	action->data.popup.selection = 0;
 	action->data.popup.menu = menu;
 	action->data.popup.field = field;
 
@@ -995,6 +995,109 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 	return TRUE;
 }
 
+
+/**
+ * Prepare an auto menu for opening, by ticking the entries in relation to the
+ * current selection.
+ *
+ * \param *window		The window containing the menu.
+ * \param *action		The action block for the popup menu.
+ */
+
+static void event_prepare_auto_menu(struct event_window *window, struct event_icon_action *action)
+{
+	int	line = 0;
+
+	if (window == NULL || action == NULL || action->type != EVENT_ICON_POPUP_AUTO)
+		return;
+
+	do {
+		if (action->data.popup.selection == line)
+			action->data.popup.menu->entries[line].menu_flags |= wimp_MENU_TICKED;
+		else
+			action->data.popup.menu->entries[line].menu_flags &= ~wimp_MENU_TICKED;
+	} while ((action->data.popup.menu->entries[line++].menu_flags & wimp_MENU_LAST) == 0);
+}
+
+
+/* Set the currently selected item from a popup menu, and update its field.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_set_window_icon_popup_selection(wimp_w w, wimp_i i, unsigned selection)
+{
+	struct event_window *window;
+	struct event_icon *icon;
+	struct event_icon_action *action;
+
+	if ((window = event_find_window(w)) == NULL)
+		return FALSE;
+
+	if ((icon = event_find_icon(window, i)) == NULL)
+		return FALSE;
+
+	action = icon->actions;
+	while (action != NULL && action->type != EVENT_ICON_POPUP_AUTO)
+		action = action->next;
+	if (action == NULL)
+		return FALSE;
+
+	event_set_auto_menu_selection(window, action, selection);
+
+	return TRUE;
+}
+
+
+/* Return the currently selected item from a popup menu.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+unsigned event_get_window_icon_popup_selection(wimp_w w, wimp_i i, unsigned selection)
+{
+	struct event_window *window;
+	struct event_icon *icon;
+	struct event_icon_action *action;
+
+	if ((window = event_find_window(w)) == NULL)
+		return 0;
+
+	if ((icon = event_find_icon(window, i)) == NULL)
+		return 0;
+
+	action = icon->actions;
+	while (action != NULL && action->type != EVENT_ICON_POPUP_AUTO)
+		action = action->next;
+	if (action == NULL)
+		return 0;
+
+	return action->data.popup.selection;
+}
+
+
+/**
+ * Select an item in an auto popup menu, updating the internal selection and
+ * the associated text field.
+ *
+ * \param *window		The window containing the menu.
+ * \param *action		The action block for the popup menu.
+ */
+
+static void event_set_auto_menu_selection(struct event_window *window, struct event_icon_action *action, unsigned selection)
+{
+	if (window == NULL || action == NULL || action->type != EVENT_ICON_POPUP_AUTO || action->data.popup.field == -1)
+		return;
+
+	if (action->data.popup.token != NULL) {
+		snprintf(action->data.popup.token_number, EVENT_TOKEN_INDEX_LEN, "%d", selection);
+		icons_msgs_lookup(window->w, action->data.popup.field, action->data.popup.token);
+	} else {
+		icons_strncpy(window->w, action->data.popup.field, menus_get_text_addr(action->data.popup.menu, selection));
+	}
+	wimp_set_icon_state(window->w, action->data.popup.field, 0, 0);
+	action->data.popup.selection = selection;
+}
 
 
 /* Add a user data pointer for the specified window.
@@ -1040,38 +1143,26 @@ void *event_get_window_user_data(wimp_w w)
 
 void event_delete_window(wimp_w w)
 {
-	struct event_window		*block, **parent;
-	struct event_icon		*icon;
-	struct event_icon_action	*action;
+	struct event_window		*block, *parent;
 
 	block = event_find_window(w);
 
 	if (block != NULL) {
 		/* Delete all linked icon and action definitions. */
 
-		while (block->icons != NULL) {
-			icon = block->icons;
-			block->icons = icon->next;
-
-			while (icon->actions != NULL) {
-				action = icon->actions;
-				icon->actions = action->next;
-				free(action);
-			}
-
-			free(icon);
-		}
+		while (block->icons != NULL)
+			event_delete_icon_block(block, block->icons);
 
 		/* Delete the window itself. */
 
-		parent = &event_window_list;
+		if (event_window_list == block) {
+			event_window_list = block->next;
+		} else {
+			for (parent = event_window_list; parent != NULL && parent->next != block; parent = parent->next);
 
-		while (*parent != NULL && *parent != block)
-				parent = &((*parent)->next);
-
-		assert(*parent != NULL);
-
-		*parent = block->next;
+			if (parent != NULL && parent->next == block)
+				parent->next = block->next;
+		}
 
 		if (block == current_menu)
 			current_menu = NULL;
@@ -1165,8 +1256,7 @@ static struct event_window *event_create_window(wimp_w w)
 void event_delete_icon(wimp_w w, wimp_i i)
 {
 	struct event_window		*window;
-	struct event_icon		*icon, **parent;
-	struct event_icon_action	*action;
+	struct event_icon		*icon;
 
 	window = event_find_window(w);
 
@@ -1175,28 +1265,51 @@ void event_delete_icon(wimp_w w, wimp_i i)
 
 	icon = event_find_icon(window, i);
 
-	if (icon != NULL) {
-		/* Delete all linked action definitions. */
+	if (icon != NULL)
+		event_delete_icon_block(window, icon);
+}
 
-		while (icon->actions != NULL) {
-			action = icon->actions;
-			icon->actions = action->next;
-			free(action);
-		}
 
-		/* Delete the icon itself. */
+/**
+ * Delete an icon block from a window definition.
+ *
+ * \param *window	The window containing the icon definition.
+ * \param *icon		The icon definition to delete.
+ */
 
-		parent = &window->icons;
 
-		while (*parent != NULL && *parent != icon)
-				parent = &((*parent)->next);
+static void event_delete_icon_block(struct event_window *window, struct event_icon *icon)
+{
+	struct event_icon		*parent;
+	struct event_icon_action	*action;
 
-		assert(*parent != NULL);
+	if (window == NULL || icon == NULL)
+		return;
 
-		*parent = icon->next;
+	/* Link the icon out of the window's chain. */
 
-		free(icon);
+	if (window->icons == icon) {
+		window->icons = icon->next;
+	} else {
+		for (parent = window->icons; parent != NULL && parent->next != icon; parent = parent->next);
+
+		if (parent != NULL && parent->next == icon)
+			parent->next = icon->next;
 	}
+
+	/* Delete all linked action definitions. */
+
+	while (icon->actions != NULL) {
+		action = icon->actions;
+		icon->actions = action->next;
+
+		if ((action->type == EVENT_ICON_POPUP_AUTO || action->type == EVENT_ICON_POPUP_MANUAL) &&
+				action->data.popup.token != NULL)
+			free(action->data.popup.token);
+		free(action);
+	}
+
+	free(icon);
 }
 
 

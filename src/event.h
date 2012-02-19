@@ -356,7 +356,30 @@ osbool event_add_window_icon_radio(wimp_w w, wimp_i i, osbool complete);
  * \return		TRUE if the handler was registered; else FALSE.
  */
 
-osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i field);
+osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i field, char *token);
+
+
+/**
+ * Set the currently selected item from a popup menu, and update its field.
+ *
+ * \param w			The window containing the menu.
+ * \param i			The icon to which the menu is attached.
+ * \param selection		The item to be selected, counting from 0.
+ * \return			TRUE if successful; else FALSE.
+ */
+
+osbool event_set_window_icon_popup_selection(wimp_w w, wimp_i i, unsigned selection);
+
+
+/**
+ * Return the currently selected item from a popup menu.
+ *
+ * \param w			The window containing the menu.
+ * \param i			The icon to which the menu is attached.
+ * \return 			The selected item, counting from 0.
+ */
+
+unsigned event_get_window_icon_popup_selection(wimp_w w, wimp_i i, unsigned selection);
 
 
 /**
