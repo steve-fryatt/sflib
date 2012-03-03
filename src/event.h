@@ -353,6 +353,9 @@ osbool event_add_window_icon_radio(wimp_w w, wimp_i i, osbool complete);
  * \param *menu		The menu to use for the popup.
  * \param field		The display field icon for the popup (for an automatic
  *			menu; -1 for a manual menu).
+ * \param *token	The token base for the field entries, to which the
+ *			selection number is added for lookup, or NULL to use
+ *			the menu entry texts.
  * \return		TRUE if the handler was registered; else FALSE.
  */
 
