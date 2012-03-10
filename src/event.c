@@ -199,7 +199,7 @@ static struct event_window *event_create_window(wimp_w w);
 static void event_delete_icon_block(struct event_window *window, struct event_icon *icon);
 static struct event_icon *event_find_icon(struct event_window *window, wimp_i i);
 static struct event_icon *event_create_icon(struct event_window *window, wimp_i i);
-static struct event_icon_action *event_find_action(struct event_icon *icon, event_icon_type *type);
+static struct event_icon_action *event_find_action(struct event_icon *icon, enum event_icon_type type);
 static struct event_message *event_find_message(int message);
 
 /* Accept and process a wimp event.
@@ -1376,7 +1376,7 @@ static struct event_icon *event_create_icon(struct event_window *window, wimp_i 
  * \return		A pointer to the action structure, or NULL.
  */
 
-static struct event_icon_action *event_find_action(struct event_icon *icon, event_icon_type *type)
+static struct event_icon_action *event_find_action(struct event_icon *icon, enum event_icon_type type)
 {
 	struct event_icon_action *action = NULL;
 
