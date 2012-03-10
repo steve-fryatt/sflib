@@ -200,6 +200,7 @@ static void event_delete_icon_block(struct event_window *window, struct event_ic
 static struct event_icon *event_find_icon(struct event_window *window, wimp_i i);
 static struct event_icon *event_create_icon(struct event_window *window, wimp_i i);
 static struct event_icon_action *event_find_action(struct event_icon *icon, enum event_icon_type type);
+static struct event_icon_action *event_create_action(struct event_icon *icon, enum event_icon_type type);
 static struct event_message *event_find_message(int message);
 
 /* Accept and process a wimp event.
@@ -889,17 +890,12 @@ osbool event_add_window_icon_click(wimp_w w, wimp_i i, osbool (*callback)(wimp_p
 	if (icon == NULL)
 		return FALSE;
 
-	action = malloc(sizeof(struct event_icon_action));
+	action = event_create_action(icon, EVENT_ICON_CLICK);
 
 	if (action == NULL)
 		return FALSE;
 
-	action->type = EVENT_ICON_CLICK;
-
 	action->data.click.callback = callback;
-
-	action->next = icon->actions;
-	icon->actions = action;
 
 	return TRUE;
 }
@@ -926,17 +922,12 @@ osbool event_add_window_icon_radio(wimp_w w, wimp_i i, osbool complete)
 	if (icon == NULL)
 		return FALSE;
 
-	action = malloc(sizeof(struct event_icon_action));
+	action = event_create_action(icon, EVENT_ICON_RADIO);
 
 	if (action == NULL)
 		return FALSE;
 
-	action->type = EVENT_ICON_RADIO;
-
 	action->data.radio.complete = complete;
-
-	action->next = icon->actions;
-	icon->actions = action;
 
 	return TRUE;
 }
@@ -963,20 +954,12 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 	if (icon == NULL)
 		return FALSE;
 
-	action = malloc(sizeof(struct event_icon_action));
+	action = event_create_action(icon, (field == -1) ? EVENT_ICON_POPUP_MANUAL : EVENT_ICON_POPUP_AUTO);
 
 	if (action == NULL)
 		return FALSE;
 
-	if (field == -1)
-		action->type = EVENT_ICON_POPUP_MANUAL;
-	else
-		action->type = EVENT_ICON_POPUP_AUTO;
-
-	if (token == NULL) {
-		action->data.popup.token = NULL;
-		action->data.popup.token_number = NULL;
-	} else {
+	if (token != NULL) {
 		action->data.popup.token = malloc(strlen(token) + EVENT_TOKEN_INDEX_LEN + 1);
 		if (action->data.popup.token != NULL) {
 			strcpy(action->data.popup.token, token);
@@ -986,12 +969,8 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 		}
 	}
 
-	action->data.popup.selection = 0;
 	action->data.popup.menu = menu;
 	action->data.popup.field = field;
-
-	action->next = icon->actions;
-	icon->actions = action;
 
 	return TRUE;
 }
@@ -1388,6 +1367,63 @@ static struct event_icon_action *event_find_action(struct event_icon *icon, enum
 	}
 
 	return action;
+}
+
+
+/**
+ * Return the action data block for the given icon and action, creating it first
+ * if required.
+ *
+ * \param *icon		The icon structure to find the action structure for.
+ * \param type		The action to find the structure for.
+ * \return		A pointer to the action structure, or NULL.
+ */
+
+static struct event_icon_action *event_create_action(struct event_icon *icon, enum event_icon_type type)
+{
+	struct event_icon_action	*block;
+
+	if (icon == NULL)
+		return NULL;
+
+	block = event_find_action(icon, type);
+
+	if (block != NULL)
+		return block;
+
+	block = malloc(sizeof(struct event_icon_action));
+
+	if (block != NULL) {
+		block->type = type;
+
+		switch (type) {
+		case EVENT_ICON_CLICK:
+			block->data.click.callback = NULL;
+			break;
+
+		case EVENT_ICON_RADIO:
+			block->data.radio.complete = FALSE;
+			break;
+
+		case EVENT_ICON_POPUP_AUTO:
+		case EVENT_ICON_POPUP_MANUAL:
+			block->data.popup.menu = NULL;
+			block->data.popup.field = wimp_ICON_WINDOW;
+			block->data.popup.token = NULL;
+			block->data.popup.token_number = NULL;
+			block->data.popup.selection = 0;
+			break;
+
+		case EVENT_ICON_NONE:
+			break;
+		}
+
+		block->next = icon->actions;
+		icon->actions = block;
+	}
+
+	return block;
+
 }
 
 
