@@ -294,7 +294,7 @@ void menus_shade_entry(wimp_menu *menu, int entry, osbool shade)
  * This is an external interface, documented in menus.h
  */
 
-char *menus_get_text_addr (wimp_menu *menu, int entry)
+char *menus_get_text_addr(wimp_menu *menu, int entry)
 {
 	if (menu == NULL)
 		return NULL;
