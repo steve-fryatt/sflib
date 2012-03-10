@@ -199,6 +199,7 @@ static struct event_window *event_create_window(wimp_w w);
 static void event_delete_icon_block(struct event_window *window, struct event_icon *icon);
 static struct event_icon *event_find_icon(struct event_window *window, wimp_i i);
 static struct event_icon *event_create_icon(struct event_window *window, wimp_i i);
+static struct event_icon_action *event_find_action(struct event_icon *icon, event_icon_type *type);
 static struct event_message *event_find_message(int message);
 
 /* Accept and process a wimp event.
@@ -1037,10 +1038,7 @@ osbool event_set_window_icon_popup_selection(wimp_w w, wimp_i i, unsigned select
 	if ((icon = event_find_icon(window, i)) == NULL)
 		return FALSE;
 
-	action = icon->actions;
-	while (action != NULL && action->type != EVENT_ICON_POPUP_AUTO)
-		action = action->next;
-	if (action == NULL)
+	if ((action = event_find_action(icon, EVENT_ICON_POPUP_AUTO)) == NULL)
 		return FALSE;
 
 	event_set_auto_menu_selection(window, action, selection);
@@ -1066,10 +1064,7 @@ unsigned event_get_window_icon_popup_selection(wimp_w w, wimp_i i)
 	if ((icon = event_find_icon(window, i)) == NULL)
 		return 0;
 
-	action = icon->actions;
-	while (action != NULL && action->type != EVENT_ICON_POPUP_AUTO)
-		action = action->next;
-	if (action == NULL)
+	if ((action = event_find_action(icon, EVENT_ICON_POPUP_AUTO)) == NULL)
 		return 0;
 
 	return action->data.popup.selection;
@@ -1370,6 +1365,29 @@ static struct event_icon *event_create_icon(struct event_window *window, wimp_i 
 
 	return block;
 
+}
+
+
+/**
+ * Find the action data block for the given action in the specified icon.
+ *
+ * \param *icon		The icon structure to find the action structure for.
+ * \param type		The action type to find the structure for.
+ * \return		A pointer to the action structure, or NULL.
+ */
+
+static struct event_icon_action *event_find_action(struct event_icon *icon, event_icon_type *type)
+{
+	struct event_icon_action *action = NULL;
+
+	if (icon != NULL) {
+		action = icon->actions;
+
+		while (action != NULL && action->type != type)
+			action = action->next;
+	}
+
+	return action;
 }
 
 
