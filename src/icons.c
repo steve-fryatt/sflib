@@ -567,6 +567,7 @@ void icons_replace_caret_in_window(wimp_w window)
 {
 	int			i, old_icon, new_icon, type;
 	wimp_caret		caret;
+	wimp_icon_state		state;
 	wimp_window_info	*info, *new;
 
 	wimp_get_caret_position(&caret);
@@ -574,11 +575,15 @@ void icons_replace_caret_in_window(wimp_w window)
 	if (caret.w != window || caret.i == wimp_ICON_WINDOW)
 		return;
 
-	if (icons_get_shaded (caret.w, caret.i)) {
-		/* If the icon where the caret is located is now shaded, it needs to be moved.  To do this, we need to know
-		 * where the other writable icons are.  This is done by getting the window definition and scanning through
-		 * the icons looking for a writable one to place the caret into.  The numerically nearest icon to the
-		 * original is used.
+	state.w = window;
+	state.i = caret.i;
+	wimp_get_icon_state(&state);
+
+	if ((state.icon.flags & (wimp_ICON_SHADED | wimp_ICON_DELETED)) != 0) {
+		/* If the icon where the caret is located is now shaded or deleted, it needs to be moved.  To do this,
+		 * we need to know where the other writable icons are.  This is done by getting the window definition
+		 * and scanning through the icons looking for a writable one to place the caret into.  The numerically
+		 * nearest icon to the original is used.
 		 */
 
 		/* First, claim some memory to get the definition into.  This is big enough for the header only info
@@ -614,15 +619,15 @@ void icons_replace_caret_in_window(wimp_w window)
 				old_icon = caret.i;
 				new_icon = -1;
 
-				/* For each icon, see if it's writable and not shaded.  If so, check if it's closer to the original
-				 * icon than the current 'new_icon'; if so, update the new icon.
+				/* For each icon, see if it's writable and not shaded or deleted.  If so, check if it's closer to
+				 * the original icon than the current 'new_icon'; if so, update the new icon.
 				 */
 
 				for (i=0; i<info->icon_count; i++) {
 					type = ((info->icons[i].flags & wimp_ICON_BUTTON_TYPE) >> wimp_ICON_BUTTON_TYPE_SHIFT);
 
 					if ((type == wimp_BUTTON_WRITE_CLICK_DRAG || type == wimp_BUTTON_WRITABLE) &&
-							((info->icons[i].flags & wimp_ICON_SHADED) == 0)) {
+							((info->icons[i].flags & (wimp_ICON_SHADED | wimp_ICON_DELETED)) == 0)) {
 						if ((abs (old_icon - i) < abs (old_icon - new_icon)) || new_icon == -1)
 							new_icon = i;
 					}
