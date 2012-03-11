@@ -954,6 +954,11 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 	if (icon == NULL)
 		return FALSE;
 
+	/* An icon can't have both Auto and Manual menus attached at the same time! */
+
+	if (event_find_action(icon, (field == -1) ? EVENT_ICON_POPUP_AUTO : EVENT_ICON_POPUP_MANUAL) != NULL)
+		return FALSE;
+
 	action = event_create_action(icon, (field == -1) ? EVENT_ICON_POPUP_MANUAL : EVENT_ICON_POPUP_AUTO);
 
 	if (action == NULL)
@@ -997,6 +1002,45 @@ static void event_prepare_auto_menu(struct event_window *window, struct event_ic
 		else
 			action->data.popup.menu->entries[line].menu_flags &= ~wimp_MENU_TICKED;
 	} while ((action->data.popup.menu->entries[line++].menu_flags & wimp_MENU_LAST) == 0);
+}
+
+
+/* Set the menu to be used for a popup menu, and update its field.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_set_window_icon_popup_menu(wimp_w w, wimp_i i, wimp_menu *menu)
+{
+	struct event_window		*window;
+	struct event_icon		*icon;
+	struct event_icon_action	*action;
+	unsigned			entries;
+
+	if ((window = event_find_window(w)) == NULL)
+		return FALSE;
+
+	if ((icon = event_find_icon(window, i)) == NULL)
+		return FALSE;
+
+	action = event_find_action(icon, EVENT_ICON_POPUP_MANUAL);
+
+	if (action == NULL)
+		action = event_find_action(icon, EVENT_ICON_POPUP_AUTO);
+
+	if (action == NULL)
+		return FALSE;
+
+	action->data.popup.menu = menu;
+
+	if (action->type == EVENT_ICON_POPUP_AUTO) {
+		entries = menus_get_entries(menu);
+
+		if (action->data.popup.selection > (entries - 1))
+			event_set_auto_menu_selection(window, action, entries - 1);
+	}
+
+	return TRUE;
 }
 
 

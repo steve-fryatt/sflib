@@ -363,6 +363,18 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 
 
 /**
+ * Set the menu to be used for a popup menu, and update its field.
+ *
+ * \param w			The window containing the menu.
+ * \param i			The icon to which the menu is attached.
+ * \param *menu			The new menu to be used.
+ * \return			TRUE if successful; else FALSE.
+ */
+
+osbool event_set_window_icon_popup_menu(wimp_w w, wimp_i i, wimp_menu *menu);
+
+
+/**
  * Set the currently selected item from a popup menu, and update its field.
  *
  * \param w			The window containing the menu.
