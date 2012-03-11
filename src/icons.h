@@ -194,7 +194,7 @@ osbool icons_get_shaded(wimp_w w, wimp_i i);
  *
  * \param window	The window containing the icons.
  * \param shaded	TRUE to shade the icons; FALSE to unshade them.
- * \param icons		The number of icons on the group.
+ * \param icons		The number of icons in the group.
  * \param ...		The icon handles for each of the icons.
  */
 
@@ -208,7 +208,7 @@ void icons_set_group_shaded(wimp_w window, osbool shaded, int icons, ...);
  *
  * \param window	The window containing the icons.
  * \param icon		The icon whose selected state controls the deletion.
- * \param icons		The number of icons on the group.
+ * \param icons		The number of icons in the group.
  * \param ...		The icon handles for each of the icons in the group.
  */
 
@@ -222,7 +222,7 @@ void icons_set_group_deleted_when_off(wimp_w window, wimp_i icon, int icons, ...
  *
  * \param window	The window containing the icons.
  * \param icon		The icon whose selected state controls the deletion.
- * \param icons		The number of icons on the group.
+ * \param icons		The number of icons in the group.
  * \param ...		The icon handles for each of the icons in the group.
  */
 
@@ -236,7 +236,7 @@ void icons_set_group_deleted_when_on(wimp_w window, wimp_i icon, int icons, ...)
  *
  * \param window	The window containing the icons.
  * \param icon		The icon whose selected state controls the shading.
- * \param icons		The number of icons on the group.
+ * \param icons		The number of icons in the group.
  * \param ...		The icon handles for each of the icons in the group.
  */
 
@@ -250,7 +250,7 @@ void icons_set_group_shaded_when_off(wimp_w window, wimp_i icon, int icons, ...)
  *
  * \param window	The window containing the icons.
  * \param icon		The icon whose selected state controls the shading.
- * \param icons		The number of icons on the group.
+ * \param icons		The number of icons in the group.
  * \param ...		The icon handles for each of the icons in the group.
  */
 
@@ -263,7 +263,7 @@ void icons_set_group_shaded_when_on(wimp_w window, wimp_i icon, int icons, ...);
  *
  * \param window	The window containing the icons.
  * \param selected	The index into the group of the icon to be selected.
- * \param icons		The number of icons on the group.
+ * \param icons		The number of icons in the group.
  * \param ...		The icon handles for each of the icons in the group.
  */
 
@@ -276,7 +276,7 @@ void icons_set_radio_group_selected(wimp_w window, int selected, int icons, ...)
  * -1 if none were selected.
  *
  * \param window	The window containing the icons.
- * \param icons		The number of icons on the group.
+ * \param icons		The number of icons in the group.
  * \param ...		The icon handles for each of the icons in the group.
  * \return		The inxed into the group of the selected icon, or -1.
  */
@@ -288,7 +288,7 @@ int icons_get_radio_group_selected(wimp_w window, int icons, ...);
  * Force the redraw of a group of icons.
  *
  * \param window	The window containing the icons.
- * \param icons		The number of icons on the group.
+ * \param icons		The number of icons in the group.
  * \param ...		The icon handles for each of the icons in the group.
  */
 
