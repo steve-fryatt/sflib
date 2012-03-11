@@ -307,6 +307,20 @@ void icons_put_caret_at_end(wimp_w window, wimp_i icon);
 
 
 /**
+ * Try to place the caret at the end of a sequence of writable icons, using the
+ * first not to be shaded.  If all are shaded, place the caret into the work
+ * area of the parent window.
+ *
+ * \param window	The window to take the caret.
+ * \param icons		The number if icons in the group.
+ * \param ...		The handles for the icons to take the caret, in
+ *			decreasing order of priority.
+ */
+
+void icons_put_caret_in_group(wimp_w window, int icons, ...);
+
+
+/**
  * If the caret is in the given window, update its location to take into
  * account any changes in icon contents and shaded status.
  *
