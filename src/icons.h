@@ -322,7 +322,7 @@ void icons_put_caret_in_group(wimp_w window, int icons, ...);
 
 /**
  * If the caret is in the given window, update its location to take into
- * account any changes in icon contents and shaded status.
+ * account any changes in icon contents and shaded or deleted status.
  *
  * \param window	The window to test.
  */
