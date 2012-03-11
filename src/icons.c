@@ -517,27 +517,33 @@ void icons_put_caret_at_end(wimp_w window, wimp_i icon)
 
 /**
  * Try to place the caret at the end of a sequence of writable icons, using the
- * first not to be shaded.  If all are shaded, place the caret into the work
- * area of the parent window.
+ * first not to be shaded or deleted.  If all are shaded, place the caret into
+ * the work area of the parent window.
  *
  * This is an external interface, documented in icons.h
  */
 
 void icons_put_caret_in_group(wimp_w window, int icons, ...)
 {
-	int		i = 0;
-	wimp_i		icon;
-	va_list		ap;
+	int			i = 0;
+	wimp_i			icon;
+	wimp_icon_state		state;
+	va_list			ap;
 
 
 	va_start(ap, icons);
+
+	state.w = window;
 
 	while (i < icons && i != -1) {
 		i++;
 
 		icon = va_arg(ap, wimp_i);
 
-		if (!icons_get_shaded(window, icon)) {
+		state.i = icon;
+		wimp_get_icon_state(&state);
+
+		if ((state.icon.flags & (wimp_ICON_SHADED | wimp_ICON_DELETED)) == 0) {
 			icons_put_caret_at_end(window, icon);
 			i = -1;
 		}
