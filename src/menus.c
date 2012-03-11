@@ -319,3 +319,23 @@ char *menus_get_indirected_text_addr(wimp_menu *menu, int entry)
 	return menu->entries[entry].data.indirected_text.text;
 }
 
+
+/*
+ * Return the number of entries in a menu.
+ *
+ * This is an external interface, documented in menus.h
+ */
+
+unsigned menus_get_entries(wimp_menu *menu)
+{
+	unsigned entries = 0;
+
+	if (menu == NULL)
+		return entries;
+
+	while ((menu->entries[entries++].menu_flags & wimp_MENU_LAST) == 0);
+
+	return entries;
+}
+
+

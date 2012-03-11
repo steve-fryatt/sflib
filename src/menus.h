@@ -134,5 +134,15 @@ char *menus_get_text_addr(wimp_menu *menu, int entry);
 
 char *menus_get_indirected_text_addr(wimp_menu *menu, int entry);
 
+
+/**
+ * Return the number of entries in a menu.
+ *
+ * \param *menu		The menu block to read.
+ * \return		The number of entries in the menu.
+ */
+
+unsigned menus_get_entries(wimp_menu *menu);
+
 #endif
 
