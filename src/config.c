@@ -83,10 +83,6 @@ static char			*application_name = NULL;			/**< The application name as registere
 
 
 
-static void config_find_load_file(char *file, size_t len, char *leaf);
-static void config_find_save_file(char *file, size_t len, char *leaf);
-
-
 /**
  * Initialise the config module for the given application.
  *
@@ -382,7 +378,7 @@ char *config_str_read(char *name)
  * \param *leaf			The leaf file name to use.
  */
 
-static void config_find_load_file(char *file, size_t len, char *leaf)
+void config_find_load_file(char *file, size_t len, char *leaf)
 {
 	snprintf(file, len, "Choices:%s.%s", choices_dir, leaf);
 
@@ -403,7 +399,7 @@ static void config_find_load_file(char *file, size_t len, char *leaf)
  * \param *leaf			The leaf file name to use.
  */
 
-static void config_find_save_file(char *file, size_t len, char *leaf)
+void config_find_save_file(char *file, size_t len, char *leaf)
 {
 	int		var_len;
 

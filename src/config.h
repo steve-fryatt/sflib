@@ -213,5 +213,29 @@ char *config_return_opt_string(osbool opt);
 
 osbool config_read_opt_string(char *str);
 
+
+/**
+ * Get a filename for the file to load the choices settings from.  The global
+ * Choices: paths are tried first; fall back to the application folder.
+ *
+ * \param *file			A buffer to hold a full pathname.
+ * \param len			The size of the buffer.
+ * \param *leaf			The leaf file name to use.
+ */
+
+void config_find_load_file(char *file, size_t len, char *leaf);
+
+
+/**
+ * Get a filename for the file to save the choices settings to.  <Choices$Write>
+ * is tried first; if this fails the application folder is used.
+ *
+ * \param *file			A buffer to hold a full pathname.
+ * \param len			The size of the buffer.
+ * \param *leaf			The leaf file name to use.
+ */
+
+void config_find_save_file(char *file, size_t len, char *leaf);
+
 #endif
 
