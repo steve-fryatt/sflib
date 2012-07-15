@@ -790,8 +790,10 @@ osbool event_add_window_menu(wimp_w w, wimp_menu *menu)
 
 	block = event_create_window(w);
 
-	if (block != NULL)
+	if (block != NULL) {
 		block->menu = menu;
+		event_add_message_handler(message_MENUS_DELETED, EVENT_MESSAGE_INCOMING, NULL);
+	}
 
 	return (block == NULL) ? FALSE: TRUE;
 }
@@ -862,8 +864,10 @@ osbool event_add_window_menu_warning(wimp_w w, void (*callback)(wimp_w w, wimp_m
 
 	block = event_create_window(w);
 
-	if (block != NULL)
+	if (block != NULL) {
 		block->menu_warning = callback;
+		event_add_message_handler(message_MENU_WARNING, EVENT_MESSAGE_INCOMING, NULL);
+	}
 
 	return (block == NULL) ? FALSE : TRUE;
 }
@@ -976,6 +980,8 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 
 	action->data.popup.menu = menu;
 	action->data.popup.field = field;
+
+	event_add_message_handler(message_MENUS_DELETED, EVENT_MESSAGE_INCOMING, NULL);
 
 	return TRUE;
 }
@@ -1471,13 +1477,20 @@ static struct event_icon_action *event_create_action(struct event_icon *icon, en
 }
 
 
-/* Add a message handler for the given user message.
+/* Add a message handler for the given user message, and add the message to
+ * the list of messages required from the Wimp if it isn't already on it.
+ *
+ * *message_action can be passed as NULL, in which case the message is
+ * registered with the Wimp and recorded in the messages list, but not given
+ * an action.  This is used internally to ensure that messages required by
+ * library are returned.
  *
  * This function is an external interface, documented in event.h.
  */
 
 osbool event_add_message_handler(unsigned int message, enum event_message_type type, osbool (*message_action)(wimp_message *message))
 {
+	wimp_MESSAGE_LIST(2)		message_list;
 	struct event_message		*block = NULL;
 	struct event_message_action	*action = NULL;
 
@@ -1493,7 +1506,16 @@ osbool event_add_message_handler(unsigned int message, enum event_message_type t
 		block->actions = NULL;
 		block->next = event_message_list;
 		event_message_list = block;
+
+		if (message != message_QUIT) {
+			message_list.messages[0]=message;
+			message_list.messages[1]=message_QUIT;
+			xwimp_add_messages((wimp_message_list *) &message_list);
+		}
 	}
+
+	if (message_action == NULL)
+		return TRUE;
 
 	/* Create a new action for the message. */
 

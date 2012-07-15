@@ -438,7 +438,8 @@ void event_delete_icon(wimp_w w, wimp_i i);
 
 
 /**
- * Add a message handler for the given user message.
+ * Add a message handler for the given user message, and add the message to
+ * the list of messages required from the Wimp if it isn't already on it.
  *
  * Handlers are passed a pointer to the message data. If they return TRUE then
  * the user message is taken to have been 'claimed' and is not passed on to any
