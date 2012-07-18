@@ -346,6 +346,22 @@ osbool event_add_window_icon_radio(wimp_w w, wimp_i i, osbool complete);
 
 
 /**
+ * Add a bump field handler for a specified window and group of icons.
+ *
+ * \param w		The window handle to attach the action to.
+ * \param i		The icon handle to attach the action to.
+ * \param up		The icon handle for the bump up.
+ * \param down		The icon handle for the bump down.
+ * \param minimum	The minimum value for the field (inclusive).
+ * \param maximum	The maximum value for the field (inclusive).
+ * \param step		The bump step size.
+ * \return		TRUE if the handler was registered; else FALSE.
+ */
+
+osbool event_add_window_icon_bump(wimp_w w, wimp_i i, wimp_i up, wimp_i down, int minimum, int maximum, unsigned step);
+
+
+/**
  * Add a pop-up menu handler for the specified window and icon.
  *
  * \param w		The window handle to attach the action to.

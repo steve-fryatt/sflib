@@ -47,7 +47,8 @@ enum event_icon_type {
 	EVENT_ICON_CLICK,												/**< Click: pass a click event back to the client's handler.		*/
 	EVENT_ICON_RADIO,												/**< Radio: reselct the icon after Adjust clicks.			*/
 	EVENT_ICON_POPUP_AUTO,												/**< Popup Auto: open a Popup Auto menu.				*/
-	EVENT_ICON_POPUP_MANUAL												/**< Popup Manual: open a Popup Manual menu.				*/
+	EVENT_ICON_POPUP_MANUAL,											/**< Popup Manual: open a Popup Manual menu.				*/
+	EVENT_ICON_BUMP													/**< Bump: bump a value in a field.					*/
 };
 
 /**
@@ -80,6 +81,17 @@ struct event_icon_popup {
 };
 
 /**
+ * Specific detauls of the EVENT_ICON_BUMP icon action type.
+ */
+
+struct event_icon_bump {
+	wimp_i				field;										/**< The display field icon attached to the popup menu.			*/
+	int				minimum;									/**< The minimum value allowable in the field.				*/
+	int				maximum;									/**< The maximum value allowable in the field.				*/
+	int				step;										/**< The bump step size.						*/
+};
+
+/**
  * Details of an icon click action: one or more of these can be chained to
  * a struct event_icon, and each will be actioned when a click event
  * is received.
@@ -92,6 +104,7 @@ struct event_icon_action {
 		struct event_icon_click		click;									/**< Data for an EVENT_ICON_CLICK.					*/
 		struct event_icon_radio		radio;									/**< Data for an EVENT_ICON_RADIO.					*/
 		struct event_icon_popup		popup;									/**< Data for an EVENT_ICON_POPUP_AUTO or EVENT_ICON_POPUP_MANUAL.	*/
+		struct event_icon_bump		bump;									/**< Data for an EVENT_ICON_BUMP.					*/
 	} data;														/**< The data for the icon event.					*/
 
 	struct event_icon_action	*next;										/**< Pointer to the next action for the icon, or NULL.			*/
@@ -552,6 +565,7 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 	struct event_icon_action	*action;
 	osbool				handled = TRUE;
 	wimp_menu			*menu;
+	int				value;
 
 	action = icon->actions;
 
@@ -586,6 +600,20 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 			if (menu_handle != NULL)
 				*menu_handle = menu;
 			handled = TRUE;
+			break;
+
+		case EVENT_ICON_BUMP:
+			value = atoi(icons_get_indirected_text_addr(window->w, action->data.bump.field));
+			if (pointer->buttons == wimp_CLICK_SELECT)
+				value += action->data.bump.step;
+			else if (pointer->buttons == wimp_CLICK_ADJUST)
+				value -= action->data.bump.step;
+			if (value >= action->data.bump.minimum && value <= action->data.bump.maximum) {
+				icons_printf(window->w, action->data.bump.field, "%d", value);
+				wimp_set_icon_state(window->w, action->data.bump.field, 0, 0);
+			}
+			handled = TRUE;
+			break;
 
 		default:
 			break;
@@ -932,6 +960,48 @@ osbool event_add_window_icon_radio(wimp_w w, wimp_i i, osbool complete)
 		return FALSE;
 
 	action->data.radio.complete = complete;
+
+	return TRUE;
+}
+
+
+/* Add a bump field handler for a specified window and group of icons.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_add_window_icon_bump(wimp_w w, wimp_i i, wimp_i up, wimp_i down, int minimum, int maximum, unsigned step)
+{
+	struct event_window		*window;
+	struct event_icon		*icon_up, *icon_down;
+	struct event_icon_action	*action_up, *action_down;
+
+	window = event_create_window(w);
+
+	if (window == NULL)
+		return FALSE;
+
+	icon_up = event_create_icon(window, up);
+	icon_down = event_create_icon(window, down);
+
+	if (icon_up == NULL || icon_down == NULL)
+		return FALSE;
+
+	action_up = event_create_action(icon_up, EVENT_ICON_BUMP);
+	action_down = event_create_action(icon_down, EVENT_ICON_BUMP);
+
+	if (action_up == NULL || action_down == NULL)
+		return FALSE;
+
+	action_up->data.bump.field = i;
+	action_up->data.bump.minimum = minimum;
+	action_up->data.bump.maximum = maximum;
+	action_up->data.bump.step = step;
+
+	action_down->data.bump.field = i;
+	action_down->data.bump.minimum = minimum;
+	action_down->data.bump.maximum = maximum;
+	action_down->data.bump.step = -step;
 
 	return TRUE;
 }
@@ -1462,6 +1532,13 @@ static struct event_icon_action *event_create_action(struct event_icon *icon, en
 			block->data.popup.token = NULL;
 			block->data.popup.token_number = NULL;
 			block->data.popup.selection = 0;
+			break;
+
+		case EVENT_ICON_BUMP:
+			block->data.bump.field = wimp_ICON_WINDOW;
+			block->data.bump.minimum = 0;
+			block->data.bump.maximum = 0;
+			block->data.bump.step = 0;
 			break;
 
 		case EVENT_ICON_NONE:
