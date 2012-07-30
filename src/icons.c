@@ -225,11 +225,25 @@ char *icons_strncpy(wimp_w w, wimp_i i, char *s)
 }
 
 
+
+/**
+ * Perform a MessageTrans lookup into an icon, assuming that it is indirected.
+ *
+ * This is an external interface, documented in icons.h
+ */
+
 char *icons_msgs_lookup(wimp_w w, wimp_i i, char *token)
 {
 	return icons_msgs_param_lookup(w, i, token, NULL, NULL, NULL, NULL);
 }
 
+
+/**
+ * Perform a MessageTrans lookup into an icon, assuming that it is indirected,
+ * substituting the supplied parameters.
+ *
+ * This is an external interface, documented in icons.h
+ */
 
 char *icons_msgs_param_lookup(wimp_w w, wimp_i i, char *token, char *a, char *b, char *c, char *d)
 {
@@ -248,6 +262,7 @@ char *icons_msgs_param_lookup(wimp_w w, wimp_i i, char *token, char *a, char *b,
 
 	return msgs_param_lookup(token, icon.icon.data.indirected_text.text, icon.icon.data.indirected_text.size, a, b, c, d);
 }
+
 
 /* Change the selected state of an icon.
  *
