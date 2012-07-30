@@ -82,7 +82,7 @@ osbool icons_get_validation_command(char *buffer, wimp_w w, wimp_i i, char comma
  * Perform an sprintf() into an icon, assuming that it is indirected.  The
  * icon details are trusted, including buffer length.
  *
- * \param w		The handle of the windown containing the icon.
+ * \param w		The handle of the window containing the icon.
  * \param i		The target icon handle.
  * \param *cntrl_string	The format string for printf.
  * \param ...		Any remaining parameters.
@@ -96,7 +96,7 @@ int icons_printf(wimp_w w, wimp_i i, char *cntrl_string, ...);
  * Perform a strncpy() into an icon, assuming that it is indirected.  The
  * icon details are trusted, including buffer length.
  *
- * \param w		The handle of the windown containing the icon.
+ * \param w		The handle of the window containing the icon.
  * \param i		The target icon handle.
  * \param *s		The string to be copied.
  * \return		A pointer to the copied string.
