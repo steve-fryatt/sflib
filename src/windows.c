@@ -17,12 +17,15 @@
 /* SF-Lib header files. */
 
 #include "general.h"
+#include "msgs.h"
 #include "windows.h"
 
 /* ANSII C header files. */
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 /* Open a window at the top of the window stack.
@@ -331,6 +334,99 @@ size_t windows_get_indirected_title_length(wimp_w w)
 		return window.title_data.indirected_text.size;
 	else
 		return -1;
+}
+
+
+/* Perform an sprintf() into a window title, assuming that it is indirected.  The
+ * icon details are trusted, including buffer length.
+ *
+ * This is an external interface, documented in windows.h
+ */
+
+int windows_title_printf(wimp_w w, char *cntrl_string, ...)
+{
+	int			ret = 0;
+	va_list			ap;
+	wimp_window_info	window;
+	os_error		*error;
+
+	window.w = w;
+	error = xwimp_get_window_info_header_only(&window);
+	if (error != NULL)
+		return 0;
+
+	if ((window.title_flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) !=
+			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
+		return 0;
+
+	va_start(ap, cntrl_string);
+	ret = vsnprintf(window.title_data.indirected_text.text,
+				window.title_data.indirected_text.size,
+				cntrl_string, ap);
+
+	return ret;
+}
+
+
+/* Perform a strncpy() into a window title, assuming that it is indirected.  The
+ * icon details are trusted, including buffer length.
+ *
+ * This is an external interface, documented in windows.h
+ */
+
+char *windows_title_strncpy(wimp_w w, char *s)
+{
+	wimp_window_info	window;
+	os_error		*error;
+
+	window.w = w;
+	error = xwimp_get_window_info_header_only(&window);
+	if (error != NULL)
+		return NULL;
+
+	if ((window.title_flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) !=
+			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
+		return NULL;
+
+	strncpy(window.title_data.indirected_text.text, s,
+				window.title_data.indirected_text.size);
+
+	return window.title_data.indirected_text.text;
+}
+
+
+/* Perform a MessageTrans lookup into a window title, assuming that it is indirected.
+ *
+ * This is an external interface, documented in windows.h
+ */
+
+char *windows_title_msgs_lookup(wimp_w w, char *token)
+{
+	return windows_title_msgs_param_lookup(w, token, NULL, NULL, NULL, NULL);
+}
+
+
+/* Perform a MessageTrans lookup into a window title, assuming that it is indirected,
+ * substituting the supplied parameters.
+ *
+ * This is an external interface, documented in windows.h
+ */
+
+char *windows_title_msgs_param_lookup(wimp_w w, char *token, char *a, char *b, char *c, char *d)
+{
+	wimp_window_info	window;
+	os_error		*error;
+
+	window.w = w;
+	error = xwimp_get_window_info_header_only(&window);
+	if (error != NULL)
+		return NULL;
+
+	if ((window.title_flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) !=
+			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
+		return NULL;
+
+	return msgs_param_lookup(token, window.title_data.indirected_text.text, window.title_data.indirected_text.size, a, b, c, d);
 }
 
 

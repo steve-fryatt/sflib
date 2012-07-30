@@ -152,6 +152,58 @@ size_t windows_get_indirected_title_length(wimp_w w);
 
 
 /**
+ * Perform an sprintf() into a window title, assuming that it is indirected.  The
+ * icon details are trusted, including buffer length.
+ *
+ * \param w		The handle of the window.
+ * \param *cntrl_string	The format string for printf.
+ * \param ...		Any remaining parameters.
+ * \return		The number of characters printed.
+ */
+
+int windows_title_printf(wimp_w w, char *cntrl_string, ...);
+
+
+/**
+ * Perform a strncpy() into a window title, assuming that it is indirected.  The
+ * icon details are trusted, including buffer length.
+ *
+ * \param w		The handle of the window.
+ * \param *s		The string to be copied.
+ * \return		A pointer to the copied string.
+ */
+
+char *windows_title_strncpy(wimp_w w, char *s);
+
+
+/**
+ * Perform a MessageTrans lookup into a window title, assuming that it is indirected.
+ *
+ * \param w		The handle of the windown containing the icon.
+ * \param *token	The message token to look up.
+ * \return		A pointer to the result.
+ */
+
+char *windows_title_msgs_lookup(wimp_w w, char *token);
+
+
+/**
+ * Perform a MessageTrans lookup into a window title, assuming that it is indirected,
+ * substituting the supplied parameters.
+ *
+ * \param w		The handle of the windown containing the icon.
+ * \param *token	The message token to look up.
+ * \param *a		Parameter for %0.
+ * \param *b		Parameter for %1.
+ * \param *c		Parameter for %2.
+ * \param *d		Parameter for %3.
+ * \return		A pointer to the result.
+ */
+
+char *windows_title_msgs_param_lookup(wimp_w w, char *token, char *a, char *b, char *c, char *d);
+
+
+/**
  * Place an window pane definition over a parent such that it is positioned
  * correctly for a toolbar.
  *
