@@ -115,6 +115,7 @@ char *icons_strncpy(wimp_w w, wimp_i i, char *s);
  * \return		A pointer to the result.
  */
 
+
 char *icons_msgs_lookup(wimp_w w, wimp_i i, char *token);
 
 /**
