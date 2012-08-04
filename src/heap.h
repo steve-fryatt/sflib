@@ -13,6 +13,7 @@
 #define SFLIB_HEAP
 
 #include <stdlib.h>
+#include "oslib/types.h"
 
 /**
  * Initialise the heap.  Flex must have been initialised via flex_init() before
