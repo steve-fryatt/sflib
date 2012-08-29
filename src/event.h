@@ -105,6 +105,7 @@
 #define SFLIB_EVENT
 
 #include "oslib/types.h"
+#include "oslib/wimp.h"
 
 /**
  * Categorization of Wimp Message types.  A bitfield, where:
