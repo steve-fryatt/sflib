@@ -48,6 +48,7 @@ enum event_icon_type {
 	EVENT_ICON_RADIO,												/**< Radio: reselct the icon after Adjust clicks.			*/
 	EVENT_ICON_POPUP_AUTO,												/**< Popup Auto: open a Popup Auto menu.				*/
 	EVENT_ICON_POPUP_MANUAL,											/**< Popup Manual: open a Popup Manual menu.				*/
+	EVENT_ICON_BUMP_FIELD,												/**< Bump field: a bumped field.					*/
 	EVENT_ICON_BUMP													/**< Bump: bump a value in a field.					*/
 };
 
@@ -81,11 +82,20 @@ struct event_icon_popup {
 };
 
 /**
+ * Specific detauls of the EVENT_ICON_BUMP_FIELD icon action type.
+ */
+
+struct event_icon_bump_field {
+	struct event_icon_action	*up;										/**< The bump up icon attached to the field.				*/
+	struct event_icon_action	*down;										/**< The bump down icon attached to the field.				*/
+};
+
+/**
  * Specific detauls of the EVENT_ICON_BUMP icon action type.
  */
 
 struct event_icon_bump {
-	wimp_i				field;										/**< The display field icon attached to the popup menu.			*/
+	wimp_i				field;										/**< The display field icon attached to the bump icon.			*/
 	int				minimum;									/**< The minimum value allowable in the field.				*/
 	int				maximum;									/**< The maximum value allowable in the field.				*/
 	int				step;										/**< The bump step size.						*/
@@ -104,6 +114,7 @@ struct event_icon_action {
 		struct event_icon_click		click;									/**< Data for an EVENT_ICON_CLICK.					*/
 		struct event_icon_radio		radio;									/**< Data for an EVENT_ICON_RADIO.					*/
 		struct event_icon_popup		popup;									/**< Data for an EVENT_ICON_POPUP_AUTO or EVENT_ICON_POPUP_MANUAL.	*/
+		struct event_icon_bump_field	bump_field;								/**< Data for an EVENT_ICON_BUMP_FIELD.					*/
 		struct event_icon_bump		bump;									/**< Data for an EVENT_ICON_BUMP.					*/
 	} data;														/**< The data for the icon event.					*/
 
@@ -602,15 +613,28 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 			handled = TRUE;
 			break;
 
+		case EVENT_ICON_BUMP_FIELD:
+			handled = FALSE;
+			break;
+
 		case EVENT_ICON_BUMP:
 			value = atoi(icons_get_indirected_text_addr(window->w, action->data.bump.field));
-			if (pointer->buttons == wimp_CLICK_SELECT)
-				value += action->data.bump.step;
-			else if (pointer->buttons == wimp_CLICK_ADJUST)
-				value -= action->data.bump.step;
-			if (value >= action->data.bump.minimum && value <= action->data.bump.maximum) {
-				icons_printf(window->w, action->data.bump.field, "%d", value);
+
+			if (value > action->data.bump.maximum) {
+				icons_printf(window->w, action->data.bump.field, "%d", action->data.bump.maximum);
 				wimp_set_icon_state(window->w, action->data.bump.field, 0, 0);
+			} else if (value < action->data.bump.minimum) {
+				icons_printf(window->w, action->data.bump.field, "%d", action->data.bump.minimum);
+				wimp_set_icon_state(window->w, action->data.bump.field, 0, 0);
+			} else {
+				if (pointer->buttons == wimp_CLICK_SELECT)
+					value += action->data.bump.step;
+				else if (pointer->buttons == wimp_CLICK_ADJUST)
+					value -= action->data.bump.step;
+				if (value >= action->data.bump.minimum && value <= action->data.bump.maximum) {
+					icons_printf(window->w, action->data.bump.field, "%d", value);
+					wimp_set_icon_state(window->w, action->data.bump.field, 0, 0);
+				}
 			}
 			handled = TRUE;
 			break;
@@ -973,25 +997,30 @@ osbool event_add_window_icon_radio(wimp_w w, wimp_i i, osbool complete)
 osbool event_add_window_icon_bump(wimp_w w, wimp_i i, wimp_i up, wimp_i down, int minimum, int maximum, unsigned step)
 {
 	struct event_window		*window;
-	struct event_icon		*icon_up, *icon_down;
-	struct event_icon_action	*action_up, *action_down;
+	struct event_icon		*icon_bump, *icon_up, *icon_down;
+	struct event_icon_action	*action_bump, *action_up, *action_down;
 
 	window = event_create_window(w);
 
 	if (window == NULL)
 		return FALSE;
 
+	icon_bump = event_create_icon(window, i);
 	icon_up = event_create_icon(window, up);
 	icon_down = event_create_icon(window, down);
 
-	if (icon_up == NULL || icon_down == NULL)
+	if (icon_bump == NULL || icon_up == NULL || icon_down == NULL)
 		return FALSE;
 
+	action_bump = event_create_action(icon_bump, EVENT_ICON_BUMP_FIELD);
 	action_up = event_create_action(icon_up, EVENT_ICON_BUMP);
 	action_down = event_create_action(icon_down, EVENT_ICON_BUMP);
 
-	if (action_up == NULL || action_down == NULL)
+	if (action_bump == NULL || action_up == NULL || action_down == NULL)
 		return FALSE;
+
+	action_bump->data.bump_field.up = action_up;
+	action_bump->data.bump_field.down = action_down;
 
 	action_up->data.bump.field = i;
 	action_up->data.bump.minimum = minimum;
@@ -1002,6 +1031,82 @@ osbool event_add_window_icon_bump(wimp_w w, wimp_i i, wimp_i up, wimp_i down, in
 	action_down->data.bump.minimum = minimum;
 	action_down->data.bump.maximum = maximum;
 	action_down->data.bump.step = -step;
+
+	return TRUE;
+}
+
+
+/* Set the minimum value for a bump field.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_set_window_icon_bump_minimum(wimp_w w, wimp_i i, int minimum)
+{
+	struct event_window		*window;
+	struct event_icon		*icon;
+	struct event_icon_action	*action;
+	int				value;
+
+	if ((window = event_find_window(w)) == NULL)
+		return FALSE;
+
+	if ((icon = event_find_icon(window, i)) == NULL)
+		return FALSE;
+
+	if ((action = event_find_action(icon, EVENT_ICON_BUMP_FIELD)) == NULL)
+		return FALSE;
+
+	if (action->data.bump_field.up == NULL || action->data.bump_field.down == NULL)
+		return FALSE;
+
+	action->data.bump_field.up->data.bump.minimum = minimum;
+	action->data.bump_field.down->data.bump.minimum = minimum;
+
+	value = atoi(icons_get_indirected_text_addr(window->w, icon->i));
+
+	if (value < minimum) {
+		icons_printf(window->w, icon->i, "%d", minimum);
+		wimp_set_icon_state(window->w, icon->i, 0, 0);
+	}
+
+	return TRUE;
+}
+
+
+/* Set the maximum value for a bump field.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_set_window_icon_bump_maximum(wimp_w w, wimp_i i, int maximum)
+{
+	struct event_window		*window;
+	struct event_icon		*icon;
+	struct event_icon_action	*action;
+	int				value;
+
+	if ((window = event_find_window(w)) == NULL)
+		return FALSE;
+
+	if ((icon = event_find_icon(window, i)) == NULL)
+		return FALSE;
+
+	if ((action = event_find_action(icon, EVENT_ICON_BUMP_FIELD)) == NULL)
+		return FALSE;
+
+	if (action->data.bump_field.up == NULL || action->data.bump_field.down == NULL)
+		return FALSE;
+
+	action->data.bump_field.up->data.bump.maximum = maximum;
+	action->data.bump_field.down->data.bump.maximum = maximum;
+
+	value = atoi(icons_get_indirected_text_addr(window->w, icon->i));
+
+	if (value > maximum) {
+		icons_printf(window->w, icon->i, "%d", maximum);
+		wimp_set_icon_state(window->w, icon->i, 0, 0);
+	}
 
 	return TRUE;
 }
@@ -1532,6 +1637,11 @@ static struct event_icon_action *event_create_action(struct event_icon *icon, en
 			block->data.popup.token = NULL;
 			block->data.popup.token_number = NULL;
 			block->data.popup.selection = 0;
+			break;
+
+		case EVENT_ICON_BUMP_FIELD:
+			block->data.bump_field.up = NULL;
+			block->data.bump_field.down = NULL;
 			break;
 
 		case EVENT_ICON_BUMP:

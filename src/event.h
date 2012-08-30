@@ -363,6 +363,30 @@ osbool event_add_window_icon_bump(wimp_w w, wimp_i i, wimp_i up, wimp_i down, in
 
 
 /**
+ * Set the minimum value for a bump field.
+ *
+ * \param w			The window containing the field.
+ * \param i			The icon forming the field.
+ * \param minimum		The new minimum value for the field.
+ * \return			TRUE if successful; else FALSE.
+ */
+
+osbool event_set_window_icon_bump_minimum(wimp_w w, wimp_i i, int minimum);
+
+
+/**
+ * Set the maximum value for a bump field.
+ *
+ * \param w			The window containing the field.
+ * \param i			The icon forming the field.
+ * \param maximum		The new maximum value for the field.
+ * \return			TRUE if successful; else FALSE.
+ */
+
+osbool event_set_window_icon_bump_maximum(wimp_w w, wimp_i i, int maximum);
+
+
+/**
  * Add a pop-up menu handler for the specified window and icon.
  *
  * \param w		The window handle to attach the action to.
