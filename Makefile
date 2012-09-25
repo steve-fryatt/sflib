@@ -8,18 +8,31 @@
 
 .PHONY: all clean documentation release install backup
 
+# The build date.
+
+BUILD_DATE := $(shell date "+%d %b %Y")
+HELP_DATE := $(shell date "+%-d %B %Y")
+
+# Construct version or revision information.
+
+ifeq ($(VERSION),)
+  RELEASE := $(shell svnversion --no-newline)
+  VERSION := r$(RELEASE)
+  RELEASE := $(subst :,-,$(RELEASE))
+  HELP_VERSION := ----
+else
+  RELEASE := $(subst .,,$(VERSION))
+  HELP_VERSION := $(VERSION)
+endif
+
+$(info Building with version $(VERSION) ($(RELEASE)) on date $(BUILD_DATE))
 
 # The archive to assemble the release files in.  If $(RELEASE) is set, then the file can be given
 # a standard version number suffix.
 
 ZIPFILE := sflib$(RELEASE).zip
+SRCZIPFILE := sflib$(RELEASE)src.zip
 BUZIPFILE := sflib$(shell date "+%Y%m%d").zip
-
-
-# The build date.
-
-BUILD_DATE := $(shell date "+%d %b %Y")
-
 
 # Build Tools
 
@@ -48,6 +61,7 @@ MENUGEN := $(SFBIN)/menugen
 
 CCFLAGS := -mlibscl -mhard-float -mthrowback -Wall -O2 -fno-strict-aliasing
 ZIPFLAGS := -x "*/.svn/*" -r -, -9
+SRCZIPFLAGS := -x "*/.svn/*" -r -9
 BUZIPFLAGS := -x "*/.svn/*" -r -9
 BINDHELPFLAGS := -f -r -v
 MENUGENFLAGS := -d
@@ -117,13 +131,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 documentation:
 	doxygen $(MANUAL)/Doxyfile
 
-#documentation: $(OUTDIR)/$(README)
-#
-#$(OUTDIR)/$(README): $(MANUAL)/$(MANSRC)
-#	$(TEXTMAN) $(MANUAL)/$(MANSRC) $(OUTDIR)/$(README)
-#
-#MakeCHelp.MakeCLibSH ADFS::Iyonix.$.C.Libraries.SFLib.sflib ADFS::Iyonix.$.!Boot.Resources.!Manuals.Root.c.SFLib -b
-
 
 # Build the release Zip file.
 
@@ -131,6 +138,9 @@ release: clean all
 	$(RM) ../$(ZIPFILE)
 	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(RUNIMAGE))
 	(cd $(SRCDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) *.h)
+	(cd $(MANUAL) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) html)
+	$(RM) ../$(SRCZIPFILE)
+	$(ZIP) $(SRCZIPFLAGS) ../$(SRCZIPFILE) $(OUTDIR) $(SRCDIR) $(MANUAL)/Doxyfile Makefile
 
 
 # Build a backup Zip file
