@@ -96,6 +96,7 @@ SRCDIR := src
 MANUAL := manual
 OBJDIR := obj
 OUTDIR := build
+HDRDIR := sflib
 
 
 # Set up the named target files.
@@ -116,7 +117,7 @@ OBJS := colpick.o config.o debug.o errors.o event.o general.o heap.o	\
 
 # Build everything, but don't package it for release.
 
-all: $(OUTDIR)/$(RUNIMAGE)
+all: $(OUTDIR)/$(RUNIMAGE) $(addprefix $(OUTDIR)/$(HDRDIR)/, $(OBJS:.o=.h))
 # Was all: documentation $(OUTDIR)/$(RUNIMAGE)
 
 # Build the complete !RunImage from the object files.
@@ -143,6 +144,13 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@sed -e 's/.*://' -e 's/\\$$//' < $(@:.o=.d).tmp | fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(@:.o=.d)
 	@rm -f $(@:.o=.d).tmp
 
+# Update the headers
+
+$(OUTDIR)/$(HDRDIR):
+	$(MKDIR) $(OUTDIR)/$(HDRDIR)
+
+$(OUTDIR)/$(HDRDIR)/%.h: $(SRCDIR)/%.h $(OUTDIR)/$(HDRDIR)
+	$(CP) $< $@
 
 # Build the documentation
 
@@ -154,8 +162,7 @@ documentation:
 
 release: clean all
 	$(RM) ../$(ZIPFILE)
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(RUNIMAGE))
-	(cd $(SRCDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) *.h)
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(RUNIMAGE) $(HDRDIR))
 	(cd $(MANUAL) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) html)
 	$(RM) ../$(SRCZIPFILE)
 	$(ZIP) $(SRCZIPFLAGS) ../$(SRCZIPFILE) $(OUTDIR) $(SRCDIR) $(MANUAL)/Doxyfile Makefile
@@ -182,5 +189,6 @@ install: clean all
 clean:
 	$(RM) $(OBJDIR)/*
 	$(RM) $(OUTDIR)/$(RUNIMAGE)
+	$(RM) $(OUTDIR)/$(HDRDIR)/*
 #	$(RM) $(OUTDIR)/$(README)
 
