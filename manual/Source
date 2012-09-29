@@ -19,7 +19,7 @@ SFLib - RISC OS Wimp Libraries for C                             Version $$versi
 
 <chapter title="License" file="License">
 
-<cite>SFLib</cite> is licensed under the EUPL, Version 1.1 only (the "Licence"); you may not use this work except in compliance with the Licence.
+<cite>SFLib</cite> is licensed under the EUPL, Version&nbsp;1.1 only (the "Licence"); you may not use this work except in compliance with the Licence.
 
 You may obtain a copy of the Licence at http://joinup.ec.europa.eu/software/page/eupl
 
@@ -37,9 +37,11 @@ The source for <cite>SFLib</cite> can be found alongside this binary download, a
 
 <chapter title="Introduction and Use" file="Introduction">
 
-<cite>SFLib</cite> is a set of C libraries for use with RISC OS software. Supplied mainly to allow my other software to compile, they can also be used in their own right as part of software licensed under the EUPL or one of its "compatible licences" (such as the GPL 2).
+<cite>SFLib</cite> is a set of C libraries for use with RISC&nbsp;OS software. Supplied mainly to allow my other software to compile, they can also be used in their own right as part of software licensed under the EUPL or one of its "compatible licences" (such as the GPL&nbsp;v2).
 
-As supplied, the binary is in ELF format suitable for use with recent versions of GCC. To use it with other compilers, it will be necessary to recompile from the sources. Please be aware that the makefile is configured for cross-compilation on a Linux system, and might require modification to be used natively on RISC OS.
+As supplied, the binary is in ELF format suitable for use with recent versions of GCC. To use it with other compilers, it will be necessary to recompile from the sources. Please be aware that the makefile is configured for cross-compilation on a Linux system, and might require modification to be used natively on RISC&nbsp;OS.
+
+Documentation for the libraries is provided within the header and source files, as well as in the form of output from Doxygen within the HTML folder.
 
 </chapter>
 
