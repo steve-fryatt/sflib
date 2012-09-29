@@ -24,7 +24,7 @@
 # It is intended for native compilation on Linux (for use in a GCCSDK
 # environment) or cross-compilation under the GCCSDK.
 
-.PHONY: all clean documentation release install backup
+.PHONY: all library headers documentation clean release install backup
 
 # The build date.
 
@@ -102,7 +102,7 @@ HDRDIR := sflib
 # Set up the named target files.
 
 RUNIMAGE := libSFLib32.a
-README := ReadMe
+README := ReadMe,fff
 
 
 # Set up the source files.
@@ -117,8 +117,13 @@ OBJS := colpick.o config.o debug.o errors.o event.o general.o heap.o	\
 
 # Build everything, but don't package it for release.
 
-all: $(OUTDIR)/$(RUNIMAGE) $(addprefix $(OUTDIR)/$(HDRDIR)/, $(OBJS:.o=.h))
+all: $(OUTDIR)/$(README) library
 # Was all: documentation $(OUTDIR)/$(RUNIMAGE)
+
+library: headers $(OUTDIR)/$(RUNIMAGE)
+
+headers: $(OUTDIR)/$(HDRDIR) $(addprefix $(OUTDIR)/$(HDRDIR)/, $(OBJS:.o=.h))
+
 
 # Build the complete !RunImage from the object files.
 
@@ -149,7 +154,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 $(OUTDIR)/$(HDRDIR):
 	$(MKDIR) $(OUTDIR)/$(HDRDIR)
 
-$(OUTDIR)/$(HDRDIR)/%.h: $(SRCDIR)/%.h $(OUTDIR)/$(HDRDIR)
+$(OUTDIR)/$(HDRDIR)/%.h: $(SRCDIR)/%.h
 	$(CP) $< $@
 
 # Build the documentation
@@ -157,10 +162,12 @@ $(OUTDIR)/$(HDRDIR)/%.h: $(SRCDIR)/%.h $(OUTDIR)/$(HDRDIR)
 documentation:
 	doxygen $(MANUAL)/Doxyfile
 
+$(OUTDIR)/$(README): $(MANUAL)/$(MANSRC)
+	$(TEXTMAN) -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(README) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 
 # Build the release Zip file.
 
-release: clean all
+release: clean all documentation
 	$(RM) ../$(ZIPFILE)
 	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(RUNIMAGE) $(HDRDIR) Licence,fff)
 	(cd $(MANUAL) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) html)
@@ -190,5 +197,5 @@ clean:
 	$(RM) $(OBJDIR)/*
 	$(RM) $(OUTDIR)/$(RUNIMAGE)
 	$(RM) $(OUTDIR)/$(HDRDIR)/*
-#	$(RM) $(OUTDIR)/$(README)
+	$(RM) $(OUTDIR)/$(README)
 

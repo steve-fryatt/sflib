@@ -1,0 +1,66 @@
+<document title="SFLib">
+<define name="version" value="">
+<define name="date" value="" length=30 align="right">
+
+
+
+
+<literal mode="Text">
+=============================================================================
+SFLib - RISC OS Wimp Libraries for C                             Version $$version$$
+
+(C) Stephen Fryatt, 2002-2012                  $$date$$
+=============================================================================
+</literal>
+
+
+
+
+
+<chapter title="License" file="License">
+
+<cite>SFLib</cite> is licensed under the EUPL, Version 1.1 only (the "Licence"); you may not use this work except in compliance with the Licence.
+
+You may obtain a copy of the Licence at http://joinup.ec.europa.eu/software/page/eupl
+
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an &quot;<strong>as is</strong>&quot; basis, <strong>without warranties or conditions of any kind</strong>, either express or implied.
+
+See the Licence for the specific language governing permissions and limitations under the Licence.
+
+The source for <cite>SFLib</cite> can be found alongside this binary download, at http://www.stevefryatt.org.uk/software/
+
+</chapter>
+
+
+
+
+
+<chapter title="Introduction and Use" file="Introduction">
+
+<cite>SFLib</cite> is a set of C libraries for use with RISC OS software. Supplied mainly to allow my other software to compile, they can also be used in their own right as part of software licensed under the EUPL or one of its "compatible licences" (such as the GPL 2).
+
+As supplied, the binary is in ELF format suitable for use with recent versions of GCC. To use it with other compilers, it will be necessary to recompile from the sources. Please be aware that the makefile is configured for cross-compilation on a Linux system, and might require modification to be used natively on RISC OS.
+
+</chapter>
+
+
+
+
+
+
+<literal mode="Text">
+
+
+Updates and Contacting Me
+-------------------------
+
+  If you have any comments about SFLib, or would like to report any bugs
+  that you find, you can email me at the address below.
+
+  Updates to SFLib and more programs for RISC OS computers can be found
+  on my website at http://www.stevefryatt.org.uk/software/
+
+  Stephen Fryatt
+  email: steve@stevefryatt.org.uk
+</literal>
+
