@@ -64,7 +64,6 @@ CP := cp
 ZIP := /home/steve/GCCSDK/env/bin/zip
 
 SFBIN := /home/steve/GCCSDK/sfbin
-SFLIB := /home/steve/GCCSDK/libs/SFLib
 
 TEXTMAN := $(SFBIN)/textman
 STRONGMAN := $(SFBIN)/strongman
@@ -87,7 +86,7 @@ MENUGENFLAGS := -d
 
 # Includes and libraries.
 
-INCLUDES := -I$(GCCSDK_INSTALL_ENV)/include -I$(GCCSDK_LIBS)/OSLib/ -I$(GCCSDK_LIBS)/FlexLib/
+INCLUDES := -I$(GCCSDK_INSTALL_ENV)/include
 
 
 # Set up the various build directories.
@@ -102,6 +101,7 @@ HDRDIR := sflib
 # Set up the named target files.
 
 RUNIMAGE := libSFLib32.a
+INCFOLDER := sflib
 README := ReadMe,fff
 
 
@@ -185,10 +185,11 @@ backup:
 # Install the finished version in the GCCSDK, ready for use.
 
 install: clean all
-	$(RM) $(SFLIB)/*
-	$(CP) $(OUTDIR)/$(RUNIMAGE) $(SFLIB)
-	$(MKDIR) $(SFLIB)/sflib
-	$(CP) $(SRCDIR)/*.h $(SFLIB)/sflib
+	$(RM) $(GCCSDK_INSTALL_ENV)/lib/$(RUNIMAGE)
+	$(RM) $(GCCSDK_INSTALL_ENV)/include/$(INCFOLDER)
+	$(CP) $(OUTDIR)/$(RUNIMAGE) $(GCCSDK_INSTALL_ENV)/lib
+	$(MKDIR) $(GCCSDK_INSTALL_ENV)/include/$(INCFOLDER)
+	$(CP) $(SRCDIR)/*.h $(GCCSDK_INSTALL_ENV)/include/$(INCFOLDER)
 
 
 # Clean targets
