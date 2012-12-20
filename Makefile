@@ -60,6 +60,7 @@ AR := $(wildcard $(GCCSDK_INSTALL_CROSSBIN)/*ar)
 MKDIR := mkdir
 RM := rm -rf
 CP := cp
+INSTALL := install
 
 ZIP := /home/steve/GCCSDK/env/bin/zip
 
@@ -76,7 +77,7 @@ MENUGEN := $(SFBIN)/menugen
 
 # Build Flags
 
-CCFLAGS := -mlibscl -mhard-float -mthrowback -Wall -O2 -fno-strict-aliasing
+CCFLAGS := -mlibscl -mhard-float -static -mthrowback -Wall -O2 -fno-strict-aliasing
 ZIPFLAGS := -x "*/.svn/*" -r -, -9
 SRCZIPFLAGS := -x "*/.svn/*" -r -9
 BUZIPFLAGS := -x "*/.svn/*" -r -9
@@ -187,9 +188,9 @@ backup:
 install: clean all
 	$(RM) $(GCCSDK_INSTALL_ENV)/lib/$(RUNIMAGE)
 	$(RM) $(GCCSDK_INSTALL_ENV)/include/$(INCFOLDER)
-	$(CP) $(OUTDIR)/$(RUNIMAGE) $(GCCSDK_INSTALL_ENV)/lib
 	$(MKDIR) $(GCCSDK_INSTALL_ENV)/include/$(INCFOLDER)
-	$(CP) $(SRCDIR)/*.h $(GCCSDK_INSTALL_ENV)/include/$(INCFOLDER)
+	$(INSTALL) -t $(GCCSDK_INSTALL_ENV)/lib $(OUTDIR)/$(RUNIMAGE)
+	$(INSTALL) -t $(GCCSDK_INSTALL_ENV)/include/$(INCFOLDER) $(SRCDIR)/*.h
 
 
 # Clean targets
