@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt
+/* Copyright 2003-2013, Stephen Fryatt
  *
  * This file is part of SFLib:
  *
@@ -33,6 +33,7 @@
 
 /* OS-Lib header files. */
 
+#include "oslib/os.h"
 #include "oslib/report.h"
 
 /* ANSII C header files. */
@@ -47,7 +48,8 @@
 
 /* Print a string to Reporter, using the standard printf() syntax and
  * functionality.  Expanded text is limited to 256 characters including
- * a null terminator.
+ * a null terminator.  If Reporter is not loaded, no characters will be
+ * written.
  *
  * This function is an external interface, documented in debug.c.
  */
@@ -57,6 +59,9 @@ int debug_printf(char *cntrl_string, ...)
 	char		s[256];
 	int		ret;
 	va_list		ap;
+
+	if (xos_swi_number_from_string("Report_Text0", NULL) != NULL)
+		return 0;
 
 	va_start(ap, cntrl_string);
 	ret = vsnprintf(s, sizeof(s), cntrl_string, ap);

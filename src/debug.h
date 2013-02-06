@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt
+/* Copyright 2003-2013, Stephen Fryatt
  *
  * This file is part of SFLib:
  *
@@ -34,7 +34,8 @@
 /**
  * Print a string to Reporter, using the standard printf() syntax and
  * functionality.  Expanded text is limited to 256 characters including
- * a null terminator.
+ * a null terminator.  If Reporter is not loaded, no characters will be
+ * written.
  *
  * \param *cntrl_string		A standard printf() formatting string.
  * \param ...			Additional printf() parameters as required.
