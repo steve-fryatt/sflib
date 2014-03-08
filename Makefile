@@ -66,10 +66,7 @@ ZIP := /home/steve/GCCSDK/env/bin/zip
 
 SFBIN := /home/steve/GCCSDK/sfbin
 
-TEXTMAN := $(SFBIN)/textman
-STRONGMAN := $(SFBIN)/strongman
-HTMLMAN := $(SFBIN)/htmlman
-DDFMAN := $(SFBIN)/ddfman
+MANTOOLS := $(SFBIN)/mantools
 BINDHELP := $(SFBIN)/bindhelp
 TEXTMERGE := $(SFBIN)/textmerge
 MENUGEN := $(SFBIN)/menugen
@@ -164,7 +161,7 @@ documentation:
 	doxygen $(MANUAL)/Doxyfile
 
 $(OUTDIR)/$(README): $(MANUAL)/$(MANSRC)
-	$(TEXTMAN) -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(README) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
+	$(MANTOOLS) -MTEXT -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(README) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 
 # Build the release Zip file.
 

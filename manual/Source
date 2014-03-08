@@ -19,11 +19,11 @@ SFLib - RISC OS Wimp Libraries for C                             Version $$versi
 
 <chapter title="License" file="License">
 
-<cite>SFLib</cite> is licensed under the EUPL, Version&nbsp;1.1 only (the "Licence"); you may not use this work except in compliance with the Licence.
+<cite>SFLib</cite> is licensed under the EUPL, Version&nbsp;1.1 only (the &ldquo;Licence&rdquo;); you may not use this work except in compliance with the Licence.
 
 You may obtain a copy of the Licence at <link ref="#url http://joinup.ec.europa.eu/software/page/eupl">http://joinup.ec.europa.eu/software/page/eupl</link>
 
-Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an &quot;<strong>as is</strong>&quot; basis, <strong>without warranties or conditions of any kind</strong>, either express or implied.
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an &ldquo;<strong>as is</strong>&rdquo; basis, <strong>without warranties or conditions of any kind</strong>, either express or implied.
 
 See the Licence for the specific language governing permissions and limitations under the Licence.
 
@@ -37,7 +37,7 @@ The source for <cite>SFLib</cite> can be found alongside this binary download, a
 
 <chapter title="Introduction and Use" file="Introduction">
 
-<cite>SFLib</cite> is a set of C libraries for use with RISC&nbsp;OS software. Supplied mainly to allow my other software to compile, they can also be used in their own right as part of software licensed under the EUPL or one of its "compatible licences" (such as the GPL&nbsp;v2).
+<cite>SFLib</cite> is a set of C libraries for use with RISC&nbsp;OS software. Supplied mainly to allow my other software to compile, they can also be used in their own right as part of software licensed under the EUPL or one of its &ldquo;compatible licences&rdquo; (such as the GPL&nbsp;v2).
 
 As supplied, the binary is in ELF format suitable for use with recent versions of GCC. To use it with other compilers, it will be necessary to recompile from the sources. Please be aware that the makefile is configured for cross-compilation on a Linux system, and might require modification to be used natively on RISC&nbsp;OS.
 
