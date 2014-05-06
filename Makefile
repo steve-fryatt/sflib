@@ -62,14 +62,12 @@ RM := rm -rf
 CP := cp
 INSTALL := install
 
-ZIP := /home/steve/GCCSDK/env/bin/zip
+ZIP := $(GCCSDK_INSTALL_ENV)/bin/zip
 
-SFBIN := /home/steve/GCCSDK/sfbin
-
-MANTOOLS := $(SFBIN)/mantools
-BINDHELP := $(SFBIN)/bindhelp
-TEXTMERGE := $(SFBIN)/textmerge
-MENUGEN := $(SFBIN)/menugen
+MANTOOLS := $(SFTOOLS_BIN)/mantools
+BINDHELP := $(SFTOOLS_BIN)/bindhelp
+TEXTMERGE := $(SFTOOLS_BIN)/textmerge
+MENUGEN := $(SFTOOLS_BIN)/menugen
 
 
 # Build Flags
