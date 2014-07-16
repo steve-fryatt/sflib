@@ -83,7 +83,7 @@ osbool heap_initialise(void)
  * This is an external interface, documented in heap.h
  */
 
-void * heap_alloc(size_t size)
+void *heap_alloc(size_t size)
 {
 	void		*block;
 	os_error	*error;
