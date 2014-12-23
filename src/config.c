@@ -465,7 +465,7 @@ osbool config_load(void)
 	if (in == NULL)
 		return FALSE;
 
-	while (config_read_token_pair(in, token, contents, NULL) != sf_READ_CONFIG_EOF) {
+	while (config_read_token_pair(in, token, contents, NULL) != sf_CONFIG_READ_EOF) {
 		/* If the token can be matched to a current setting, save it. */
 
 		if (config_find_opt(token) != NULL)
@@ -568,8 +568,8 @@ osbool config_restore_default(void)
  * reached.  Return values for the token and value in *token and *value; if a new
  * section is encountered, return that in *section.
  *
- * Result code is: sf_READ_CONFIG_EOF, sf_READ_CONFIG_NEW_SECTION or
- * sf_READ_CONFIG_VALUE_RETURNED.  New sections are returned with the first
+ * Result code is: sf_CONFIG_READ_EOF, sf_CONFIG_READ_NEW_SECTION or
+ * sf_CONFIG_READ_VALUE_RETURNED.  New sections are returned with the first
  * token in the section.
  *
  * No buffer overrun protection is performed.  Ensure *token, *value and *section
@@ -582,11 +582,11 @@ osbool config_restore_default(void)
  * \return		Result code.
  */
 
-int config_read_token_pair(FILE *file, char *token, char *value, char *section)
+enum config_read_status config_read_token_pair(FILE *file, char *token, char *value, char *section)
 {
-	char		line[1024], *stripped_line, *a, *b;
-	int		result = sf_READ_CONFIG_EOF;
-	osbool		read = FALSE;
+	char				line[1024], *stripped_line, *a, *b;
+	enum config_read_status		result = sf_CONFIG_READ_EOF;
+	osbool				read = FALSE;
 
 
 	if (file == NULL)
@@ -600,7 +600,7 @@ int config_read_token_pair(FILE *file, char *token, char *value, char *section)
 				*strrchr(stripped_line, ']') = '\0';
 				if (section != NULL)
 					strcpy(section, stripped_line + 1);
-				result = sf_READ_CONFIG_NEW_SECTION;
+				result = sf_CONFIG_READ_NEW_SECTION;
 			} else {
 				a = NULL;
 				b = strchr(stripped_line, ':');
@@ -625,8 +625,8 @@ int config_read_token_pair(FILE *file, char *token, char *value, char *section)
 						strcpy(value, b);
 					}
 
-					if (result != sf_READ_CONFIG_NEW_SECTION)
-						result = sf_READ_CONFIG_VALUE_RETURNED;
+					if (result != sf_CONFIG_READ_NEW_SECTION)
+						result = sf_CONFIG_READ_VALUE_RETURNED;
 
 					read = TRUE;
 				} else {

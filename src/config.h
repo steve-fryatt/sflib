@@ -40,10 +40,11 @@
 #define sf_MAX_CONFIG_NAME 32							/**< The maximum length of a config value name.		*/
 #define sf_MAX_CONFIG_STR  1024							/**< The maximum length of a textual config value.	*/
 
-#define sf_READ_CONFIG_EOF 0							/**< Nothing returned; End Of File.			*/
-#define sf_READ_CONFIG_VALUE_RETURNED 1						/**< Value returned.					*/
-#define sf_READ_CONFIG_NEW_SECTION 2						/**< Start of section; section and value returned.	*/
-
+enum config_read_status {
+	sf_CONFIG_READ_EOF = 0,							/**< Nothing returned; End Of File.			*/
+	sf_CONFIG_READ_VALUE_RETURNED = 1,					/**< Value returned.					*/
+	sf_CONFIG_READ_NEW_SECTION = 2						/**< Start of section; section and value returned.	*/
+};
 
 /**
  * Initialise the config module for the given application.
@@ -196,7 +197,7 @@ char *config_str_read(char *name);
  * \return		Result code.
  */
 
-int config_read_token_pair(FILE *file, char *token, char *value, char *section);
+enum config_read_status config_read_token_pair(FILE *file, char *token, char *value, char *section);
 
 
 /**
