@@ -158,26 +158,17 @@ osbool msgs_lookup_result(char *token, char *buffer, size_t buffer_size)
 osbool msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, char *a, char *b, char *c, char *d)
 {
 	os_error	*error;
-	char		*text;
 
-	text = strchr(token, ':');
-	if (text != NULL)
-		*text++ = '\0';
-	else
-		text = token;
+	if (buffer == NULL || buffer_size <= 0)
+		return FALSE;
+
+	if (token == NULL) {
+		*buffer = '\0';
+		return FALSE;
+	}
 
 	error = xmessagetrans_lookup(message_block, token, buffer, buffer_size, a, b, c, d, NULL, NULL);
 
-	if (error == NULL)
-		return TRUE;
-
-	if (strlen(text) < buffer_size) {
-		strcpy(buffer, text);
-	} else {
-		strncpy(buffer, text, buffer_size - 1);
-		*(buffer + buffer_size - 1) = '\0';
-	}
-
-	return FALSE;
+	return (error == NULL) ? TRUE : FALSE;
 }
 
