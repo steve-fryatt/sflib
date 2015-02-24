@@ -64,6 +64,7 @@ static wimp_error_box_selection		error_wimp_os_report(os_error *error,
 void error_initialise(char *name, char *sprite, void (*closedown)(void))
 {
 	char	lookup_buffer[256];
+	size_t	size;
 
 	close_down_function = closedown;
 
@@ -72,7 +73,14 @@ void error_initialise(char *name, char *sprite, void (*closedown)(void))
 			free(app_name);
 
 		msgs_lookup(name, lookup_buffer, sizeof(lookup_buffer));
-		app_name = strdup(lookup_buffer);
+
+		size = strlen(lookup_buffer) + 1;
+
+		app_name = malloc(size);
+		if (app_name != NULL) {
+			strncpy(app_name, lookup_buffer, size);
+			lookup_buffer[size - 1] = '\0';
+		}
 	}
 
 	if (sprite != NULL) {
@@ -80,7 +88,14 @@ void error_initialise(char *name, char *sprite, void (*closedown)(void))
 			free(app_sprite);
 
 		msgs_lookup(sprite, lookup_buffer, sizeof(lookup_buffer));
-		app_sprite = strdup(lookup_buffer);
+
+		size = strlen(lookup_buffer) + 1;
+
+		app_sprite = malloc(size);
+		if (app_sprite != NULL) {
+			strncpy(app_sprite, lookup_buffer, size);
+			lookup_buffer[size - 1] = '\0';
+		}
 	}
 }
 
