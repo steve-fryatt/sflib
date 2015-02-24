@@ -49,7 +49,7 @@
 
 static char			*app_name = NULL;				/**< The application name, as used in error messages.				*/
 static char			*app_sprite = NULL;				/**< The application sprite, as used in error messages.				*/
-static void			*close_down_function;				/**< Unused.									*/
+static void			(*close_down_function)(void);			/**< Unused.									*/
 
 static wimp_error_box_selection		error_wimp_os_report(os_error *error,
 		wimp_error_box_flags type, wimp_error_box_flags buttons, char *custom_buttons);
