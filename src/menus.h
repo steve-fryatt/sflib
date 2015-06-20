@@ -50,7 +50,9 @@ typedef int * menu_template;
  * \param dbox_list[]	Pointer to an array of dialogue boxes, or NULL for
  *			a new format file with named dboxes which are
  *			linked via menus_link_dbox().
- * \param *menus[]	Pointer to an array to hold the menu block pointers.
+ * \param *menus[]	Pointer to an array to hold the menu block pointers,
+ *			or NULL for a new format file with names menus which
+ *			can be accessed via menus_get_menu().
  * \param len		The number of entries in the menu block array.
  * \return		The menu template handle for the file, NULL for failure.
  */
@@ -68,6 +70,17 @@ menu_template menus_load_templates(char *filename, wimp_w dbox_list[], wimp_menu
  */
 
 osbool menus_link_dbox(menu_template data, char *tag, wimp_w dbox);
+
+
+/* Return a menu block pointer from a menu template block, given
+ * a textual menu tag.
+ *
+ * \param data		The menu templates to link to.
+ * \param *tag		The menu tag name from the templates.
+ * \return		The required menu handle, or NULL on failure.
+ */
+
+wimp_menu *menus_get_menu(menu_template data, char *tag);
 
 
 /**

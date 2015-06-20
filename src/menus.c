@@ -127,11 +127,12 @@ menu_template menus_load_templates(char *filename, wimp_w dbox_list[], wimp_menu
 
 	/* collect together pointers to the menus and link the submenus together. */
 
-	menu_block = data + 5;
+	menu_block = (*(data + 3) == 0) ? data + 8 : data + 5;
 	menu = 0;
 
 	while ((int) menu_block != -1) {
-		menus[menu++] = (wimp_menu *) menu_block;
+		if (menus != NULL && menu < len)
+			menus[menu++] = (wimp_menu *) menu_block;
 
 		z = menu_block - 1;
 
@@ -166,7 +167,7 @@ osbool menus_link_dbox(menu_template data, char *tag, wimp_w dbox)
 {
 	int next, *current;
 
-	if (data == NULL)
+	if (data == NULL || tag == NULL)
 		return FALSE;
 
 	if (*data == -1)
@@ -200,6 +201,38 @@ osbool menus_link_dbox(menu_template data, char *tag, wimp_w dbox)
 	} while (next != -1);
 
 	return TRUE;
+}
+
+
+/* Return a menu block pointer from a menu template block, given
+ * a textual menu tag.
+ *
+ * This is an external interface, documented in menus.h
+ */
+
+wimp_menu *menus_get_menu(menu_template data, char *tag)
+{
+	int *current;
+
+	if (data == NULL || tag == NULL)
+		return NULL;
+
+	if (*(data + 3) != 0 || *(data + 5) == -1)
+		return NULL;
+
+	current = (int *) ((int) data + (int) *(data + 5));
+
+	/* Find the correct menu offset by string matching the tags. */
+
+	while (*current != -1 && strcmp((char *) (current + 1), tag) != 0) {
+		current = (int *) ((int) current +
+				((strlen((char *) (current + 1)) + 8) & (~3)));
+	}
+
+	if (*current == -1)
+		return NULL;
+
+	return (wimp_menu *) ((int) data + (int) *current);
 }
 
 
