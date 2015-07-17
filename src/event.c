@@ -236,7 +236,22 @@ static void *event_drag_data = NULL;
  * Function prototypes for internal functions.
  */
 
+
+static osbool event_process_null_reason_code(void);
+static osbool event_process_redraw_window_request(wimp_draw *draw);
+static osbool event_process_open_window_request(wimp_open *open);
+static osbool event_process_close_window_request(wimp_close *close);
+static osbool event_process_pointer_leaving_window(wimp_leaving *leaving);
+static osbool event_process_pointer_entering_window(wimp_entering *entering);
+static osbool event_process_mouse_click(wimp_pointer *pointer);
 static osbool event_process_icon(struct event_window *window, struct event_icon *icon, wimp_pointer *pointer);
+static osbool event_process_user_drag_box(wimp_dragged *dragged);
+static osbool event_process_key_pressed(wimp_key *key);
+static osbool event_process_menu_selection(wimp_selection *selection);
+static osbool event_process_scroll_request(wimp_scroll *scroll);
+static osbool event_process_lose_caret(wimp_caret *caret);
+static osbool event_process_gain_caret(wimp_caret *caret);
+static osbool event_process_user_message(wimp_event_no event, wimp_message *message);
 static void event_prepare_auto_menu(struct event_window *window, struct event_icon_action *action);
 static void event_set_auto_menu_selection(struct event_window *window, struct event_icon_action *action, unsigned selection);
 static struct event_window *event_find_window(wimp_w w);
@@ -255,331 +270,254 @@ static struct event_message *event_find_message(int message);
 
 osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
 {
-	struct event_window			*win = NULL;
-	struct event_icon			*icon = NULL;
-	struct event_message			*message = NULL;
-	struct event_message_action		*action = NULL;
-	enum event_message_type			type;
-	wimp_pointer				pointer;
-	wimp_menu				*menu;
-	osbool					handled, special;
-	wimp_full_message_menus_deleted		*menus_deleted;
+	if (block == NULL)
+		return FALSE;
 
 	switch (event) {
 	case wimp_NULL_REASON_CODE:
-		if (event_drag_null_poll != NULL && (event_drag_null_poll)(event_drag_data) == TRUE)
-			return TRUE;
-		break;
+		return event_process_null_reason_code();
 
 	case wimp_REDRAW_WINDOW_REQUEST:
-		if (block->redraw.w != NULL) {
-			win = event_find_window(block->redraw.w);
-
-			if (win != NULL && win->redraw != NULL) {
-				(win->redraw)((wimp_draw *) block);
-				return TRUE;
-			}
-		}
-		break;
+		return event_process_redraw_window_request(&(block->redraw));
 
 	case wimp_OPEN_WINDOW_REQUEST:
-		if (block->open.w != NULL) {
-			win = event_find_window(block->open.w);
-
-			if (win != NULL && win->open != NULL) {
-				(win->open)((wimp_open *) block);
-				return TRUE;
-			}
-		}
-		break;
+		return event_process_open_window_request(&(block->open));
 
 	case wimp_CLOSE_WINDOW_REQUEST:
-		if (block->close.w != NULL) {
-			win = event_find_window(block->close.w);
-
-			if (win != NULL && win->close != NULL) {
-				(win->close)((wimp_close *) block);
-				return TRUE;
-			}
-		}
-		break;
+		return event_process_close_window_request(&(block->close));
 
 	case wimp_POINTER_LEAVING_WINDOW:
-		if (block->leaving.w != NULL) {
-			win = event_find_window(block->leaving.w);
-
-			if (win != NULL && win->leaving != NULL) {
-				(win->leaving)((wimp_leaving *) block);
-				return TRUE;
-			}
-		}
-		break;
+		return event_process_pointer_leaving_window(&(block->leaving));
 
 	case wimp_POINTER_ENTERING_WINDOW:
-		if (block->entering.w != NULL) {
-			win = event_find_window(block->entering.w);
-
-			if (win != NULL && win->entering != NULL) {
-				(win->entering)((wimp_entering *) block);
-				return TRUE;
-			}
-		}
-		break;
+		return event_process_pointer_entering_window(&(block->entering));
 
 	case wimp_MOUSE_CLICK:
-		if (block->pointer.w != NULL) {
-			win = event_find_window(block->pointer.w);
-
-			if (win != NULL && block->pointer.buttons == wimp_CLICK_MENU
-					&& win->menu != NULL) {
-				/* Process window menus on Menu clicks. */
-
-				new_client_menu = NULL;
-				if (win->menu_prepare != NULL)
-					(win->menu_prepare)(win->w, win->menu, (wimp_pointer *) block);
-				if (new_client_menu != NULL)
-					win->menu = new_client_menu;
-				if (win->w == wimp_ICON_BAR)
-					menu = menus_create_iconbar_menu(win->menu, (wimp_pointer *) block);
-				else
-					menu = menus_create_standard_menu(win->menu, (wimp_pointer *) block);
-				current_menu = win;
-				current_menu_type = EVENT_MENU_WINDOW;
-				current_menu_icon = NULL;
-				current_menu_action = NULL;
-				if (menu_handle != NULL)
-					*menu_handle = menu;
-				return TRUE;
-			} else if (win != NULL) {
-				/* Try to process an icon handler. */
-				icon = event_find_icon(win, block->pointer.i);
-
-				if (icon != NULL && event_process_icon(win, icon, (wimp_pointer *) block))
-					return TRUE;
-
-				/* Process generic click handlers. */
-
-				if (win->pointer != NULL) {
-					(win->pointer)((wimp_pointer *) block);
-					return TRUE;
-				}
-			}
-		}
-		break;
+		return event_process_mouse_click(&(block->pointer));
 
 	case wimp_USER_DRAG_BOX:
-		if (event_drag_end != NULL) {
-			(event_drag_end)((wimp_dragged *) block, event_drag_data);
-
-			/* One-shot, so clear the function pointer. */
-
-			event_drag_end = NULL;
-			event_drag_null_poll = NULL;
-			event_drag_data = NULL;
-			return TRUE;
-		}
-		break;
+		return event_process_user_drag_box(&(block->dragged));
 
 	case wimp_KEY_PRESSED:
-		if (block->key.w != NULL) {
-			win = event_find_window(block->key.w);
-
-			if (win != NULL && win->key != NULL) {
-				if (!(win->key)((wimp_key *) block))
-					wimp_process_key(block->key.c);
-				return TRUE;
-			}
-		}
-		break;
+		return event_process_key_pressed(&(block->key));
 
 	case wimp_MENU_SELECTION:
-		if (current_menu != NULL) {
-			wimp_get_pointer_info(&pointer);
-
-			menu = NULL;
-
-			switch (current_menu_type) {
-			case EVENT_MENU_WINDOW:
-				menu = current_menu->menu;
-				break;
-			case EVENT_MENU_POPUP_AUTO:
-			case EVENT_MENU_POPUP_MANUAL:
-				menu = current_menu_action->data.popup.menu;
-				break;
-			default:
-				/* Something's wrong: tidy up and get out. */
-				current_menu = NULL;
-				current_menu_type = EVENT_MENU_NONE;
-				current_menu_icon = NULL;
-				current_menu_action = NULL;
-				if (menu_handle != NULL)
-					*menu_handle = NULL;
-				return TRUE;
-				break;
-			}
-
-			if (current_menu_type == EVENT_MENU_POPUP_AUTO && block->selection.items[0] != -1)
-				event_set_auto_menu_selection(current_menu, current_menu_action, block->selection.items[0]);
-
-			if (current_menu->menu_selection != NULL)
-				(current_menu->menu_selection)(current_menu->w, menu, (wimp_selection *) block);
-
-			if (pointer.buttons == wimp_CLICK_ADJUST) {
-				new_client_menu = NULL;
-				if (current_menu->menu_prepare != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
-					(current_menu->menu_prepare)(current_menu->w, menu, NULL);
-				if (new_client_menu != NULL) {
-					switch (current_menu_type) {
-					case EVENT_MENU_WINDOW:
-						current_menu->menu = new_client_menu;
-						break;
-					case EVENT_MENU_POPUP_MANUAL:
-					case EVENT_MENU_POPUP_AUTO:
-						current_menu_action->data.popup.menu = new_client_menu;
-						break;
-					default:
-						new_client_menu = NULL;
-						break;
-					}
-					if (menu_handle != NULL && new_client_menu != NULL)
-						*menu_handle = new_client_menu;
-				}
-				if (new_client_menu == NULL || menu == new_client_menu) {
-					if (new_client_menu != NULL)
-						menu = new_client_menu;
-					if (current_menu_type == EVENT_MENU_POPUP_AUTO)
-						event_prepare_auto_menu(current_menu, current_menu_action);
-					wimp_create_menu(menu, 0, 0);
-				}
-			} else {
-				if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
-					(current_menu->menu_close)(current_menu->w, menu);
-				current_menu = NULL;
-				current_menu_type = EVENT_MENU_NONE;
-				current_menu_icon = NULL;
-				current_menu_action = NULL;
-				if (menu_handle != NULL)
-					*menu_handle = NULL;
-			}
-			return TRUE;
-		}
-		break;
+		return event_process_menu_selection(&(block->selection));
 
 	case wimp_SCROLL_REQUEST:
-		if (block->scroll.w != NULL) {
-			win = event_find_window(block->scroll.w);
-
-			if (win != NULL && win->scroll != NULL) {
-				(win->scroll)((wimp_scroll *) block);
-				return TRUE;
-			}
-		}
-		break;
+		return event_process_scroll_request(&(block->scroll));
 
 	case wimp_LOSE_CARET:
-		if (block->caret.w != NULL) {
-			win = event_find_window(block->caret.w);
-
-			if (win != NULL && win->lose_caret != NULL) {
-				(win->lose_caret)((wimp_caret *) block);
-				return TRUE;
-			}
-		}
-		break;
+		return event_process_lose_caret(&(block->caret));
 
 	case wimp_GAIN_CARET:
-		if (block->caret.w != NULL) {
-			win = event_find_window(block->caret.w);
-
-			if (win != NULL && win->gain_caret != NULL) {
-				(win->gain_caret)((wimp_caret *) block);
-				return TRUE;
-			}
-		}
-		break;
+		return event_process_gain_caret(&(block->caret));
 
 	case wimp_USER_MESSAGE:
 	case wimp_USER_MESSAGE_RECORDED:
 	case wimp_USER_MESSAGE_ACKNOWLEDGE:
-		/* If the message is one that we need, we then process it first before
-		 * anything else can get at it.
-		 */
-
-		special = FALSE;
-
-		if (event != wimp_USER_MESSAGE_ACKNOWLEDGE) {
-			switch (block->message.action) {
-			case message_MENUS_DELETED:
-				menus_deleted = (wimp_full_message_menus_deleted *) block;
-				if (current_menu != NULL && ((current_menu_type == EVENT_MENU_WINDOW && current_menu->menu == menus_deleted->menu) ||
-						((current_menu_type == EVENT_MENU_POPUP_MANUAL || current_menu_type == EVENT_MENU_POPUP_MANUAL) &&
-								current_menu_action->data.popup.menu == menus_deleted->menu))  ) {
-					if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
-						(current_menu->menu_close)(current_menu->w, current_menu->menu);
-					current_menu = NULL;
-					current_menu_type = EVENT_MENU_NONE;
-					current_menu_icon = NULL;
-					current_menu_action = NULL;
-					if (menu_handle != NULL)
-						*menu_handle = NULL;
-					special = TRUE;
-				}
-				break;
-
-			case message_MENU_WARNING:
-				if (current_menu != NULL) {
-					if (current_menu->menu_warning != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
-						(current_menu->menu_warning)(current_menu->w, current_menu->menu, (wimp_message_menu_warning *) &(block->message.data));
-					special = TRUE;
-				}
-				break;
-			}
-		}
-
-		/* Then pass the message on to any registered handlers, in
-		 * reverse order of registration, until we run out or one of them
-		 * returns TRUE to indicate that it has claimed the message.
-		 */
-
-		switch (event) {
-		case wimp_USER_MESSAGE:
-			type = EVENT_MESSAGE;
-			break;
-		case wimp_USER_MESSAGE_RECORDED:
-			type = EVENT_MESSAGE_RECORDED;
-			break;
-		case wimp_USER_MESSAGE_ACKNOWLEDGE:
-			type = EVENT_MESSAGE_ACKNOWLEDGE;
-			break;
-		default:
-			type = EVENT_MESSAGE_NONE;
-			break;
-		}
-
-		message = event_find_message(block->message.action);
-		handled = FALSE;
-
-		if (message != NULL && message->actions != NULL) {
-			action = message->actions;
-
-			while (action != NULL && handled == FALSE) {
-				if ((action->type & type) != 0 && action->action != NULL)
-					handled = action->action((wimp_message *) block);
-
-				action = action->next;
-			}
-		}
-
-		/* Always report as handled if this is a message that we processed
-		 * at the start.
-		 */
-
-		if (handled || special)
-			return TRUE;
-		break;
+		return event_process_user_message(event, &(block->message));
 	}
 
 	return FALSE;
+}
+
+
+/**
+ * Handle null events.
+ *
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_null_reason_code(void)
+{
+	if (event_drag_null_poll == NULL)
+		return FALSE;
+
+	 return (event_drag_null_poll)(event_drag_data);
+}
+
+
+/**
+ * Handle redraw window request events.
+ *
+ * \param *draw			Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_redraw_window_request(wimp_draw *draw)
+{
+	struct event_window	*win = NULL;
+
+	if (draw->w == NULL)
+		return FALSE;
+
+	win = event_find_window(draw->w);
+
+	if (win == NULL || win->redraw == NULL)
+		return FALSE;
+
+	(win->redraw)(draw);
+
+	return TRUE;
+}
+
+
+/**
+ * Handle open window request events.
+ *
+ * \param *open			Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_open_window_request(wimp_open *open)
+{
+	struct event_window	*win = NULL;
+
+	if (open->w == NULL)
+		return FALSE;
+
+	win = event_find_window(open->w);
+
+	if (win == NULL || win->open == NULL)
+		return FALSE;
+
+	(win->open)(open);
+
+	return TRUE;
+}
+
+
+/**
+ * Handle close window request events.
+ *
+ * \param *close		Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_close_window_request(wimp_close *close)
+{
+	struct event_window	*win = NULL;
+
+	if (close->w == NULL)
+		return FALSE;
+
+	win = event_find_window(close->w);
+
+	if (win == NULL || win->close == NULL)
+		return FALSE;
+
+	(win->close)(close);
+
+	return TRUE;
+}
+
+
+/**
+ * Handle pointer leaving window events.
+ *
+ * \param *leaving		Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_pointer_leaving_window(wimp_leaving *leaving)
+{
+	struct event_window	*win = NULL;
+
+	if (leaving->w == NULL)
+		return FALSE;
+
+	win = event_find_window(leaving->w);
+
+	if (win == NULL || win->leaving == NULL)
+		return FALSE;
+
+	(win->leaving)(leaving);
+	return TRUE;
+}
+
+
+/**
+ * Handle pointer entering window events.
+ *
+ * \param *entering		Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_pointer_entering_window(wimp_entering *entering)
+{
+	struct event_window	*win = NULL;
+
+	if (entering->w == NULL)
+		return FALSE;
+
+	win = event_find_window(entering->w);
+
+	if (win == NULL || win->entering == NULL)
+		return FALSE;
+
+	(win->entering)(entering);
+	return TRUE;
+}
+
+
+/**
+ * Handle mouse click events.
+ *
+ * \param *pointer		Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_mouse_click(wimp_pointer *pointer)
+{
+	struct wimp_menu	*menu;
+	struct event_window	*win = NULL;
+	struct event_icon	*icon = NULL;
+
+	if (pointer->w == NULL)
+		return FALSE;
+
+	win = event_find_window(pointer->w);
+
+	/* It's a menu click, and we have a window menu registered. */
+
+	if (win != NULL && pointer->buttons == wimp_CLICK_MENU && win->menu != NULL) {
+		new_client_menu = NULL;
+		if (win->menu_prepare != NULL)
+			(win->menu_prepare)(win->w, win->menu, pointer);
+		if (new_client_menu != NULL)
+			win->menu = new_client_menu;
+		if (win->w == wimp_ICON_BAR)
+			menu = menus_create_iconbar_menu(win->menu, pointer);
+		else
+			menu = menus_create_standard_menu(win->menu, pointer);
+		current_menu = win;
+		current_menu_type = EVENT_MENU_WINDOW;
+		current_menu_icon = NULL;
+		current_menu_action = NULL;
+		if (menu_handle != NULL)
+			*menu_handle = menu;
+		return TRUE;
+	}
+
+	if (win == NULL)
+		return FALSE;
+
+	/* Try to process an icon handler. */
+
+	icon = event_find_icon(win, pointer->i);
+
+	if (icon != NULL && event_process_icon(win, icon, pointer))
+		return TRUE;
+
+	/* Process generic click handlers. */
+
+	if (win->pointer == NULL)
+		return FALSE;
+
+	(win->pointer)(pointer);
+
+	return TRUE;
 }
 
 
@@ -668,6 +606,305 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 	}
 
 	return handled;
+}
+
+
+/**
+ * Handle user drag box events.
+ *
+ * \param *dragged		Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_user_drag_box(wimp_dragged *dragged)
+{
+	if (event_drag_end == NULL)
+		return FALSE;
+
+	(event_drag_end)(dragged, event_drag_data);
+
+	/* One-shot, so clear the function pointer. */
+
+	event_drag_end = NULL;
+	event_drag_null_poll = NULL;
+	event_drag_data = NULL;
+	
+	return TRUE;
+}
+
+
+/**
+ * Handle key pressed events.
+ *
+ * \param *key			Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_key_pressed(wimp_key *key)
+{
+	struct event_window	*win = NULL;
+
+	if (key->w == NULL)
+		return FALSE;
+
+	win = event_find_window(key->w);
+
+	if (win == NULL || win->key == NULL)
+		return FALSE;
+
+	if (!(win->key)(key))
+		wimp_process_key(key->c);
+
+	return TRUE;
+}
+
+
+/**
+ * Handle menu selection events.
+ *
+ * \param *selection		Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_menu_selection(wimp_selection *selection)
+{
+	wimp_pointer	pointer;
+	wimp_menu	*menu;
+
+	if (current_menu == NULL)
+		return FALSE;
+	
+	wimp_get_pointer_info(&pointer);
+
+	menu = NULL;
+
+	switch (current_menu_type) {
+	case EVENT_MENU_WINDOW:
+		menu = current_menu->menu;
+		break;
+	case EVENT_MENU_POPUP_AUTO:
+	case EVENT_MENU_POPUP_MANUAL:
+		menu = current_menu_action->data.popup.menu;
+		break;
+	default:
+		/* Something's wrong: tidy up and get out. */
+		current_menu = NULL;
+		current_menu_type = EVENT_MENU_NONE;
+		current_menu_icon = NULL;
+		current_menu_action = NULL;
+		if (menu_handle != NULL)
+			*menu_handle = NULL;
+		return TRUE;
+		break;
+	}
+
+	if (current_menu_type == EVENT_MENU_POPUP_AUTO && selection->items[0] != -1)
+		event_set_auto_menu_selection(current_menu, current_menu_action, selection->items[0]);
+
+	if (current_menu->menu_selection != NULL)
+		(current_menu->menu_selection)(current_menu->w, menu, selection);
+
+	if (pointer.buttons == wimp_CLICK_ADJUST) {
+		new_client_menu = NULL;
+		if (current_menu->menu_prepare != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
+			(current_menu->menu_prepare)(current_menu->w, menu, NULL);
+		if (new_client_menu != NULL) {
+			switch (current_menu_type) {
+			case EVENT_MENU_WINDOW:
+				current_menu->menu = new_client_menu;
+				break;
+			case EVENT_MENU_POPUP_MANUAL:
+			case EVENT_MENU_POPUP_AUTO:
+				current_menu_action->data.popup.menu = new_client_menu;
+				break;
+			default:
+				new_client_menu = NULL;
+				break;
+			}
+			if (menu_handle != NULL && new_client_menu != NULL)
+				*menu_handle = new_client_menu;
+		}
+		if (new_client_menu == NULL || menu == new_client_menu) {
+			if (new_client_menu != NULL)
+				menu = new_client_menu;
+			if (current_menu_type == EVENT_MENU_POPUP_AUTO)
+				event_prepare_auto_menu(current_menu, current_menu_action);
+			wimp_create_menu(menu, 0, 0);
+		}
+	} else {
+		if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
+			(current_menu->menu_close)(current_menu->w, menu);
+		current_menu = NULL;
+		current_menu_type = EVENT_MENU_NONE;
+		current_menu_icon = NULL;
+		current_menu_action = NULL;
+		if (menu_handle != NULL)
+			*menu_handle = NULL;
+	}
+
+	return TRUE;
+}
+
+
+/**
+ * Handle scroll request events.
+ *
+ * \param *scroll		Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_scroll_request(wimp_scroll *scroll)
+{
+	struct event_window	*win = NULL;
+
+	if (scroll->w == NULL)
+		return FALSE;
+
+	win = event_find_window(scroll->w);
+
+	if (win == NULL || win->scroll == NULL)
+		return FALSE;
+
+	(win->scroll)(scroll);
+		return TRUE;
+}
+
+
+/**
+ * Handle lose caret events.
+ *
+ * \param *caret		Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_lose_caret(wimp_caret *caret)
+{
+	struct event_window	*win = NULL;
+
+	if (caret->w == NULL)
+		return FALSE;
+
+	win = event_find_window(caret->w);
+
+	if (win == NULL || win->lose_caret == NULL)
+		return FALSE;
+
+	(win->lose_caret)(caret);
+
+	return TRUE;
+}
+
+
+/**
+ * Handle gain caret events.
+ *
+ * \param *caret		Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_gain_caret(wimp_caret *caret)
+{
+	struct event_window	*win = NULL;
+
+	if (caret->w == NULL)
+		return FALSE;
+
+	win = event_find_window(caret->w);
+
+	if (win == NULL || win->gain_caret == NULL)
+		return FALSE;
+
+	(win->gain_caret)(caret);
+
+	return TRUE;
+}
+
+
+/**
+ * Handle user message events.
+ *
+ * \param event			The event being handled.
+ * \param *message		Pointer to the event data block.
+ * \return			TRUE if the event has been handled; FALSE if not.
+ */
+
+static osbool event_process_user_message(wimp_event_no event, wimp_message *message)
+{
+	struct event_window			*win = NULL;
+	struct event_message			*msg = NULL;
+	struct event_message_action		*action = NULL;
+	enum event_message_type			type;
+	osbool					special = FALSE;
+	wimp_full_message_menus_deleted		*menus_deleted;
+
+	if (event != wimp_USER_MESSAGE_ACKNOWLEDGE) {
+		switch (message->action) {
+		case message_MENUS_DELETED:
+			menus_deleted = (wimp_full_message_menus_deleted *) message;
+			if (current_menu != NULL && ((current_menu_type == EVENT_MENU_WINDOW && current_menu->menu == menus_deleted->menu) ||
+					((current_menu_type == EVENT_MENU_POPUP_MANUAL || current_menu_type == EVENT_MENU_POPUP_MANUAL) &&
+							current_menu_action->data.popup.menu == menus_deleted->menu))  ) {
+				if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
+					(current_menu->menu_close)(current_menu->w, current_menu->menu);
+				current_menu = NULL;
+				current_menu_type = EVENT_MENU_NONE;
+				current_menu_icon = NULL;
+				current_menu_action = NULL;
+				if (menu_handle != NULL)
+					*menu_handle = NULL;
+				special = TRUE;
+			}
+			break;
+
+		case message_MENU_WARNING:
+			if (current_menu != NULL) {
+				if (current_menu->menu_warning != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
+					(current_menu->menu_warning)(current_menu->w, current_menu->menu, (wimp_message_menu_warning *) &(message->data));
+				special = TRUE;
+			}
+			break;
+		}
+	}
+
+	/* Then pass the message on to any registered handlers, in
+	 * reverse order of registration, until we run out or one of them
+	 * returns TRUE to indicate that it has claimed the message.
+	 */
+
+	switch (event) {
+	case wimp_USER_MESSAGE:
+		type = EVENT_MESSAGE;
+		break;
+	case wimp_USER_MESSAGE_RECORDED:
+		type = EVENT_MESSAGE_RECORDED;
+		break;
+	case wimp_USER_MESSAGE_ACKNOWLEDGE:
+		type = EVENT_MESSAGE_ACKNOWLEDGE;
+		break;
+	default:
+		type = EVENT_MESSAGE_NONE;
+		break;
+	}
+
+	msg = event_find_message(message->action);
+
+	if (msg != NULL && msg->actions != NULL) {
+		action = msg->actions;
+
+		while (action != NULL) {
+			if ((action->type & type) != 0 && action->action != NULL)
+				if (action->action(message))
+					return TRUE;
+
+			action = action->next;
+		}
+	}
+
+	/* Always report as handled if this is a message that we processed
+	 * at the start.
+	 */
+
+	return special;
 }
 
 
