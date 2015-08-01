@@ -37,6 +37,7 @@
 
 /* ANSII C header files. */
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -62,40 +63,41 @@ char *string_ctrl_zero_terminate(char *s1)
 }
 
 
-/* Perform a strcpy() on a source string that is ctrl-terminated.
+/* Perform a strncpy() on a source string that is ctrl-terminated.
  *
  * This is an external interface, documented in string.h
  */
 
-char *string_ctrl_strcpy(char *s1, const char *s2)
+char *string_ctrl_strncpy(char *s1, const char *s2, size_t len)
 {
 	char	*s = s1;
 
 	if (s1 == NULL)
 		return NULL;
 
-	while (*s2 >= os_VDU_SPACE)
+	while (*s2 >= os_VDU_SPACE && len-- > 0)
 		*s1++ = *s2++;
 
-	*s1 = '\0';
+	while (len-- > 0)
+		*s1++ = '\0';
 
 	return s;
 }
 
 
-/* Perform a strcat() on two strings that are ctrl-terminated.
+/* Perform a strncat() on two strings that are ctrl-terminated.
  *
  * This is an external interface, documented in string.h
  */
 
-char *string_ctrl_strcat(char *s1, const char *s2)
+char *string_ctrl_strncat(char *s1, const char *s2, size_t len)
 {
 	char	*s = s1;
 
 	while (*s1 >= os_VDU_SPACE)
 		s1++;
 
-	while (*s2 >= os_VDU_SPACE)
+	while (*s2 >= os_VDU_SPACE && len-- > 0)
 		*s1++ = *s2++;
 
 	*s1 = '\0';

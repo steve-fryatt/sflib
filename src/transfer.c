@@ -256,7 +256,7 @@ int transfer_load_reply_datasave_block(wimp_message *message, char **data_ptr)
 	/* Initialise global variables. */
 
 	data_length = datasave->est_size;
-	string_ctrl_strcpy(filename, datasave->file_name);
+	string_ctrl_strncpy(filename, datasave->file_name, SAVED_FILENAME_LENGTH - 1);
 	data_type = datasave->file_type;
 	bytes_xfered = 0;
 	buffer_offered = 5; //datasave->est_size + 1; /* +1 to allow a RAM xfer to complete in one go if possible. \TODO -- What on earth??!!?? */
@@ -309,7 +309,7 @@ int transfer_load_reply_datasave_callback(wimp_message *message, int (*load_func
 	/* Initialise global variables. */
 
 	data_length = datasave->est_size;
-	string_ctrl_strcpy(filename, datasave->file_name);
+	string_ctrl_strncpy(filename, datasave->file_name, SAVED_FILENAME_LENGTH - 1);
 	data_type = datasave->file_type;
 	bytes_xfered = 0;
 	buffer_offered = 5; //datasave->est_size + 1; /* +1 to allow a RAM xfer to complete in one go if possible. \TODO -- What on earth??!!?? */
@@ -432,7 +432,7 @@ void transfer_load_start_direct_callback(wimp_message *message, int (*load_funct
 	/* Initialise global variables. */
 
 	data_length = dataload->est_size;
-	string_ctrl_strcpy(filename, dataload->file_name);
+	string_ctrl_strncpy(filename, dataload->file_name, SAVED_FILENAME_LENGTH - 1);
 	data_type = dataload->file_type;
 	bytes_xfered = 0;
 	buffer_offered = 5; //datasave->est_size + 1; /* +1 to allow a RAM xfer to complete in one go if possible. */

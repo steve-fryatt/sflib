@@ -57,11 +57,11 @@
  * This is an external interface, documented in icons.h
  */
 
-char *icons_copy_text(wimp_w w, wimp_i i, char *buffer)
+char *icons_copy_text(wimp_w w, wimp_i i, char *buffer, size_t length)
 {
 	wimp_icon_state		icon;
 
-	if (buffer == NULL)
+	if (buffer == NULL || length == 0)
 		return NULL;
 
 	icon.w = w;
@@ -69,9 +69,9 @@ char *icons_copy_text(wimp_w w, wimp_i i, char *buffer)
 	wimp_get_icon_state(&icon);
 
 	if (icon.icon.flags & wimp_ICON_INDIRECTED)
-		string_ctrl_strcpy(buffer, icon.icon.data.indirected_text.text);
+		string_ctrl_strncpy(buffer, icon.icon.data.indirected_text.text, length - 1);
 	else
-		string_ctrl_strcpy(buffer, icon.icon.data.text);
+		string_ctrl_strncpy(buffer, icon.icon.data.text, length - 1);
 
 	return buffer;
 }
@@ -140,13 +140,12 @@ size_t icons_get_indirected_text_length(wimp_w w, wimp_i i)
 /* Return the part of an icon's validation string corresponding to the
  * supplied 'command' character.
  *
- * No attempt is made to spot and prevent buffer overruns.
- *
  * This is an external interface, documented in icons.h
  */
 
-osbool icons_get_validation_command(char *buffer, wimp_w w, wimp_i i, char command)
+osbool icons_get_validation_command(char *buffer, size_t length, wimp_w w, wimp_i i, char command)
 {
+	size_t		len;
 	char		*val, *copy, *part;
 	osbool		found = FALSE;
 
@@ -161,17 +160,18 @@ osbool icons_get_validation_command(char *buffer, wimp_w w, wimp_i i, char comma
 	if (val == NULL)
 		return FALSE;
 
-	copy = malloc(strlen(val) + 1);
+	len = strlen(val) + 1;
+	copy = malloc(len);
 
 	if (copy == NULL)
 		return FALSE;
 
-	string_ctrl_strcpy(copy, val);
+	string_ctrl_strncpy(copy, val, len);
 	part = strtok(copy, ";");
 
 	while (part != NULL) {
 		if (toupper(*part) == command) {
-			string_ctrl_strcpy(buffer, part + 1);
+			string_ctrl_strncpy(buffer, part + 1, length);
 			found = TRUE;
 		}
 

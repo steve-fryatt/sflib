@@ -30,6 +30,7 @@
 #ifndef SFLIB_STRING
 #define SFLIB_STRING
 
+#include <stddef.h>
 
 /**
  * Zero-terminate a ctrl-terminated string, overwriting the terminator
@@ -43,25 +44,27 @@ char *string_ctrl_zero_terminate(char *s1);
 
 
 /**
- * Perform a strcpy() on a source string that is ctrl-terminated.
+ * Perform a strncpy() on a source string that is ctrl-terminated.
  *
  * \param *s1		A buffer to hold the copied string.
  * \param *s2		The string to copy.
+ * \param len		The maximum number of characters to copy from s2.
  * \return		Pointer to the copy of the string.
  */
 
-char *string_ctrl_strcpy(char *s1, const char *s2);
+char *string_ctrl_strncpy(char *s1, const char *s2, size_t len);
 
 
 /**
- * Perform a strcat() on two strings that are ctrl-terminated.
+ * Perform a strncat() on two strings that are ctrl-terminated.
  *
  * \param *s1		The destination string.
  * \param *s2		The string to add to the destination string.
+ * \param len		The maximum number of characters to copy from s2.
  * \return		Pointer to the resulting string.
  */
 
-char *string_ctrl_strcat(char *s1, const char *s2);
+char *string_ctrl_strncat(char *s1, const char *s2, size_t len);
 
 
 /**

@@ -37,15 +37,14 @@
 /**
  * Copy the text of an icon (indirected or otherwise) into the supplied buffer.
  *
- * No attempt is made to spot buffer overruns.
- *
  * \param w		The handle of the window containing the icon.
  * \param i		The handle of the icon to be read.
  * \param *buffer	A buffer to contain the icon text.
+ * \param length	The length of the supplied buffer.
  * \return		A pointer to the start of the returned text.
  */
 
-char *icons_copy_text(wimp_w w, wimp_i i, char *buffer);
+char *icons_copy_text(wimp_w w, wimp_i i, char *buffer, size_t length);
 
 
 /**
@@ -85,16 +84,15 @@ size_t icons_get_indirected_text_length(wimp_w w, wimp_i i);
  * Return the part of an icon's validation string corresponding to the
  * supplied 'command' character.
  *
- * No attempt is made to spot and prevent buffer overruns.
- *
  * \param *buffer	Pointer to a buffer to take the returned text.
+ * \param length	The length of the supplied buffer.
  * \param w		The handle of the window containing the icon.
  * \param i		The handle of the icon to read.
  * \param command	The single character validation command to return.
  * \return		TRUE if the command code was found; else FALSE.
  */
 
-osbool icons_get_validation_command(char *buffer, wimp_w w, wimp_i i, char command);
+osbool icons_get_validation_command(char *buffer, size_t length, wimp_w w, wimp_i i, char command);
 
 
 /**
