@@ -52,8 +52,6 @@
 
 /* Copy the text of an icon (indirected or otherwise) into the supplied buffer.
  *
- * No attempt is made to spot buffer overruns.
- *
  * This is an external interface, documented in icons.h
  */
 
@@ -72,6 +70,8 @@ char *icons_copy_text(wimp_w w, wimp_i i, char *buffer, size_t length)
 		string_ctrl_strncpy(buffer, icon.icon.data.indirected_text.text, length - 1);
 	else
 		string_ctrl_strncpy(buffer, icon.icon.data.text, length - 1);
+
+	buffer[length - 1] = '\0';
 
 	return buffer;
 }
@@ -149,7 +149,7 @@ osbool icons_get_validation_command(char *buffer, size_t length, wimp_w w, wimp_
 	char		*val, *copy, *part;
 	osbool		found = FALSE;
 
-	if (buffer == NULL)
+	if (buffer == NULL || length == 0)
 		return FALSE;
 
 	*buffer = '\0';
@@ -179,6 +179,8 @@ osbool icons_get_validation_command(char *buffer, size_t length, wimp_w w, wimp_
 	}
 
 	free(copy);
+
+	buffer[length - 1] = '\0';
 
 	return found;
 }
