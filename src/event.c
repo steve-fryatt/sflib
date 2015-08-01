@@ -830,7 +830,6 @@ static osbool event_process_gain_caret(wimp_caret *caret)
 
 static osbool event_process_user_message(wimp_event_no event, wimp_message *message)
 {
-	struct event_window			*win = NULL;
 	struct event_message			*msg = NULL;
 	struct event_message_action		*action = NULL;
 	enum event_message_type			type;
