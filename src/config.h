@@ -35,6 +35,8 @@
 
 #include <stdio.h>
 
+#include "oslib/types.h"
+
 /* ================================================================================================================== */
 
 #define sf_MAX_CONFIG_NAME 32							/**< The maximum length of a config value name.		*/
