@@ -1547,6 +1547,7 @@ static void event_set_auto_menu_selection(struct event_window *window, struct ev
 
 	if (action->data.popup.token != NULL) {
 		snprintf(action->data.popup.token_number, EVENT_TOKEN_INDEX_LEN, "%d", selection);
+		action->data.popup.token_number[EVENT_TOKEN_INDEX_LEN - 1] = '\0';
 		icons_msgs_lookup(window->w, action->data.popup.field, action->data.popup.token);
 	} else {
 		icons_strncpy(window->w, action->data.popup.field, menus_get_text_addr(action->data.popup.menu, selection));

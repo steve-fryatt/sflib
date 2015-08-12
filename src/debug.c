@@ -1,4 +1,4 @@
-/* Copyright 2003-2013, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2015, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -27,10 +27,6 @@
  * Debug support for writing data to Reporter.
  */
 
-/* Acorn C Header files. */
-
-#include "kernel.h"
-
 /* OS-Lib header files. */
 
 #include "oslib/os.h"
@@ -45,6 +41,7 @@
 
 #include "debug.h"
 
+#define DEBUG_MAX_LINE_LENGTH 256
 
 /* Print a string to Reporter, using the standard printf() syntax and
  * functionality.  Expanded text is limited to 256 characters including
@@ -56,7 +53,7 @@
 
 int debug_printf(char *cntrl_string, ...)
 {
-	char		s[256];
+	char		s[DEBUG_MAX_LINE_LENGTH];
 	int		ret;
 	va_list		ap;
 
@@ -64,7 +61,8 @@ int debug_printf(char *cntrl_string, ...)
 		return 0;
 
 	va_start(ap, cntrl_string);
-	ret = vsnprintf(s, sizeof(s), cntrl_string, ap);
+	ret = vsnprintf(s, DEBUG_MAX_LINE_LENGTH, cntrl_string, ap);
+	s[DEBUG_MAX_LINE_LENGTH - 1] = '\0';
 	report_text0(s);
 
 	return ret;

@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2015, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -400,9 +400,11 @@ char *config_str_read(char *name)
 void config_find_load_file(char *file, size_t len, char *leaf)
 {
 	snprintf(file, len, "Choices:%s.%s", choices_dir, leaf);
+	file[len - 1] = '\0';
 
 	if (osfile_read_no_path(file, NULL, NULL, NULL, NULL) != fileswitch_IS_FILE) {
 		snprintf(file, len, "%s.%s", local_dir, leaf);
+		file[len - 1] = '\0';
 		if (osfile_read_no_path (file, NULL, NULL, NULL, NULL) != fileswitch_IS_FILE)
 			*file = '\0';
 	}
@@ -428,12 +430,15 @@ void config_find_save_file(char *file, size_t len, char *leaf)
 
 	if (var_len == 0) {
 		snprintf(file, len, "%s.%s", local_dir, leaf);
+		file[len - 1] = '\0';
 	} else {
 		snprintf(file, len, "<Choices$Write>.%s", choices_dir);
+		file[len - 1] = '\0';
 		if (osfile_read_no_path(file, NULL, NULL, NULL, NULL) == fileswitch_NOT_FOUND)
 			osfile_create_dir(file, 0);
 
 		snprintf(file, len, "<Choices$Write>.%s.%s", choices_dir, leaf);
+		file[len - 1] = '\0';
 	}
 }
 

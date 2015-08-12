@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2015, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -382,6 +382,8 @@ int windows_title_printf(wimp_w w, char *cntrl_string, ...)
 	ret = vsnprintf(window.title_data.indirected_text.text,
 				window.title_data.indirected_text.size,
 				cntrl_string, ap);
+
+	window.title_data.indirected_text.text[window.title_data.indirected_text.size - 1] = '\0';
 
 	return ret;
 }

@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2015, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -46,6 +46,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/**
+ * The maximum length of an expanded filename.
+ */
+
+#define RESOURCES_MAX_FILENAME 1024
 
 /* Locate a regional resource directory on the specified path, updating the
  * path in the process.
@@ -87,10 +92,11 @@ osspriteop_area *resources_load_user_sprite_area(char *file)
 	int			size, type;
 	fileswitch_object_type	object;
 	osspriteop_area		*area;
-	char			*suffix, fullfile[1024];
+	char			*suffix, fullfile[RESOURCES_MAX_FILENAME];
 
 	suffix = wimpreadsysinfo_sprite_suffix();
-	snprintf(fullfile, sizeof(fullfile), "%s%s", file, suffix);
+	snprintf(fullfile, RESOURCES_MAX_FILENAME, "%s%s", file, suffix);
+	fullfile[RESOURCES_MAX_FILENAME - 1] = '\0';
 
 	object = osfile_read_stamped_no_path(fullfile, NULL, NULL, &size, NULL, (bits *) &type);
 
