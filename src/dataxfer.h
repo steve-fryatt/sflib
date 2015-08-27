@@ -35,6 +35,15 @@
  */
 
 /**
+ * Filetypes which aren't defined in OSLib.
+ */
+
+#define dataxfer_TYPE_LOCATE	0x1a1
+#define dataxfer_TYPE_CASHBOOK	0x1ca
+#define dataxfer_TYPE_PRINTPDF	0x1d8
+#define dataxfer_TYPE_PDF	0xadf
+
+/**
  * Datatransfer memory handlers.
  */
 
