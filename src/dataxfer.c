@@ -1383,7 +1383,7 @@ static osbool dataxfer_message_data_load(wimp_message *message)
 	 * client and let them load it.
 	 */
 
-	if (target != NULL && descriptor != NULL && descriptor->purpose == DATAXFER_FILE_LOAD) {
+	if (target != NULL && (descriptor == NULL || (descriptor != NULL && descriptor->purpose == DATAXFER_FILE_LOAD))) {
 		/* If there's no load callback function, abandon the transfer here. */
 
 		if (target->callback == NULL)
