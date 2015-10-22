@@ -45,6 +45,7 @@
 
 /* SF-Lib header files. */
 
+#include "debug.h"
 #include "errors.h"
 #include "event.h"
 #include "general.h"
@@ -113,6 +114,8 @@ static struct dataxfer_descriptor	*dataxfer_descriptors = NULL;					/**< List of
  */
 
 struct dataxfer_incoming_target {
+	enum dataxfer_target_type	target;								/**< The type of initiation to which this target applies.		*/
+
 	unsigned			filetype;							/**< The target filetype.						*/
 	wimp_w				window;								/**< The target window (used in window and icon lists).			*/
 	wimp_i				icon;								/**< The target icon (used in icon lists).				*/
@@ -158,6 +161,7 @@ static wimp_t	dataxfer_task_handle;
  */
 
 static void				dataxfer_terminate_user_drag(wimp_dragged *drag, void *data);
+
 static osbool				dataxfer_message_ram_fetch(wimp_message *message);
 static osbool				dataxfer_message_data_save_ack(wimp_message *message);
 static osbool				dataxfer_message_data_load_ack(wimp_message *message);
@@ -170,9 +174,9 @@ static osbool				dataxfer_message_ram_transmit(wimp_message *message);
 static osbool				dataxfer_message_data_load(wimp_message *message);
 static osbool				dataxfer_message_data_open(wimp_message *message);
 
-static struct dataxfer_incoming_target	*dataxfer_find_incoming_target(wimp_w w, wimp_i i, unsigned filetype);
-
 static osbool				dataxfer_message_bounced(wimp_message *message);
+
+static struct dataxfer_incoming_target	*dataxfer_find_incoming_target(enum dataxfer_target_type target, wimp_w w, wimp_i i, unsigned filetype);
 
 static struct dataxfer_descriptor	*dataxfer_new_descriptor(void);
 static struct dataxfer_descriptor	*dataxfer_find_descriptor(int ref, enum dataxfer_message_type type);
@@ -864,231 +868,6 @@ static osbool dataxfer_message_data_load_ack(wimp_message *message)
 
 
 /**
- * Specify a handler for files which are double-clicked or dragged into a window.
- * Files which match on type, target window and target icon are passed to the
- * appropriate handler for attention.
- *
- * To specify a generic handler for a type, set window to NULL and icon to -1.
- * To specify a generic handler for all the icons in a window, set icon to -1.
- *
- * Double-clicked files (Message_DataOpen) will be passed to a generic type
- * handler or a type handler for a window with the handle wimp_ICON_BAR.
- *
- * \param filetype		The filetype to register as a target.
- * \param w			The target window, or NULL.
- * \param i			The target icon, or -1.
- * \param *callback		The load callback function.
- * \param *data			Data to be passed to load functions, or NULL.
- * \return			TRUE if successfully registered; else FALSE.
- */
-
-osbool dataxfer_set_load_target(unsigned filetype, wimp_w w, wimp_i i, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
-{
-	struct dataxfer_incoming_target		*type, *window, *icon;
-
-	/* Validate the input: if there's an icon, there must be a window. */
-
-	if (w == NULL && i != -1)
-		return FALSE;
-
-	/* Set up the top-level filetype target. */
-
-	type = dataxfer_incoming_targets;
-
-	while (type != NULL && type->filetype != filetype)
-		type = type->next;
-
-	if (type == NULL) {
-		type = malloc(sizeof(struct dataxfer_incoming_target));
-		if (type == NULL)
-			return FALSE;
-
-		type->filetype = filetype;
-		type->window = 0;
-		type->icon = 0;
-
-		type->callback = NULL;
-		type->callback_data = NULL;
-
-		type->children = NULL;
-
-		type->next = dataxfer_incoming_targets;
-		dataxfer_incoming_targets = type;
-	}
-
-	if (w == NULL) {
-		type->callback = callback;
-		type->callback_data = data;
-		return TRUE;
-	}
-
-	/* Set up the window target. */
-
-	window = type->children;
-
-	while (window != NULL && window->window != w)
-		window = window->next;
-
-	if (window == NULL) {
-		window = malloc(sizeof(struct dataxfer_incoming_target));
-		if (window == NULL)
-			return FALSE;
-
-		window->filetype = filetype;
-		window->window = w;
-		window->icon = 0;
-
-		window->callback = NULL;
-		window->callback_data = NULL;
-
-		window->children = NULL;
-
-		window->next = type->children;
-		type->children = window;
-	}
-
-	if (i == -1) {
-		window->callback = callback;
-		window->callback_data = data;
-		return TRUE;
-	}
-
-	/* Set up the icon target. */
-
-	icon = window->children;
-
-	while (icon != NULL && icon->icon != i)
-		icon = icon->next;
-
-	if (icon == NULL) {
-		icon = malloc(sizeof(struct dataxfer_incoming_target));
-		if (icon == NULL)
-			return FALSE;
-
-		icon->filetype = filetype;
-		icon->window = w;
-		icon->icon = i;
-
-		icon->callback = NULL;
-		icon->callback_data = NULL;
-
-		icon->children = NULL;
-
-		icon->next = window->children;
-		window->children = icon;
-	}
-
-	icon->callback = callback;
-	icon->callback_data = data;
-
-	return TRUE;
-}
-
-
-/**
- * Remove a handler for files which are double-clicked or dragged into a window.
- *
- * To specify all of the handlers for a given window (and icon), set filetype to -1.
- * To specify the generic handler for a type, set window to NULL and icon to -1.
- * To specify the generic handler for all the icons in a window, set icon to -1.
- *
- * \param filetype		The filetype to register as a target.
- * \param w			The target window, or NULL.
- * \param i			The target icon, or -1.
- */
-
-void dataxfer_delete_load_target(unsigned filetype, wimp_w w, wimp_i i)
-{
-	struct dataxfer_incoming_target		*delete, *type, *window, *icon, *parent_type, *parent_window, *parent_icon;
-
-	/* Validate the input: if there's an icon, there must be a window. */
-
-	if (w == NULL && i != -1)
-		return;
-
-	/* Locate the top-level filetype targets. */
-
-	type = dataxfer_incoming_targets;
-	parent_type = NULL;
-	delete = NULL;
-
-	while (type != NULL) {
-		if (filetype == -1 || type->filetype == filetype) {
-			/* If the global type matches, clear it. */
-
-			if (w == NULL && i == -1) {
-				type->callback = NULL;
-				type->callback_data = NULL;
-			}
-
-			window = type->children;
-			parent_window = NULL;
-
-			while (window != NULL) {
-				if ((filetype == -1 || window->filetype == filetype) && (w == NULL || window->window == w)) {
-					/* If the global window matches, clear it. */
-
-					if (i == -1) {
-						window->callback = NULL;
-						window->callback_data = NULL;
-					}
-
-					icon = window->children;
-					parent_icon = NULL;
-
-					while (icon != NULL) {
-						if ((filetype == -1 || icon->filetype == filetype) && (w == NULL || icon->window == w) && (i == -1 || icon->icon == i)) {
-							icon->callback = NULL;
-							icon->callback_data = NULL;
-						}
-
-						if (icon->callback == NULL && icon->children == NULL) {
-							if (parent_icon == NULL)
-								window->children = icon->next;
-							else
-								parent_icon->next = icon->next;
-							delete = icon;
-							icon = icon->next;
-							free(delete);
-						} else {
-							parent_icon = icon;
-							icon = icon->next;
-						}
-					}
-				}
-
-				if (window->callback == NULL && window->children == NULL) {
-					if (parent_window == NULL)
-						type->children = window->next;
-					else
-						parent_window->next = window->next;
-					delete = window;
-					window = window->next;
-					free(delete);
-				} else {
-					parent_window = window;
-					window = window->next;
-				}
-			}
-		}
-
-		if (type->callback == NULL && type->children == NULL) {
-			if (parent_type == NULL)
-				dataxfer_incoming_targets = type->next;
-			else
-				parent_type->next = type->next;
-			delete = type;
-			type = type->next;
-			free(delete);
-		} else {
-			parent_type = type;
-			type = type->next;
-		}
-	}
-}
-
-
-/**
  * Handle the receipt of a Message_DataSave due to another application trying
  * to transfer data in to us.
  *
@@ -1158,7 +937,7 @@ static osbool dataxfer_message_data_save(wimp_message *message)
 	} else {
 		/* See if the window is one of the registered targets. */
 
-		target = dataxfer_find_incoming_target(datasave->w, datasave->i, datasave->file_type);
+		target = dataxfer_find_incoming_target(DATAXFER_TARGET_SAVE,datasave->w, datasave->i, datasave->file_type);
 		if (target == NULL || target->callback == NULL)
 			return FALSE;
 
@@ -1346,7 +1125,7 @@ static osbool dataxfer_message_data_load(wimp_message *message)
 	if (descriptor == NULL) {
 		/* See if the window is one of the registered targets. */
 
-		target = dataxfer_find_incoming_target(dataload->w, dataload->i, dataload->file_type);
+		target = dataxfer_find_incoming_target(DATAXFER_TARGET_LOAD, dataload->w, dataload->i, dataload->file_type);
 
 		if (target == NULL || target->callback == NULL)
 			return FALSE;
@@ -1431,7 +1210,7 @@ static osbool dataxfer_message_data_open(wimp_message *message)
 	struct dataxfer_incoming_target	*target;
 
 
-	target = dataxfer_find_incoming_target(wimp_ICON_BAR, -1, dataopen->file_type);
+	target = dataxfer_find_incoming_target(DATAXFER_TARGET_OPEN, wimp_ICON_BAR, -1, dataopen->file_type);
 
 	if (target == NULL || target->callback == NULL)
 		return FALSE;
@@ -1463,54 +1242,6 @@ static osbool dataxfer_message_data_open(wimp_message *message)
 
 
 /**
- * Find an incoming transfer target based on the filetype and its target
- * window and icon handle.
- *
- * \param w			The window into which the file was dropped.
- * \param i			The icon onto which the file was dropped.
- * \param filetype		The filetype of the incoming file.
- * \return			The appropriate target, or NULL if none found.
- */
-
-static struct dataxfer_incoming_target *dataxfer_find_incoming_target(wimp_w w, wimp_i i, unsigned filetype)
-{
-	struct dataxfer_incoming_target		*type, *window, *icon;
-
-	/* Search for a filetype. */
-
-	type = dataxfer_incoming_targets;
-
-	while (type != NULL && type->filetype != filetype)
-		type = type->next;
-
-	if (type == NULL)
-		return NULL;
-
-	/* Now search for a window. */
-
-	window = type->children;
-
-	while (w != NULL && window != NULL && window->window != w)
-		window = window->next;
-
-	if (window == NULL)
-		return type;
-
-	/* Now search for an icon. */
-
-	icon = window->children;
-
-	while (i != -1 && icon != NULL && icon->icon != i)
-		icon = icon->next;
-
-	if (icon == NULL)
-		return window;
-
-	return icon;
-}
-
-
-/**
  * Handle the bounce of a Message during a load or save operation.
  *
  * \param *message		The associated Wimp message block.
@@ -1537,6 +1268,312 @@ static osbool dataxfer_message_bounced(wimp_message *message)
 	}
 
 	return FALSE;
+}
+
+
+osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
+{
+	return dataxfer_set_load_target(DATAXFER_TARGET_DRAG, filetype, w, i, callback, data);
+}
+
+
+osbool dataxfer_set_load_type(unsigned filetype, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
+{
+	return dataxfer_set_load_target(DATAXFER_TARGET_OPEN, filetype, NULL, -1, callback, data);
+}
+
+/**
+ * Specify a handler for files which are double-clicked or dragged into a window.
+ * Files which match on type, target window and target icon are passed to the
+ * appropriate handler for attention.
+ *
+ * To specify a generic handler for a type, set window to NULL and icon to -1.
+ * To specify a generic handler for all the icons in a window, set icon to -1.
+ *
+ * Double-clicked files (Message_DataOpen) will be passed to a generic type
+ * handler or a type handler for a window with the handle wimp_ICON_BAR.
+ *
+ * \param target		The target type(s) which are to be used.
+ * \param filetype		The filetype to register as a target.
+ * \param w			The target window, or NULL.
+ * \param i			The target icon, or -1.
+ * \param *callback		The load callback function.
+ * \param *data			Data to be passed to load functions, or NULL.
+ * \return			TRUE if successfully registered; else FALSE.
+ */
+
+osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i,
+		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
+{
+	struct dataxfer_incoming_target		*type, *window, *icon;
+
+	/* Validate the input: if there's an icon, there must be a window. */
+
+	if (w == NULL && i != -1)
+		return FALSE;
+
+	debug_printf("\\GAdding new target: target=0x%x, filetype=0x%x, window=0x%x, icon=%d", target, filetype, w, i);
+
+	/* Set up the top-level filetype target. */
+
+	type = dataxfer_incoming_targets;
+
+	while (type != NULL && (type->filetype != filetype || (type->target & target) != target))
+		type = type->next;
+
+	if (type == NULL) {
+		type = malloc(sizeof(struct dataxfer_incoming_target));
+		if (type == NULL)
+			return FALSE;
+
+		type->target = target;
+		type->filetype = filetype;
+		type->window = 0;
+		type->icon = 0;
+
+		type->callback = NULL;
+		type->callback_data = NULL;
+
+		type->children = NULL;
+
+		type->next = dataxfer_incoming_targets;
+		dataxfer_incoming_targets = type;
+
+		debug_printf("Created new type target");
+	} else {
+		debug_printf("Found type target: target=0x%x, filetype=0x%x", type->target, type->filetype);
+	}
+
+	if (w == NULL) {
+		type->callback = callback;
+		type->callback_data = data;
+		return TRUE;
+	}
+
+	/* Set up the window target. */
+
+	window = type->children;
+
+	while (window != NULL && window->window != w)
+		window = window->next;
+
+	if (window == NULL) {
+		window = malloc(sizeof(struct dataxfer_incoming_target));
+		if (window == NULL)
+			return FALSE;
+
+		window->target = target;
+		window->filetype = filetype;
+		window->window = w;
+		window->icon = 0;
+
+		window->callback = NULL;
+		window->callback_data = NULL;
+
+		window->children = NULL;
+
+		window->next = type->children;
+		type->children = window;
+
+		debug_printf("Created new window target");
+	} else {
+		debug_printf("Found window target: target=0x%x, filetype=0x%x, window=0x%x", window->target, window->filetype, window->window);
+	}
+
+	if (i == -1) {
+		window->callback = callback;
+		window->callback_data = data;
+		return TRUE;
+	}
+
+	/* Set up the icon target. */
+
+	icon = window->children;
+
+	while (icon != NULL && icon->icon != i)
+		icon = icon->next;
+
+	if (icon == NULL) {
+		icon = malloc(sizeof(struct dataxfer_incoming_target));
+		if (icon == NULL)
+			return FALSE;
+
+		icon->target = target;
+		icon->filetype = filetype;
+		icon->window = w;
+		icon->icon = i;
+
+		icon->callback = NULL;
+		icon->callback_data = NULL;
+
+		icon->children = NULL;
+
+		icon->next = window->children;
+		window->children = icon;
+
+		debug_printf("Created new icon target");
+	} else {
+		debug_printf("Found icon target: target=0x%x, filetype=0x%x, window=0x%x, icon=%d", icon->target, icon->filetype, icon->window, icon->icon);
+	}
+
+	icon->callback = callback;
+	icon->callback_data = data;
+
+	return TRUE;
+}
+
+
+/**
+ * Remove a handler for files which are double-clicked or dragged into a window.
+ *
+ * To specify all of the handlers for a given window (and icon), set filetype to -1.
+ * To specify the generic handler for a type, set window to NULL and icon to -1.
+ * To specify the generic handler for all the icons in a window, set icon to -1.
+ *
+ * \param target		The targets type(s) which are to be deleted.
+ * \param filetype		The filetype to delete from the target list.
+ * \param w			The target window to delete from the target list, or NULL.
+ * \param i			The target icon to delete from the target list, or -1.
+ */
+
+void dataxfer_delete_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i)
+{
+	struct dataxfer_incoming_target		*delete, *type, *window, *icon, *parent_type, *parent_window, *parent_icon;
+
+	/* Validate the input: if there's an icon, there must be a window. */
+
+	if (w == NULL && i != -1)
+		return;
+
+	/* Locate the top-level filetype targets. */
+
+	type = dataxfer_incoming_targets;
+	parent_type = NULL;
+	delete = NULL;
+
+	while (type != NULL) {
+		if ((filetype == -1 || type->filetype == filetype) && ((type->target & target) != DATAXFER_TARGET_NONE)) {
+			/* If the global type matches, clear it. */
+
+			if (w == NULL && i == -1) {
+				type->callback = NULL;
+				type->callback_data = NULL;
+			}
+
+			window = type->children;
+			parent_window = NULL;
+
+			while (window != NULL) {
+				if ((filetype == -1 || window->filetype == filetype) && (w == NULL || window->window == w) && ((window->target & target) != DATAXFER_TARGET_NONE)) {
+					/* If the global window matches, clear it. */
+
+					if (i == -1) {
+						window->callback = NULL;
+						window->callback_data = NULL;
+					}
+
+					icon = window->children;
+					parent_icon = NULL;
+
+					while (icon != NULL) {
+						if ((filetype == -1 || icon->filetype == filetype) && (w == NULL || icon->window == w) && (i == -1 || icon->icon == i) &&
+								((icon->target & target) != DATAXFER_TARGET_NONE)) {
+							icon->callback = NULL;
+							icon->callback_data = NULL;
+						}
+
+						if (icon->callback == NULL && icon->children == NULL) {
+							if (parent_icon == NULL)
+								window->children = icon->next;
+							else
+								parent_icon->next = icon->next;
+							delete = icon;
+							icon = icon->next;
+							free(delete);
+						} else {
+							parent_icon = icon;
+							icon = icon->next;
+						}
+					}
+				}
+
+				if (window->callback == NULL && window->children == NULL) {
+					if (parent_window == NULL)
+						type->children = window->next;
+					else
+						parent_window->next = window->next;
+					delete = window;
+					window = window->next;
+					free(delete);
+				} else {
+					parent_window = window;
+					window = window->next;
+				}
+			}
+		}
+
+		if (type->callback == NULL && type->children == NULL) {
+			if (parent_type == NULL)
+				dataxfer_incoming_targets = type->next;
+			else
+				parent_type->next = type->next;
+			delete = type;
+			type = type->next;
+			free(delete);
+		} else {
+			parent_type = type;
+			type = type->next;
+		}
+	}
+}
+
+
+/**
+ * Find an incoming transfer target based on the filetype and its target
+ * window and icon handle.
+ *
+ * \param target		The target type(s) to match.
+ * \param w			The window into which the file was dropped.
+ * \param i			The icon onto which the file was dropped.
+ * \param filetype		The filetype of the incoming file.
+ * \return			The appropriate target, or NULL if none found.
+ */
+
+static struct dataxfer_incoming_target *dataxfer_find_incoming_target(enum dataxfer_target_type target, wimp_w w, wimp_i i, unsigned filetype)
+{
+	struct dataxfer_incoming_target		*type, *window, *icon;
+
+	/* Search for a filetype. */
+
+	type = dataxfer_incoming_targets;
+
+	while (type != NULL && type->filetype != filetype && (type->target && target) == DATAXFER_TARGET_NONE)
+		type = type->next;
+
+	if (type == NULL)
+		return NULL;
+
+	/* Now search for a window. */
+
+	window = type->children;
+
+	while (w != NULL && window != NULL && window->window != w && (window->target && target) == DATAXFER_TARGET_NONE)
+		window = window->next;
+
+	if (window == NULL)
+		return type;
+
+	/* Now search for an icon. */
+
+	icon = window->children;
+
+	while (i != -1 && icon != NULL && icon->icon != i && (icon->target && target) == DATAXFER_TARGET_NONE)
+		icon = icon->next;
+
+	if (icon == NULL)
+		return window;
+
+	return icon;
 }
 
 

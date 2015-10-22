@@ -44,6 +44,19 @@
 #define dataxfer_TYPE_PDF	0xadf
 
 /**
+ * Types of incoming data.
+ */
+
+enum dataxfer_target_type {
+	DATAXFER_TARGET_NONE = 0,
+	DATAXFER_TARGET_LOAD = 1,	/**< Transfers initiated by a Message_DataLoad.				*/
+	DATAXFER_TARGET_SAVE = 2,	/**< Transfers initiated by a Message_DataSave.				*/
+	DATAXFER_TARGET_DRAG = 3,	/**< Transfers initiated by Message_DataLoad or MessageDataSave.	*/
+	DATAXFER_TARGET_OPEN = 4,	/**< Transfers initiated by a Message_DataOpen.				*/
+	DATAXFER_TARGET_ALL  = 7	/**< Transfers initialed by all of the above.				*/
+};
+
+/**
  * Datatransfer memory handlers.
  */
 
@@ -171,6 +184,7 @@ void dataxfer_register_clipboard_provider(size_t callback(bits types[], bits *ty
  * Double-clicked files (Message_DataOpen) will be passed to a generic type
  * handler or a type handler for a window with the handle wimp_ICON_BAR.
  *
+ * \param target		The target type(s) which are to be used.
  * \param filetype		The filetype to register as a target.
  * \param w			The target window, or NULL.
  * \param i			The target icon, or -1.
@@ -179,7 +193,8 @@ void dataxfer_register_clipboard_provider(size_t callback(bits types[], bits *ty
  * \return			TRUE if successfully registered; else FALSE.
  */
 
-osbool dataxfer_set_load_target(unsigned filetype, wimp_w w, wimp_i i, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data);
+osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i,
+		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data);
 
 
 /**
@@ -189,12 +204,13 @@ osbool dataxfer_set_load_target(unsigned filetype, wimp_w w, wimp_i i, osbool (*
  * To specify the generic handler for a type, set window to NULL and icon to -1.
  * To specify the generic handler for all the icons in a window, set icon to -1.
  *
+ * \param target		The targets type(s) which are to be deleted.
  * \param filetype		The filetype to register as a target.
  * \param w			The target window, or NULL.
  * \param i			The target icon, or -1.
  */
 
-void dataxfer_delete_load_target(unsigned filetype, wimp_w w, wimp_i i);
+void dataxfer_delete_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i);
 
 #endif
 
