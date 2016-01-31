@@ -721,7 +721,7 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 				new_client_menu = NULL;
 				break;
 			}
-			if (menu_handle != NULL && new_client_menu != NULL)
+			if (menu_handle != NULL)
 				*menu_handle = new_client_menu;
 		}
 		if (new_client_menu == NULL || menu == new_client_menu) {
