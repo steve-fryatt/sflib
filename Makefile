@@ -108,7 +108,7 @@ MANSPR := ManSprite
 
 OBJS := colpick.o config.o dataxfer.o debug.o errors.o event.o		\
 	general.o heap.o icons.o ihelp.o menus.o msgs.o resources.o	\
-	stack.o tasks.o string.o transfer.o url.o windows.o
+	stack.o tasks.o string.o templates.o transfer.o url.o windows.o
 
 
 # Build everything, but don't package it for release.
