@@ -222,7 +222,7 @@ static enum event_menu_type	current_menu_type = EVENT_MENU_NONE;
 static struct event_icon	*current_menu_icon = NULL;
 static struct event_icon_action	*current_menu_action = NULL;
 
-static wimp_menu		**menu_handle = NULL;
+static wimp_menu		*menu_handle = NULL;
 static wimp_menu		*new_client_menu = NULL;			/**< Used for returning menu updates from callbacks. */
 
 
@@ -495,8 +495,7 @@ static osbool event_process_mouse_click(wimp_pointer *pointer)
 		current_menu_type = EVENT_MENU_WINDOW;
 		current_menu_icon = NULL;
 		current_menu_action = NULL;
-		if (menu_handle != NULL)
-			*menu_handle = menu;
+		menu_handle = menu;
 		return TRUE;
 	}
 
@@ -567,8 +566,7 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 			current_menu_icon = icon;
 			current_menu_action = action;
 			current_menu_type = (action->type == EVENT_ICON_POPUP_AUTO) ? EVENT_MENU_POPUP_AUTO : EVENT_MENU_POPUP_MANUAL;
-			if (menu_handle != NULL)
-				*menu_handle = menu;
+			menu_handle = menu;
 			handled = TRUE;
 			break;
 
@@ -692,8 +690,7 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 		current_menu_type = EVENT_MENU_NONE;
 		current_menu_icon = NULL;
 		current_menu_action = NULL;
-		if (menu_handle != NULL)
-			*menu_handle = NULL;
+		menu_handle = NULL;
 		return TRUE;
 		break;
 	}
@@ -721,8 +718,7 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 				new_client_menu = NULL;
 				break;
 			}
-			if (menu_handle != NULL)
-				*menu_handle = new_client_menu;
+			menu_handle = new_client_menu;
 		}
 		if (new_client_menu == NULL || menu == new_client_menu) {
 			if (new_client_menu != NULL)
@@ -738,8 +734,7 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 		current_menu_type = EVENT_MENU_NONE;
 		current_menu_icon = NULL;
 		current_menu_action = NULL;
-		if (menu_handle != NULL)
-			*menu_handle = NULL;
+		menu_handle = NULL;
 	}
 
 	return TRUE;
@@ -849,8 +844,7 @@ static osbool event_process_user_message(wimp_event_no event, wimp_message *mess
 				current_menu_type = EVENT_MENU_NONE;
 				current_menu_icon = NULL;
 				current_menu_action = NULL;
-				if (menu_handle != NULL)
-					*menu_handle = NULL;
+				menu_handle = NULL;
 				special = TRUE;
 			}
 			break;
@@ -2014,16 +2008,14 @@ osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data
 }
 
 
-/* Set a variable to store a pointer to the currently open menu block.
+/* Read details of the currently-open menu.
  *
  * This function is an external interface, documented in event.h.
  */
 
-osbool event_set_menu_pointer(wimp_menu **menu)
+wimp_menu *event_get_current_menu(void)
 {
-	menu_handle = menu;
-
-	return TRUE;
+	return menu_handle;
 }
 
 

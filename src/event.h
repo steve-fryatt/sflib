@@ -535,13 +535,13 @@ osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data
 
 
 /**
- * Set a variable to store a pointer to the currently open menu block.
+ * Read details of the currently-open menu.
  *
- * \param  **menu		Pointer to a wimp_menu * to take the pointers.
- * \return			TRUE if the variable was registerd; else FALSE.
+ * \return			The pointer to the block of the menu which is currently
+ *				open, or NULL if there isn't one.
  */
 
-osbool event_set_menu_pointer(wimp_menu **menu);
+wimp_menu *event_get_current_menu(void);
 
 
 /**
