@@ -1,4 +1,4 @@
-/* Copyright 2003-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -113,6 +113,19 @@ static struct dataxfer_descriptor	*dataxfer_descriptors = NULL;					/**< List of
  * Data associated with incoming transfer targets.
  */
 
+/**
+ * Types of incoming data.
+ */
+
+enum dataxfer_target_type {
+	DATAXFER_TARGET_NONE = 0,
+	DATAXFER_TARGET_LOAD = 1,	/**< Transfers initiated by a Message_DataLoad.				*/
+	DATAXFER_TARGET_SAVE = 2,	/**< Transfers initiated by a Message_DataSave.				*/
+	DATAXFER_TARGET_DRAG = 3,	/**< Transfers initiated by Message_DataLoad or MessageDataSave.	*/
+	DATAXFER_TARGET_OPEN = 4,	/**< Transfers initiated by a Message_DataOpen.				*/
+	DATAXFER_TARGET_ALL  = 7	/**< Transfers initialed by all of the above.				*/
+};
+
 struct dataxfer_incoming_target {
 	enum dataxfer_target_type	target;								/**< The type of initiation to which this target applies.		*/
 
@@ -176,6 +189,9 @@ static osbool				dataxfer_message_data_open(wimp_message *message);
 
 static osbool				dataxfer_message_bounced(wimp_message *message);
 
+static osbool				dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i,
+							osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data);
+static void				dataxfer_delete_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i);
 static struct dataxfer_incoming_target	*dataxfer_find_incoming_target(enum dataxfer_target_type target, wimp_w w, wimp_i i, unsigned filetype);
 
 static struct dataxfer_descriptor	*dataxfer_new_descriptor(void);
@@ -937,7 +953,7 @@ static osbool dataxfer_message_data_save(wimp_message *message)
 	} else {
 		/* See if the window is one of the registered targets. */
 
-		target = dataxfer_find_incoming_target(DATAXFER_TARGET_SAVE,datasave->w, datasave->i, datasave->file_type);
+		target = dataxfer_find_incoming_target(DATAXFER_TARGET_SAVE, datasave->w, datasave->i, datasave->file_type);
 		if (target == NULL || target->callback == NULL)
 			return FALSE;
 
@@ -1210,7 +1226,7 @@ static osbool dataxfer_message_data_open(wimp_message *message)
 	struct dataxfer_incoming_target	*target;
 
 
-	target = dataxfer_find_incoming_target(DATAXFER_TARGET_OPEN, wimp_ICON_BAR, -1, dataopen->file_type);
+	target = dataxfer_find_incoming_target(DATAXFER_TARGET_OPEN, NULL, -1, dataopen->file_type);
 
 	if (target == NULL || target->callback == NULL)
 		return FALSE;
@@ -1271,16 +1287,40 @@ static osbool dataxfer_message_bounced(wimp_message *message)
 }
 
 
+/**
+ * Specify a handler for files which are dragged into a window. Files which match
+ * on type, window handle and icon are passed to the appropriate handler for
+ * attention.
+ *
+ * \param filetype		The filetype to register as a target.
+ * \param w			The target window, or NULL.
+ * \param i			The target icon, or -1.
+ * \param *callback		The load callback function.
+ * \param *data			Data to be passed to load functions, or NULL.
+ * \return			TRUE if successfully registered; else FALSE.
+ */
+
 osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
 {
 	return dataxfer_set_load_target(DATAXFER_TARGET_DRAG, filetype, w, i, callback, data);
 }
 
 
+/**
+ * Specify a handler for files which are double-clicked. Files which match
+ * on type, are passed to the appropriate handler for attention.
+ *
+ * \param filetype		The filetype to register as a target.
+ * \param *callback		The load callback function.
+ * \param *data			Data to be passed to load functions, or NULL.
+ * \return			TRUE if successfully registered; else FALSE.
+ */
+
 osbool dataxfer_set_load_type(unsigned filetype, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
 {
 	return dataxfer_set_load_target(DATAXFER_TARGET_OPEN, filetype, NULL, -1, callback, data);
 }
+
 
 /**
  * Specify a handler for files which are double-clicked or dragged into a window.
@@ -1302,7 +1342,7 @@ osbool dataxfer_set_load_type(unsigned filetype, osbool (*callback)(wimp_w w, wi
  * \return			TRUE if successfully registered; else FALSE.
  */
 
-osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i,
+static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i,
 		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
 {
 	struct dataxfer_incoming_target		*type, *window, *icon;
@@ -1424,6 +1464,32 @@ osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filet
 
 
 /**
+ * Remove a handler for files which are dragged into a window.
+ *
+ * \param filetype		The filetype to delete as a target.
+ * \param w			The target window to delete, or NULL.
+ * \param i			The target icon to delete, or -1.
+ */
+
+void dataxfer_delete_drop_target(unsigned filetype, wimp_w w, wimp_i i)
+{
+	dataxfer_delete_load_target(DATAXFER_TARGET_DRAG, filetype, w, i);
+}
+
+
+/**
+ * Remove a handler for files which are double-clicked.
+ *
+ * \param filetype		The filetype to delete as a target.
+ */
+
+void dataxfer_delete_load_type(unsigned filetype)
+{
+	dataxfer_delete_load_target(DATAXFER_TARGET_OPEN, filetype, NULL, -1);
+}
+
+
+/**
  * Remove a handler for files which are double-clicked or dragged into a window.
  *
  * To specify all of the handlers for a given window (and icon), set filetype to -1.
@@ -1436,7 +1502,7 @@ osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filet
  * \param i			The target icon to delete from the target list, or -1.
  */
 
-void dataxfer_delete_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i)
+static void dataxfer_delete_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i)
 {
 	struct dataxfer_incoming_target		*delete, *type, *window, *icon, *parent_type, *parent_window, *parent_icon;
 
@@ -1547,7 +1613,7 @@ static struct dataxfer_incoming_target *dataxfer_find_incoming_target(enum datax
 
 	type = dataxfer_incoming_targets;
 
-	while (type != NULL && type->filetype != filetype && (type->target && target) == DATAXFER_TARGET_NONE)
+	while (type != NULL && (type->filetype != filetype || (type->target && target) == DATAXFER_TARGET_NONE))
 		type = type->next;
 
 	if (type == NULL)
@@ -1557,7 +1623,7 @@ static struct dataxfer_incoming_target *dataxfer_find_incoming_target(enum datax
 
 	window = type->children;
 
-	while (w != NULL && window != NULL && window->window != w && (window->target && target) == DATAXFER_TARGET_NONE)
+	while (w != NULL && window != NULL && (window->window != w || (window->target && target) == DATAXFER_TARGET_NONE))
 		window = window->next;
 
 	if (window == NULL)
@@ -1567,7 +1633,7 @@ static struct dataxfer_incoming_target *dataxfer_find_incoming_target(enum datax
 
 	icon = window->children;
 
-	while (i != -1 && icon != NULL && icon->icon != i && (icon->target && target) == DATAXFER_TARGET_NONE)
+	while (i != -1 && icon != NULL && (icon->icon != i || (icon->target && target) == DATAXFER_TARGET_NONE))
 		icon = icon->next;
 
 	if (icon == NULL)
