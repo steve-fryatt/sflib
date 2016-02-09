@@ -1613,27 +1613,35 @@ static struct dataxfer_incoming_target *dataxfer_find_incoming_target(enum datax
 
 	type = dataxfer_incoming_targets;
 
-	while (type != NULL && (type->filetype != filetype || (type->target && target) == DATAXFER_TARGET_NONE))
+	while (type != NULL && (type->filetype != filetype || (type->target & target) == DATAXFER_TARGET_NONE))
 		type = type->next;
+
+	debug_printf("Type search complete: type=0x%x", type);
 
 	if (type == NULL)
 		return NULL;
+
+	debug_printf("Type search complete: filetype=0x%x, target=0x%x", type->filetype, type->target);
 
 	/* Now search for a window. */
 
 	window = type->children;
 
-	while (w != NULL && window != NULL && (window->window != w || (window->target && target) == DATAXFER_TARGET_NONE))
+	while (w != NULL && window != NULL && (window->window != w || (window->target & target) == DATAXFER_TARGET_NONE))
 		window = window->next;
+
+	debug_printf("Window search complete: window=0x%x", window);
 
 	if (window == NULL)
 		return type;
+
+	debug_printf("Window search complete: handle=0x%x", window->window);
 
 	/* Now search for an icon. */
 
 	icon = window->children;
 
-	while (i != -1 && icon != NULL && (icon->icon != i || (icon->target && target) == DATAXFER_TARGET_NONE))
+	while (i != -1 && icon != NULL && (icon->icon != i || (icon->target & target) == DATAXFER_TARGET_NONE))
 		icon = icon->next;
 
 	if (icon == NULL)
