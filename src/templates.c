@@ -163,6 +163,13 @@ void templates_link_menu_dialogue(char *dbox, wimp_w w)
 
 wimp_menu *templates_get_menu(char *menu)
 {
-	return menus_get_menu(menu_definitions, menu);
+	wimp_menu *handle;
+
+	handle = menus_get_menu(menu_definitions, menu);
+
+	if (handle == NULL)
+		error_msgs_report_fatal("BadMenu");
+
+	return handle;
 }
 
