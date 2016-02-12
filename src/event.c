@@ -2017,11 +2017,11 @@ osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data
 void event_set_current_menu(wimp_menu *menu)
 {
 	if (menu != NULL)
-		debug_printf("Setting client menu handle to 0x%x", menu);
+		client_menu_handle = menu;
 }
 
 
-/* Clerar the menu handle which will be reported as the currently-open
+/* Clear the menu handle which will be reported as the currently-open
  * menu to clients calling event_get_current_menu(). The handle will be
  * cleared if it matches the supplied menu handle.
  *

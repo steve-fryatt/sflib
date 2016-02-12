@@ -545,7 +545,7 @@ void event_set_current_menu(wimp_menu *menu);
 
 
 /**
- * Clerar the menu handle which will be reported as the currently-open
+ * Clear the menu handle which will be reported as the currently-open
  * menu to clients calling event_get_current_menu(). The handle will be
  * cleared if it matches the supplied menu handle.
  *
