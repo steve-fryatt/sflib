@@ -839,7 +839,7 @@ static osbool event_process_user_message(wimp_event_no event, wimp_message *mess
 					((current_menu_type == EVENT_MENU_POPUP_MANUAL || current_menu_type == EVENT_MENU_POPUP_MANUAL) &&
 							current_menu_action->data.popup.menu == menus_deleted->menu))  ) {
 				if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
-					(current_menu->menu_close)(current_menu->w, current_menu->menu);
+					(current_menu->menu_close)(current_menu->w, menus_deleted->menu);
 				current_menu = NULL;
 				current_menu_type = EVENT_MENU_NONE;
 				current_menu_icon = NULL;
