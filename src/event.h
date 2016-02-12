@@ -535,6 +535,27 @@ osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data
 
 
 /**
+ * Set the menu handle which will be reported as the currently-open menu
+ * to clients calling event_get_current_menu().
+ *
+ * \param *menu			The handle to set as the current menu.
+ */
+
+void event_set_current_menu(wimp_menu *menu);
+
+
+/**
+ * Clerar the menu handle which will be reported as the currently-open
+ * menu to clients calling event_get_current_menu(). The handle will be
+ * cleared if it matches the supplied menu handle.
+ *
+ * \param *menu			The handle to be cleared, or NULL to clear all.
+ */
+
+void event_clear_current_menu(wimp_menu *menu);
+
+
+/**
  * Read details of the currently-open menu.
  *
  * \return			The pointer to the block of the menu which is currently

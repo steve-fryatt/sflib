@@ -222,8 +222,8 @@ static enum event_menu_type	current_menu_type = EVENT_MENU_NONE;
 static struct event_icon	*current_menu_icon = NULL;
 static struct event_icon_action	*current_menu_action = NULL;
 
-static wimp_menu		*menu_handle = NULL;
-static wimp_menu		*new_client_menu = NULL;			/**< Used for returning menu updates from callbacks. */
+static wimp_menu		*client_menu_handle = NULL;			/**< The active menu handle, tracked for the client's benefit only.	*/
+static wimp_menu		*new_client_menu = NULL;			/**< Used for returning menu updates from callbacks.			*/
 
 
 /* User Drag Event Data */
@@ -495,7 +495,7 @@ static osbool event_process_mouse_click(wimp_pointer *pointer)
 		current_menu_type = EVENT_MENU_WINDOW;
 		current_menu_icon = NULL;
 		current_menu_action = NULL;
-		menu_handle = menu;
+		event_set_current_menu(menu);
 		return TRUE;
 	}
 
@@ -566,7 +566,7 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 			current_menu_icon = icon;
 			current_menu_action = action;
 			current_menu_type = (action->type == EVENT_ICON_POPUP_AUTO) ? EVENT_MENU_POPUP_AUTO : EVENT_MENU_POPUP_MANUAL;
-			menu_handle = menu;
+			event_set_current_menu(menu);
 			handled = TRUE;
 			break;
 
@@ -690,7 +690,7 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 		current_menu_type = EVENT_MENU_NONE;
 		current_menu_icon = NULL;
 		current_menu_action = NULL;
-		menu_handle = NULL;
+		event_clear_current_menu(NULL);
 		return TRUE;
 		break;
 	}
@@ -718,7 +718,7 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 				new_client_menu = NULL;
 				break;
 			}
-			menu_handle = new_client_menu;
+			event_set_current_menu(new_client_menu);
 		}
 		if (new_client_menu == NULL || menu == new_client_menu) {
 			if (new_client_menu != NULL)
@@ -734,7 +734,7 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 		current_menu_type = EVENT_MENU_NONE;
 		current_menu_icon = NULL;
 		current_menu_action = NULL;
-		menu_handle = NULL;
+		event_clear_current_menu(menu);
 	}
 
 	return TRUE;
@@ -844,7 +844,7 @@ static osbool event_process_user_message(wimp_event_no event, wimp_message *mess
 				current_menu_type = EVENT_MENU_NONE;
 				current_menu_icon = NULL;
 				current_menu_action = NULL;
-				menu_handle = NULL;
+				event_clear_current_menu(menus_deleted->menu);
 				special = TRUE;
 			}
 			break;
@@ -2008,6 +2008,33 @@ osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data
 }
 
 
+/* Set the menu handle which will be reported as the currently-open menu
+ * to clients calling event_get_current_menu().
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+void event_set_current_menu(wimp_menu *menu)
+{
+	if (menu != NULL)
+		debug_printf("Setting client menu handle to 0x%x", menu);
+}
+
+
+/* Clerar the menu handle which will be reported as the currently-open
+ * menu to clients calling event_get_current_menu(). The handle will be
+ * cleared if it matches the supplied menu handle.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+void event_clear_current_menu(wimp_menu *menu)
+{
+	if (menu == NULL || menu == client_menu_handle)
+		client_menu_handle = NULL;
+}
+
+
 /* Read details of the currently-open menu.
  *
  * This function is an external interface, documented in event.h.
@@ -2015,7 +2042,7 @@ osbool event_set_drag_handler(void (*drag_end)(wimp_dragged *dragged, void *data
 
 wimp_menu *event_get_current_menu(void)
 {
-	return menu_handle;
+	return client_menu_handle;
 }
 
 
