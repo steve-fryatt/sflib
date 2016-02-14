@@ -31,6 +31,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 /* Acorn C header files */
 

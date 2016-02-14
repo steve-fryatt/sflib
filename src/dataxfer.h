@@ -30,6 +30,8 @@
 #ifndef SFLIB_DATAXFER
 #define SFLIB_DATAXFER
 
+#include <stddef.h>
+
 /* ==================================================================================================================
  * Static constants
  */
