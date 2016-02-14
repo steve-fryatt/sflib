@@ -173,12 +173,14 @@ void dataxfer_register_clipboard_provider(size_t callback(bits types[], bits *ty
  * \param filetype		The filetype to register as a target.
  * \param w			The target window, or NULL.
  * \param i			The target icon, or -1.
+ * \param *intermediate		Pointer to the intermediate filename to use for the Data
+ *				Transfer Protocol, or NULL for default <Wimp$Scrap>.
  * \param *callback		The load callback function.
  * \param *data			Data to be passed to load functions, or NULL.
  * \return			TRUE if successfully registered; else FALSE.
  */
 
-osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i,
+osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i, char *intermediate,
 		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data);
 
 

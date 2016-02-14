@@ -94,8 +94,10 @@ struct dataxfer_descriptor {
 	int				my_ref;								/**< The MyRef of the sent message.					*/
 	wimp_t				task;								/**< The task handle of the recipient task.				*/
 	osbool				(*save_callback)(char *filename, void *data);			/**< The callback function to be used if a save is required.		*/
-	osbool				(*receive_callback)(void *content, size_t size, bits type, void *data);	/**< The callback function to be used if clipboard data is received.	*/
+	osbool				(*receive_callback)(void *content, size_t size, bits type,
+							void *data);					/**< The callback function to be used if clipboard data is received.	*/
 	void				*callback_data;							/**< Data to be passed to the callback function.			*/
+	char				*intermediate_filename;						/**< The filename to use for the disc-based Data Transfer Protocol.	*/
 
 	byte				*ram_data;							/**< The buffer for RAM transfers.					*/
 	size_t				ram_allocation;							/**< The amount of memory being allocated to the RAM buffer.		*/
@@ -137,6 +139,8 @@ struct dataxfer_incoming_target {
 	osbool				(*callback)(wimp_w w, wimp_i i,
 			unsigned filetype, char *filename, void *data);					/**< The callback function to be used if a load is required.		*/
 	void				*callback_data;							/**< Data to be passed to the callback function.			*/
+
+	char				*intermediate_filename;						/**< Filename to be used for disc-based transfers.			*/
 
 	struct dataxfer_incoming_target	*children;							/**< Pointer to a list of child targets (window or icon lists).		*/
 
@@ -190,7 +194,7 @@ static osbool				dataxfer_message_data_open(wimp_message *message);
 
 static osbool				dataxfer_message_bounced(wimp_message *message);
 
-static osbool				dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i,
+static osbool				dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i, char *intermediate,
 							osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data);
 static void				dataxfer_delete_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i);
 static struct dataxfer_incoming_target	*dataxfer_find_incoming_target(enum dataxfer_target_type target, wimp_w w, wimp_i i, unsigned filetype);
@@ -899,6 +903,7 @@ static osbool dataxfer_message_data_save(wimp_message *message)
 	struct dataxfer_descriptor	*descriptor;
 	os_error			*error;
 	struct dataxfer_incoming_target	*target;
+	osbool				data_unsafe = TRUE;
 
 
 	/* We don't want to respond to our own save requests. */
@@ -969,14 +974,23 @@ static osbool dataxfer_message_data_save(wimp_message *message)
 		descriptor->save_callback = NULL;
 		descriptor->receive_callback = NULL;
 		descriptor->callback_data = target;
+		if (target->intermediate_filename != NULL) {
+			descriptor->intermediate_filename = target->intermediate_filename;
+			/* If an intermediate file has been supplied, assume that the client
+			 * will be ensuring that the data is maintained as 'safe'.
+			 */
+			data_unsafe = FALSE;
+		}
 
 		/* Update the message block and send an acknowledgement. */
 	}
 
 	datasave->your_ref = datasave->my_ref;
 	datasave->action = message_DATA_SAVE_ACK;
-	datasave->est_size = -1;
-	strcpy(datasave->file_name, "<Wimp$Scrap>");
+	if (data_unsafe)
+		datasave->est_size = -1;
+	strncpy(datasave->file_name, descriptor->intermediate_filename, 212);
+	datasave->file_name[211] = '\0';
 	datasave->size = WORDALIGN(45 + strlen(datasave->file_name));
 
 	error = xwimp_send_message(wimp_USER_MESSAGE_RECORDED, (wimp_message *) datasave, datasave->sender);
@@ -1029,7 +1043,8 @@ static osbool dataxfer_message_ram_fetch_bounced(wimp_message *message)
 	descriptor->saved_message->your_ref = descriptor->saved_message->my_ref;
 	descriptor->saved_message->action = message_DATA_SAVE_ACK;
 	descriptor->saved_message->est_size = -1;
-	strcpy(descriptor->saved_message->file_name, "<Wimp$Scrap>\r");
+	strncpy(descriptor->saved_message->file_name, descriptor->intermediate_filename, 212);
+	descriptor->saved_message->file_name[211] = '\0';
 	descriptor->saved_message->size = WORDALIGN(45 + strlen(descriptor->saved_message->file_name));
 
 	error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) descriptor->saved_message, descriptor->saved_message->sender);
@@ -1183,12 +1198,12 @@ static osbool dataxfer_message_data_load(wimp_message *message)
 		/* If there's no load callback function, abandon the transfer here. */
 
 		if (target->callback == NULL)
-			return FALSE;
+			return TRUE;
 
 		/* If the load failed, abandon the transfer here. */
 
 		if (target->callback(dataload->w, dataload->i, dataload->file_type, dataload->file_name, target->callback_data) == FALSE)
-			return FALSE;
+			return TRUE;
 
 		/* If this was an inter-application transfer, tidy up. */
 
@@ -1229,13 +1244,13 @@ static osbool dataxfer_message_data_open(wimp_message *message)
 
 	target = dataxfer_find_incoming_target(DATAXFER_TARGET_OPEN, NULL, -1, dataopen->file_type);
 
-	if (target == NULL || target->callback == NULL)
+	if (target == NULL)
 		return FALSE;
 
 	/* If there's no load callback function, abandon the transfer here. */
 
 	if (target->callback == NULL)
-		return FALSE;
+		return TRUE;
 
 	/* Update the message block and send an acknowledgement. Do this before
 	 * calling the load callback, to meet the requirements of the PRM.
@@ -1296,14 +1311,16 @@ static osbool dataxfer_message_bounced(wimp_message *message)
  * \param filetype		The filetype to register as a target.
  * \param w			The target window, or NULL.
  * \param i			The target icon, or -1.
+ * \param *intermediate		Pointer to the intermediate filename to use for the Data
+ *				Transfer Protocol, or NULL for default <Wimp$Scrap>.
  * \param *callback		The load callback function.
  * \param *data			Data to be passed to load functions, or NULL.
  * \return			TRUE if successfully registered; else FALSE.
  */
 
-osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
+osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i, char *intermediate, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
 {
-	return dataxfer_set_load_target(DATAXFER_TARGET_DRAG, filetype, w, i, callback, data);
+	return dataxfer_set_load_target(DATAXFER_TARGET_DRAG, filetype, w, i, intermediate, callback, data);
 }
 
 
@@ -1319,7 +1336,7 @@ osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i, osbool (*
 
 osbool dataxfer_set_load_type(unsigned filetype, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
 {
-	return dataxfer_set_load_target(DATAXFER_TARGET_OPEN, filetype, NULL, -1, callback, data);
+	return dataxfer_set_load_target(DATAXFER_TARGET_OPEN, filetype, NULL, -1, NULL, callback, data);
 }
 
 
@@ -1338,12 +1355,13 @@ osbool dataxfer_set_load_type(unsigned filetype, osbool (*callback)(wimp_w w, wi
  * \param filetype		The filetype to register as a target.
  * \param w			The target window, or NULL.
  * \param i			The target icon, or -1.
+ * \param *intermediate		Pointer to the intermediate filename to use, or NULL for default.
  * \param *callback		The load callback function.
  * \param *data			Data to be passed to load functions, or NULL.
  * \return			TRUE if successfully registered; else FALSE.
  */
 
-static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i,
+static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i, char *intermediate,
 		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
 {
 	struct dataxfer_incoming_target		*type, *window, *icon;
@@ -1374,6 +1392,8 @@ static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigne
 
 		type->callback = NULL;
 		type->callback_data = NULL;
+
+		type->intermediate_filename = (intermediate != NULL) ? strdup(intermediate) : NULL;
 
 		type->children = NULL;
 
@@ -1411,6 +1431,8 @@ static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigne
 		window->callback = NULL;
 		window->callback_data = NULL;
 
+		window->intermediate_filename = (intermediate != NULL) ? strdup(intermediate) : NULL;
+
 		window->children = NULL;
 
 		window->next = type->children;
@@ -1446,6 +1468,8 @@ static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigne
 
 		icon->callback = NULL;
 		icon->callback_data = NULL;
+
+		icon->intermediate_filename = (intermediate != NULL) ? strdup(intermediate) : NULL;
 
 		icon->children = NULL;
 
@@ -1556,6 +1580,8 @@ static void dataxfer_delete_load_target(enum dataxfer_target_type target, unsign
 								parent_icon->next = icon->next;
 							delete = icon;
 							icon = icon->next;
+							if (delete->intermediate_filename != NULL)
+								free(delete->intermediate_filename);
 							free(delete);
 						} else {
 							parent_icon = icon;
@@ -1571,6 +1597,8 @@ static void dataxfer_delete_load_target(enum dataxfer_target_type target, unsign
 						parent_window->next = window->next;
 					delete = window;
 					window = window->next;
+					if (delete->intermediate_filename != NULL)
+						free(delete->intermediate_filename);
 					free(delete);
 				} else {
 					parent_window = window;
@@ -1586,6 +1614,8 @@ static void dataxfer_delete_load_target(enum dataxfer_target_type target, unsign
 				parent_type->next = type->next;
 			delete = type;
 			type = type->next;
+			if (delete->intermediate_filename != NULL)
+				free(delete->intermediate_filename);
 			free(delete);
 		} else {
 			parent_type = type;
@@ -1666,6 +1696,8 @@ static struct dataxfer_descriptor *dataxfer_new_descriptor(void)
 	if (new != NULL) {
 		new->type = DATAXFER_MESSAGE_NONE;
 		new->purpose = DATAXFER_UNKNOWN;
+
+		new->intermediate_filename = "<Wimp$Scrap>";
 
 		new->ram_data = NULL;
 		new->ram_allocation = 0;
