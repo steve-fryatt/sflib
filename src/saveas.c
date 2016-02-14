@@ -128,7 +128,7 @@ void saveas_initialise(char *dialogue, char *select_dialogue)
 		ihelp_add_window(saveas_window, "SaveAs", NULL);
 		event_add_window_mouse_event(saveas_window, saveas_click_handler);
 		event_add_window_key_event(saveas_window, saveas_keypress_handler);
-		templates_link_menu_dialogue("save_as", saveas_window);
+		templates_link_menu_dialogue("SaveAs", saveas_window);
 	} else {
 		saveas_window = NULL;
 	}
@@ -138,7 +138,7 @@ void saveas_initialise(char *dialogue, char *select_dialogue)
 		ihelp_add_window(saveas_sel_window, "SaveAs", NULL);
 		event_add_window_mouse_event(saveas_sel_window, saveas_click_handler);
 		event_add_window_key_event(saveas_sel_window, saveas_keypress_handler);
-		templates_link_menu_dialogue("save_as_sel", saveas_sel_window);
+		templates_link_menu_dialogue("SaveAsSel", saveas_sel_window);
 	} else {
 		saveas_sel_window = NULL;
 	}
