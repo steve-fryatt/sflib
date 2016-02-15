@@ -41,17 +41,12 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/errors.h"
-#include "sflib/event.h"
-#include "sflib/windows.h"
-#include "sflib/menus.h"
-#include "sflib/msgs.h"
-#include "sflib/debug.h"
-#include "sflib/url.h"
-
-/* Application header files */
-
 #include "templates.h"
+#include "errors.h"
+#include "menus.h"
+#include "msgs.h"
+#include "windows.h"
+
 
 static menu_template	menu_definitions;					/**< The menu definition block handle.				*/
 

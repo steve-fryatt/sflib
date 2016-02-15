@@ -46,14 +46,12 @@
 
 /* SF-Lib header files. */
 
+#include "dataxfer.h"
 #include "debug.h"
 #include "errors.h"
 #include "event.h"
 #include "general.h"
 
-/* Application header files */
-
-#include "dataxfer.h"
 
 /* ==================================================================================================================
  * Global variables.

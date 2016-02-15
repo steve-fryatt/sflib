@@ -29,8 +29,9 @@
 
 /* ANSI C header files */
 
-#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* Acorn C header files */
 
@@ -44,23 +45,17 @@
 
 /* SF-Lib header files. */
 
-#include "sflib/config.h"
-#include "sflib/dataxfer.h"
-#include "sflib/debug.h"
-#include "sflib/errors.h"
-#include "sflib/event.h"
-#include "sflib/general.h"
-#include "sflib/icons.h"
-#include "sflib/ihelp.h"
-#include "sflib/menus.h"
-#include "sflib/msgs.h"
-#include "sflib/string.h"
-#include "sflib/templates.h"
-#include "sflib/windows.h"
-
-/* Application header files */
-
 #include "saveas.h"
+#include "dataxfer.h"
+#include "errors.h"
+#include "event.h"
+#include "icons.h"
+#include "ihelp.h"
+#include "menus.h"
+#include "msgs.h"
+#include "string.h"
+#include "templates.h"
+
 
 #define SAVEAS_ICON_SAVE 0
 #define SAVEAS_ICON_CANCEL 1
