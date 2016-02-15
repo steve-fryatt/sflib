@@ -62,22 +62,29 @@ void resources_find_path(char *path, size_t size)
 {
 	int	len;
 	char	*new_path;
+	char	*uk = "UK";
 
 	new_path = malloc(size);
 
 	if (new_path == NULL)
 		return;
 
-	strcat(path, ".");
-	strcpy(new_path, path);
+	len = strlen(path);
+	strncat(path, ".", size - (len + 2));
+	strncpy(new_path, path, size);
+	new_path[size - 1] = '\0';
 
 	len = strlen(new_path);
 	territory_number_to_name(territory_number(), new_path + len, size - len);
 
-	if (osfile_read_stamped_no_path (new_path, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_DIR)
-		strcpy(path, new_path);
-	else if ((size - len) >= 2)
-		strcat(path, "UK");
+	if (osfile_read_stamped_no_path (new_path, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_DIR) {
+		strncpy(path, new_path, size);
+		path[size - 1] = '\0';
+	} else if ((size - len) >= strlen(uk) + 2) {
+		strncat(path, uk, strlen(uk));
+	}
+
+	free(new_path);
 }
 
 
@@ -101,7 +108,8 @@ osspriteop_area *resources_load_user_sprite_area(char *file)
 	object = osfile_read_stamped_no_path(fullfile, NULL, NULL, &size, NULL, (bits *) &type);
 
 	if (object != fileswitch_IS_FILE || type != 0xff9) {
-		strcpy(fullfile, file);
+		strncpy(fullfile, file, RESOURCES_MAX_FILENAME);
+		fullfile[RESOURCES_MAX_FILENAME - 1] = '\0';
 		object = osfile_read_stamped_no_path(fullfile, NULL, NULL, &size, NULL, (bits *) &type);
 	}
 
