@@ -1373,6 +1373,7 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 	struct event_window		*window;
 	struct event_icon		*icon;
 	struct event_icon_action	*action;
+	size_t				malloc_len;
 
 	window = event_create_window(w);
 
@@ -1395,9 +1396,11 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 		return FALSE;
 
 	if (token != NULL) {
-		action->data.popup.token = malloc(strlen(token) + EVENT_TOKEN_INDEX_LEN + 1);
+		malloc_len = strlen(token) + EVENT_TOKEN_INDEX_LEN + 1;
+		action->data.popup.token = malloc(malloc_len);
 		if (action->data.popup.token != NULL) {
-			strcpy(action->data.popup.token, token);
+			strncpy(action->data.popup.token, token, malloc_len);
+			action->data.popup.token[malloc_len - 1] = '\0';
 			action->data.popup.token_number = action->data.popup.token + strlen(token);
 		} else {
 			action->data.popup.token_number = NULL;
