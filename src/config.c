@@ -1,4 +1,4 @@
-/* Copyright 2003-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -51,6 +51,7 @@
 #include "config.h"
 #include "string.h"
 
+#define CONFIG_BOOL_LEN 64
 
 /**
  * Structure for storing boolean config settings.
@@ -113,23 +114,17 @@ static char			*application_name = NULL;			/**< The application name as registere
 
 osbool config_initialise(char *app_name, char *c_dir, char *l_dir)
 {
-	application_name = (char *) malloc (strlen (app_name) + 1);
+	application_name = strdup(app_name);
 	if (application_name == NULL)
 		return FALSE;
 
-	strcpy (application_name, app_name);
-
-	local_dir = (char *) malloc (strlen (l_dir) + 1);
+	local_dir = strdup(l_dir);
 	if (local_dir == NULL)
 		return FALSE;
 
-	strcpy (local_dir, l_dir);
-
-	choices_dir = (char *) malloc (strlen (c_dir) + 1);
+	choices_dir = strdup(c_dir);
 	if (choices_dir == NULL)
 		return FALSE;
-
-	strcpy (choices_dir, c_dir);
 
 	return TRUE;
 }
@@ -166,10 +161,12 @@ int config_opt_init(char *name, osbool value)
 {
 	config_opt	*new;
 
-	if ((new = (config_opt *) malloc(sizeof (config_opt))) == NULL)
+	new = malloc(sizeof(config_opt));
+	if (new == NULL)
 		return FALSE;
 
-	strcpy(new->name, name);
+	strncpy(new->name, name, sf_MAX_CONFIG_NAME);
+	new->name[sf_MAX_CONFIG_NAME - 1] = '\0';
 	new->initial = value;
 	new->value = value;
 
@@ -192,7 +189,8 @@ osbool config_opt_set(char *name, osbool value)
 {
 	config_opt	*option;
 
-	if ((option = config_find_opt(name)) == NULL)
+	option = config_find_opt(name);
+	if (option == NULL)
 		return FALSE;
 
 	option->value = value;
@@ -212,7 +210,8 @@ osbool config_opt_read(char *name)
 {
 	config_opt	*option;
 
-	if ((option = config_find_opt(name)) == NULL)
+	option = config_find_opt(name);
+	if (option == NULL)
 		return FALSE;
 
 	return option->value;
@@ -229,7 +228,6 @@ osbool config_opt_read(char *name)
 static config_int *config_find_int(char *name)
 {
 	config_int	*block = int_list;
-
 
 	while (block != NULL && (strcmp(block->name, name) != 0))
 		block = block->next;
@@ -250,10 +248,12 @@ osbool config_int_init(char *name, int value)
 {
 	config_int	*new;
 
-	if ((new = (config_int *) malloc(sizeof (config_int))) == NULL)
+	new = malloc(sizeof(config_int));
+	if (new == NULL)
 		return FALSE;
 
-	strcpy(new->name, name);
+	strncpy(new->name, name, sf_MAX_CONFIG_NAME);
+	new->name[sf_MAX_CONFIG_NAME - 1] = '\0';
 	new->initial = value;
 	new->value = value;
 
@@ -276,7 +276,8 @@ osbool config_int_set(char *name, int value)
 {
 	config_int	*option;
 
-	if ((option = config_find_int(name)) == NULL)
+	option = config_find_int(name);
+	if (option == NULL)
 		return FALSE;
 
 	option->value = value;
@@ -296,7 +297,8 @@ int config_int_read(char *name)
 {
 	config_int	*option;
 
-	if ((option = config_find_int(name)) == NULL)
+	option = config_find_int(name);
+	if (option == NULL)
 		return 0;
 
 	return option->value;
@@ -313,7 +315,6 @@ int config_int_read(char *name)
 static config_str *config_find_str(char *name)
 {
 	config_str	*block = str_list;
-
 
 	while (block != NULL && (strcmp(block->name, name) != 0))
 		block = block->next;
@@ -334,12 +335,16 @@ osbool config_str_init(char *name, char *value)
 {
 	config_str	*new;
 
-	if ((new = (config_str *) malloc(sizeof (config_str))) == NULL)
+	new = malloc(sizeof(config_str));
+	if (new == NULL)
 		return FALSE;
 
-	strcpy(new->name, name);
-	strcpy(new->initial, value);
-	strcpy(new->value, value);
+	strncpy(new->name, name, sf_MAX_CONFIG_NAME);
+	new->name[sf_MAX_CONFIG_NAME - 1] = '\0';
+	strncpy(new->initial, value, sf_MAX_CONFIG_STR);
+	new->initial[sf_MAX_CONFIG_STR - 1] = '\0';
+	strncpy(new->value, value, sf_MAX_CONFIG_STR);
+	new->value[sf_MAX_CONFIG_STR - 1] = '\0';
 
 	new->next = str_list;
 	str_list = new;
@@ -360,10 +365,12 @@ osbool config_str_set(char *name, char *value)
 {
 	config_str *option;
 
-	if ((option = config_find_str(name)) == NULL)
+	option = config_find_str(name);
+	if (option == NULL)
 		return FALSE;
 
-	strcpy(option->value, value);
+	strncpy(option->value, value, sf_MAX_CONFIG_STR);
+	option->value[sf_MAX_CONFIG_STR - 1] = '\0';
 
 	return TRUE;
 }
@@ -380,8 +387,8 @@ char *config_str_read(char *name)
 {
 	config_str *option;
 
-
-	if ((option = config_find_str(name)) == NULL)
+	option = config_find_str(name);
+	if (option == NULL)
 		return "";
 
 	return option->value;
@@ -666,7 +673,7 @@ int config_write_token_pair(FILE *file, char *token, char *value)
 	if (file == NULL)
 		return result;
 
-	if (isspace(*value) || isspace(*(strchr(value, '\0')-1)))
+	if (isspace(*value) || isspace(*(strchr(value, '\0') - 1)))
 		result = fprintf(file, "%s: \"%s\"\n", token, value);
 	else
 		result = fprintf(file, "%s: %s\n", token, value);
@@ -685,9 +692,9 @@ int config_write_token_pair(FILE *file, char *token, char *value)
 char *config_return_opt_string(osbool opt)
 {
 	if (opt == TRUE)
-		return ("Yes");
+		return "Yes";
 	else
-		return ("No");
+		return "No";
 }
 
 
@@ -701,11 +708,12 @@ char *config_return_opt_string(osbool opt)
 
 osbool config_read_opt_string(char *str)
 {
-	char		line[256];
+	char		line[CONFIG_BOOL_LEN];
 
-	strcpy(line, str);
+	strncpy(line, str, CONFIG_BOOL_LEN);
+	line[CONFIG_BOOL_LEN - 1] = '\0';
 	string_tolower(line);
 
-	return (strcmp(line, "yes") == 0 || strcmp(line, "true") == 0) ? TRUE : FALSE;
+	return (strcmp(line, "yes") == 0 || strcmp(line, "true") == 0 || strcmp(line, "on") == 0) ? TRUE : FALSE;
 }
 
