@@ -54,6 +54,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define URL_BUFFER_LENGTH 512
+
 static osbool		url_antbroadcast(const char *url);
 static osbool		url_antload(const char *url);
 static osbool		url_acornlaunch(const char *url);
@@ -130,8 +132,10 @@ static osbool url_antbroadcast(const char *url)
 
 static osbool url_antload(const char *url)
 {
-	char buf[512];
-	char *off;
+	char	buf[URL_BUFFER_LENGTH];
+	char	*off;
+	char	*separator = " ";
+	int	prefix_length, suffix_length, separator_length;
 
 
 	off = strchr(url, ':');
@@ -139,15 +143,24 @@ static osbool url_antload(const char *url)
 	if (off == NULL)
 		return FALSE;
 
-	strcpy(buf, "Alias$URLOpen_");
-	strncat(buf, url, off - url);
+	strncpy(buf, "Alias$URLOpen_", URL_BUFFER_LENGTH);
+	buf[URL_BUFFER_LENGTH - 1] = '\0';
+
+	prefix_length = strlen(buf);
+	suffix_length = off - url;
+	separator_length = strlen(separator);
+
+	if (prefix_length + suffix_length + separator_length + 1 > URL_BUFFER_LENGTH) /* +1 for terminator. */
+		return FALSE;
+
+	strncat(buf, url, suffix_length);
 	if (getenv(buf) == NULL)
 		return FALSE;
 
-	strcat(buf, " ");
-	strncat(buf, url, sizeof(buf) - strlen(buf) - 1 );
+	strncat(buf, separator, separator_length);
+	strncat(buf, url, URL_BUFFER_LENGTH - (prefix_length + suffix_length + separator_length + 1));
 
-	if (xwimp_start_task(buf + sizeof("Alias$") - 1, NULL) != NULL)
+	if (xwimp_start_task(buf + strlen("Alias$") - 1, NULL) != NULL)
 		return FALSE;
 
 	return TRUE;
@@ -191,7 +204,7 @@ static osbool url_acornlaunch(const char *url)
 
 static osbool url_bounce(wimp_message *mess)
 {
-	char		buf[512];
+	char		buf[URL_BUFFER_LENGTH];
 	os_error	*error;
 
 
@@ -202,7 +215,7 @@ static osbool url_bounce(wimp_message *mess)
 			return TRUE; /* url was claimed */
 
 		/* failed AcornURI. Try ANT launch */
-		error = xuri_request_uri(0, buf, sizeof buf, result->handle, NULL);
+		error = xuri_request_uri(0, buf, URL_BUFFER_LENGTH, result->handle, NULL);
 
 		if (error) {
 			error_report_os_error(error, wimp_ERROR_BOX_CANCEL_ICON);
