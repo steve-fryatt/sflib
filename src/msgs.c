@@ -62,10 +62,10 @@ osbool msgs_initialise(char *messages_file)
 	int	message_size;
 	char	*message_buffer;
 
-	messagetrans_file_info (messages_file, NULL, &message_size);
-	message_block = (messagetrans_control_block *) malloc (sizeof (messagetrans_control_block));
-	message_buffer = (char *) malloc (message_size);
-	messagetrans_open_file (message_block, messages_file, message_buffer);
+	messagetrans_file_info(messages_file, NULL, &message_size);
+	message_block = malloc(sizeof (messagetrans_control_block));
+	message_buffer = malloc(message_size);
+	messagetrans_open_file(message_block, messages_file, message_buffer);
 
 	return TRUE;
 }
