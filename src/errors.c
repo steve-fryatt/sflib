@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -43,8 +43,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-
-#define ERROR_BUTTON_LENGTH 255							/**< The size of the buffer for expanding custom button message tokens.		*/
+#define APP_NAME_LOOKUP_LENGTH 256						/**< The size of the buffer used to look up application name tokens.		*/
+#define ERROR_BUTTON_LENGTH 256							/**< The size of the buffer for expanding custom button message tokens.		*/
 
 
 static char			*app_name = NULL;				/**< The application name, as used in error messages.				*/
@@ -63,8 +63,7 @@ static wimp_error_box_selection		error_wimp_os_report(os_error *error,
 
 void error_initialise(char *name, char *sprite, void (*closedown)(void))
 {
-	char	lookup_buffer[256];
-	size_t	size;
+	char	lookup_buffer[APP_NAME_LOOKUP_LENGTH];
 
 	close_down_function = closedown;
 
@@ -72,30 +71,16 @@ void error_initialise(char *name, char *sprite, void (*closedown)(void))
 		if (app_name != NULL)
 			free(app_name);
 
-		msgs_lookup(name, lookup_buffer, sizeof(lookup_buffer));
-
-		size = strlen(lookup_buffer) + 1;
-
-		app_name = malloc(size);
-		if (app_name != NULL) {
-			strncpy(app_name, lookup_buffer, size);
-			lookup_buffer[size - 1] = '\0';
-		}
+		msgs_lookup(name, lookup_buffer, APP_NAME_LOOKUP_LENGTH);
+		app_name = strdup(lookup_buffer);
 	}
 
 	if (sprite != NULL) {
 		if (app_sprite != NULL)
 			free(app_sprite);
 
-		msgs_lookup(sprite, lookup_buffer, sizeof(lookup_buffer));
-
-		size = strlen(lookup_buffer) + 1;
-
-		app_sprite = malloc(size);
-		if (app_sprite != NULL) {
-			strncpy(app_sprite, lookup_buffer, size);
-			lookup_buffer[size - 1] = '\0';
-		}
+		msgs_lookup(sprite, lookup_buffer, APP_NAME_LOOKUP_LENGTH);
+		app_sprite = strdup(lookup_buffer);
 	}
 }
 
@@ -120,13 +105,17 @@ static wimp_error_box_selection error_wimp_os_report(os_error *error, wimp_error
 {
 	wimp_error_box_selection	click;
 	wimp_error_box_flags		flags;
+	char				*name, *sprite;
+
+	name = (app_name != NULL) ? app_name : "Application";
+	sprite = (app_sprite != NULL) ? app_sprite : "application";
 
 	if (custom_buttons != NULL && *custom_buttons != '\0') {
 		flags = wimp_ERROR_BOX_GIVEN_CATEGORY | (type << wimp_ERROR_BOX_CATEGORY_SHIFT);
-		click = wimp_report_error_by_category(error, flags, app_name, app_sprite, wimpspriteop_AREA, custom_buttons) - 2;
+		click = wimp_report_error_by_category(error, flags, name, sprite, wimpspriteop_AREA, custom_buttons) - 2;
 	} else {
 		flags = wimp_ERROR_BOX_GIVEN_CATEGORY | buttons | (type << wimp_ERROR_BOX_CATEGORY_SHIFT);
-		click = wimp_report_error_by_category(error, flags, app_name, app_sprite, wimpspriteop_AREA, NULL);
+		click = wimp_report_error_by_category(error, flags, name, sprite, wimpspriteop_AREA, NULL);
 	}
 
 	return click;
@@ -177,6 +166,7 @@ wimp_error_box_selection error_report_info(char *message)
 
 	error.errnum = 255; /* A dummy error number, which should probably be checked. */
 	strncpy(error.errmess, message, os_ERROR_LIMIT);
+	error.errmess[os_ERROR_LIMIT - 1] = '\0';
 
 	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_INFO, wimp_ERROR_BOX_OK_ICON, NULL);
 }
@@ -212,6 +202,7 @@ wimp_error_box_selection error_report_error(char *message)
 
 	error.errnum = 255; /* A dummy error number, which should probably be checked. */
 	strncpy(error.errmess, message, os_ERROR_LIMIT);
+	error.errmess[os_ERROR_LIMIT - 1] = '\0';
 
 	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_ERROR, wimp_ERROR_BOX_OK_ICON, NULL);
 }
@@ -256,6 +247,7 @@ wimp_error_box_selection error_report_question(char *message, char *buttons)
 
 	error.errnum = 255; /* A dummy error number, which should probably be checked. */
 	strncpy(error.errmess, message, os_ERROR_LIMIT);
+	error.errmess[os_ERROR_LIMIT - 1] = '\0';
 
 	if (buttons == NULL)
 		return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION,
@@ -299,6 +291,7 @@ void error_report_fatal(char *message)
 
 	error.errnum = 255; /* A dummy error number, which should probably be checked. */
 	strncpy(error.errmess, message, os_ERROR_LIMIT);
+	error.errmess[os_ERROR_LIMIT - 1] = '\0';
 
 	error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
 	exit(1);
