@@ -53,13 +53,21 @@
 
 menu_template menus_load_templates(char *filename, wimp_w dbox_list[], wimp_menu *menus[], size_t len)
 {
-	int	*current, *data, dbox, menu, *menu_block;
-	int	*z, *t;
-	int	size;
+	int			*current, *data, dbox, menu, *menu_block;
+	int			*z, *t;
+	int			size;
+	fileswitch_object_type	type;
+	os_error		*error;
 
 	/* Load the menu data into memory. */
 
-	osfile_read_stamped_no_path(filename, NULL, NULL, &size, NULL, NULL);
+	error = xosfile_read_stamped_no_path(filename, &type, NULL, NULL, &size, NULL, NULL);
+	if (error != NULL)
+		return NULL;
+
+	if (type != fileswitch_IS_FILE)
+		return NULL;
+
 	data = malloc(size);
 
 	if (data == NULL)
