@@ -267,10 +267,25 @@ wimp_error_box_selection error_report_question(char *message, char *buttons)
 
 void error_msgs_report_fatal(char *token)
 {
+	error_msgs_param_report_fatal(token, NULL, NULL, NULL, NULL);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_PROGRAM, containg the
+ * message looked up via the given MessageTrans token and supplied parameters,
+ * and a Cancel button.
+ *
+ * This function never returns.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+void error_msgs_param_report_fatal(char *token, char *a, char *b, char *c, char *d)
+{
 	os_error	error;
 
 	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	msgs_lookup(token, error.errmess, os_ERROR_LIMIT);
+	msgs_param_lookup(token, error.errmess, os_ERROR_LIMIT, a, b, c, d);
 
 	error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
 	exit(1);

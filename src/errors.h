@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -140,6 +140,23 @@ wimp_error_box_selection error_report_question(char *message, char *buttons);
  */
 
 void error_msgs_report_fatal(char *token);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_PROGRAM, containg the
+ * message looked up via the given MessageTrans token and supplied parameters,
+ * and a Cancel button.
+ *
+ * This function never returns.
+ *
+ * \param *message		The text of the message.
+ * \param *a			Parameter for %0.
+ * \param *b			Parameter for %1.
+ * \param *c			Parameter for %2.
+ * \param *d			Parameter for %3.
+ */
+
+void error_msgs_param_report_fatal(char *token, char *a, char *b, char *c, char *d);
 
 
 /**

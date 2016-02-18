@@ -91,7 +91,7 @@ wimp_window *templates_load_window(char *name)
 	definition = windows_load_template(name);
 
 	if (definition == NULL)
-		error_msgs_report_fatal("BadTemplate");
+		error_msgs_param_report_fatal("BadTemplate:Window template '%0' not found.", name, NULL, NULL, NULL);
 
 	return definition;
 }
@@ -115,7 +115,7 @@ wimp_w templates_create_window(char *name)
 		w = wimp_create_window(definition);
 		free(definition);
 	} else {
-		error_msgs_report_fatal("BadTemplate");
+		error_msgs_param_report_fatal("BadTemplate:Window template '%0' not found.", name, NULL, NULL, NULL);
 	}
 
 	return w;
@@ -132,6 +132,9 @@ wimp_w templates_create_window(char *name)
 void templates_load_menus(char *file)
 {
 	menu_definitions = menus_load_templates(file, NULL, NULL, 0);
+
+	if (menu_definitions == NULL)
+		error_msgs_param_report_fatal("MenuLoad:Failed to open menus file: '%0'.", file, NULL, NULL, NULL);
 }
 
 
@@ -163,7 +166,7 @@ wimp_menu *templates_get_menu(char *menu)
 	handle = menus_get_menu(menu_definitions, menu);
 
 	if (handle == NULL)
-		error_msgs_report_fatal("BadMenu");
+		error_msgs_param_report_fatal("BadMenu:Menu template '%0' not found.", menu, NULL, NULL, NULL);
 
 	return handle;
 }
