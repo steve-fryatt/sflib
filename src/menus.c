@@ -135,7 +135,7 @@ menu_template menus_load_templates(char *filename, wimp_w dbox_list[], wimp_menu
 
 	/* collect together pointers to the menus and link the submenus together. */
 
-	menu_block = (*(data + 3) == 0) ? data + 8 : data + 5;
+	menu_block = (*(data + 3) == 0) ? data + 9 : data + 5;
 	menu = 0;
 
 	while ((int) menu_block != -1) {
