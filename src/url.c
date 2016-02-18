@@ -89,7 +89,7 @@ osbool url_initialise(void)
 void url_launch(const char *url)
 {
 	if (!url_antbroadcast(url))
-		error_msgs_report_info("URLFailed");
+		error_msgs_report_info("URLFailed:Failed to launch URL.");
 }
 
 
@@ -223,7 +223,7 @@ static osbool url_bounce(wimp_message *mess)
 		}
 
 		if (!url_antload(buf))
-			error_msgs_report_info("URLFailed");
+			error_msgs_report_info("URLFailed:Failed to launch URL.");
 
 		/* we haven't acknowledged the returnresult message, so the URI
 		 * handler task will automatically free the URI */

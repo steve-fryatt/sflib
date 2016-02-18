@@ -1087,7 +1087,7 @@ static osbool dataxfer_message_ram_transmit(wimp_message *message)
 	if (ramtransmit->xfer_size == descriptor->ram_allocation) {
 		block = dataxfer_memory_handlers->realloc(descriptor->ram_data, descriptor->ram_size + descriptor->ram_allocation);
 		if (block == NULL) {
-			error_msgs_report_error("NoRAMforXFer");
+			error_msgs_report_error("NoRAMforXFer:No RAM for data transfer.");
 			dataxfer_delete_descriptor(descriptor);
 			return TRUE;
 		}
@@ -1290,7 +1290,7 @@ static osbool dataxfer_message_bounced(wimp_message *message)
 			wimp_full_message_data_xfer *dataload = (wimp_full_message_data_xfer *) message;
 
 			xosfscontrol_wipe(dataload->file_name, NONE, 0, 0, 0, 0);
-			error_msgs_report_error("XferFail");
+			error_msgs_report_error("XferFail:Data transfer failed.");
 		}
 
 		dataxfer_delete_descriptor(descriptor);

@@ -434,7 +434,7 @@ static void saveas_immediate_save(struct saveas_block *handle)
 	filename = (handle->selected) ? handle->selection_filename : handle->full_filename;
 
 	if (strchr(filename, '.') == NULL) {
-		error_msgs_report_info("BadSave");
+		error_msgs_report_info("DragSave:To save, enter a full pathname or drag the file to a directory viewer.");
 		return;
 	}
 
