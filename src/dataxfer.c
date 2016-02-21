@@ -1369,8 +1369,6 @@ static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigne
 	if (w == NULL && i != -1)
 		return FALSE;
 
-	debug_printf("\\GAdding new target: target=0x%x, filetype=0x%x, window=0x%x, icon=%d", target, filetype, w, i);
-
 	/* Set up the top-level filetype target. */
 
 	type = dataxfer_incoming_targets;
@@ -1397,10 +1395,6 @@ static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigne
 
 		type->next = dataxfer_incoming_targets;
 		dataxfer_incoming_targets = type;
-
-		debug_printf("Created new type target");
-	} else {
-		debug_printf("Found type target: target=0x%x, filetype=0x%x", type->target, type->filetype);
 	}
 
 	if (w == NULL) {
@@ -1435,10 +1429,6 @@ static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigne
 
 		window->next = type->children;
 		type->children = window;
-
-		debug_printf("Created new window target");
-	} else {
-		debug_printf("Found window target: target=0x%x, filetype=0x%x, window=0x%x", window->target, window->filetype, window->window);
 	}
 
 	if (i == -1) {
@@ -1473,10 +1463,6 @@ static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigne
 
 		icon->next = window->children;
 		window->children = icon;
-
-		debug_printf("Created new icon target");
-	} else {
-		debug_printf("Found icon target: target=0x%x, filetype=0x%x, window=0x%x, icon=%d", icon->target, icon->filetype, icon->window, icon->icon);
 	}
 
 	icon->callback = callback;
@@ -1645,12 +1631,8 @@ static struct dataxfer_incoming_target *dataxfer_find_incoming_target(enum datax
 	while (type != NULL && (type->filetype != filetype || (type->target & target) == DATAXFER_TARGET_NONE))
 		type = type->next;
 
-	debug_printf("Type search complete: type=0x%x", type);
-
 	if (type == NULL)
 		return NULL;
-
-	debug_printf("Type search complete: filetype=0x%x, target=0x%x", type->filetype, type->target);
 
 	/* Now search for a window. */
 
@@ -1659,12 +1641,8 @@ static struct dataxfer_incoming_target *dataxfer_find_incoming_target(enum datax
 	while (w != NULL && window != NULL && (window->window != w || (window->target & target) == DATAXFER_TARGET_NONE))
 		window = window->next;
 
-	debug_printf("Window search complete: window=0x%x", window);
-
 	if (window == NULL)
 		return type;
-
-	debug_printf("Window search complete: handle=0x%x", window->window);
 
 	/* Now search for an icon. */
 

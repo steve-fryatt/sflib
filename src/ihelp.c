@@ -220,8 +220,6 @@ void ihelp_add_menu(wimp_menu *menu, char* name)
 	if (new == NULL)
 		return;
 
-	debug_printf("Added new menu 0x%x as %s", menu, name);
-
 	new->menu = menu;
 	strncpy(new->name, name, OBJECT_NAME_LENGTH);
 	new->name[OBJECT_NAME_LENGTH - 1] = '\0';
@@ -250,8 +248,6 @@ void ihelp_remove_menu(wimp_menu *menu)
 
 	if (*list == NULL)
 		return;
-
-	debug_printf("Deleted old menu 0x%x (was %s)", menu, (*list)->name);
 
 	del = *list;
 
