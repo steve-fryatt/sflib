@@ -1,4 +1,4 @@
-/* Copyright 2003-2014, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -169,6 +169,11 @@ osbool msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, c
 
 	error = xmessagetrans_lookup(message_block, token, buffer, buffer_size, a, b, c, d, NULL, NULL);
 
-	return (error == NULL) ? TRUE : FALSE;
+	if (error != NULL) {
+		*buffer = '\0';
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
