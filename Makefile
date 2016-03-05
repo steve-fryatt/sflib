@@ -190,7 +190,7 @@ release: clean all documentation
 	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(RUNIMAGE) $(HDRDIR) Licence,fff $(README))
 	(cd $(MANUAL) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) html)
 	$(RM) ../$(SRCZIPFILE)
-	$(ZIP) $(SRCZIPFLAGS) ../$(SRCZIPFILE) $(OUTDIR) $(SRCDIR) $(MANUAL)/Doxyfile Makefile
+	$(ZIP) $(SRCZIPFLAGS) ../$(SRCZIPFILE) $(OUTDIR) $(NORCROFTDIR) $(SRCDIR) $(MANUAL)/$(MANSRC) $(MANUAL)/$(MANSRCNC) $(MANUAL)/Doxyfile Makefile
 
 
 # Build a backup Zip file
