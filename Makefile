@@ -143,7 +143,7 @@ $(NORCROFTDIR)/h:
 
 OBJS := $(addprefix $(OBJDIR)/, $(OBJS))
 
-$(OUTDIR)/$(RUNIMAGE): $(OBJS) $(OBJDIR)
+$(OUTDIR)/$(RUNIMAGE): $(OBJS)
 	$(AR) -rcuv $(OUTDIR)/$(RUNIMAGE) $(OBJS)
 
 # Create a folder to hold the object files.
@@ -155,7 +155,7 @@ $(OBJDIR):
 
 -include $(OBJS:.o=.d)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)
 	$(CC) -c $(CCFLAGS) $(INCLUDES) $< -o $@
 	@$(CC) -MM $(CCFLAGS) $(INCLUDES) $< > $(@:.o=.d)
 	@mv -f $(@:.o=.d) $(@:.o=.d).tmp
