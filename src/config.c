@@ -51,6 +51,10 @@
 #include "config.h"
 #include "string.h"
 
+#ifdef __CC_NORCROFT
+#include "strdup.h"
+#endif
+
 #define CONFIG_BOOL_LEN 64
 
 /**

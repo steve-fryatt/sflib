@@ -1,0 +1,3 @@
+Dir <Obey$Dir>
+amu export_hdrs LIBDIR=Export
+amu export_libs LIBDIR=Export THROWBACK=-throwback

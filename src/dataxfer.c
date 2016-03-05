@@ -52,6 +52,10 @@
 #include "event.h"
 #include "general.h"
 
+#ifdef __CC_NORCROFT
+#include "strdup.h"
+#endif
+
 
 /* ==================================================================================================================
  * Global variables.

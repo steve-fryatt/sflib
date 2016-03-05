@@ -1,0 +1,5 @@
+Dir <Obey$Dir>
+amu all_libs THROWBACK=-throwback
+CDir sflib
+Copy h sflib.h ~CFRV
+zip -9 -r ^.^.SFLibAOF/zip Licence o.SFLib ReadMe SetVars sflib.h -x sflib.h.strdup

@@ -92,6 +92,8 @@ MANUAL := manual
 OBJDIR := obj
 OUTDIR := build
 HDRDIR := sflib
+NORCROFTDIR := norcroft
+STRDUP := strdup
 
 
 # Set up the named target files.
@@ -104,6 +106,7 @@ README := ReadMe,fff
 # Set up the source files.
 
 MANSRC := Source
+MANSRCNC := Norcroft
 MANSPR := ManSprite
 
 OBJS := colpick.o config.o dataxfer.o debug.o errors.o event.o		\
@@ -113,13 +116,28 @@ OBJS := colpick.o config.o dataxfer.o debug.o errors.o event.o		\
 
 # Build everything, but don't package it for release.
 
-all: $(OUTDIR)/$(README) library
+all: $(OUTDIR)/$(README) library norcroft
 # Was all: documentation $(OUTDIR)/$(RUNIMAGE)
 
 library: headers $(OUTDIR)/$(RUNIMAGE)
 
 headers: $(OUTDIR)/$(HDRDIR) $(addprefix $(OUTDIR)/$(HDRDIR)/, $(OBJS:.o=.h))
 
+# Assemble the Norcroft version of the library
+
+norcroft: $(NORCROFTDIR)/c $(NORCROFTDIR)/h $(NORCROFTDIR)/$(README) $(addprefix $(NORCROFTDIR)/c/, $(OBJS:.o=) $(STRDUP)) $(addprefix $(NORCROFTDIR)/h/, $(OBJS:.o=) $(STRDUP))
+
+$(NORCROFTDIR)/c/%: $(SRCDIR)/%.c
+	$(CP) $< $@
+
+$(NORCROFTDIR)/h/%: $(SRCDIR)/%.h
+	$(CP) $< $@
+
+$(NORCROFTDIR)/c:
+	$(MKDIR) $(NORCROFTDIR)/c
+
+$(NORCROFTDIR)/h:
+	$(MKDIR) $(NORCROFTDIR)/h
 
 # Build the complete !RunImage from the object files.
 
@@ -161,6 +179,10 @@ documentation:
 $(OUTDIR)/$(README): $(MANUAL)/$(MANSRC)
 	$(MANTOOLS) -MTEXT -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(README) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
 
+$(NORCROFTDIR)/$(README): $(MANUAL)/$(MANSRCNC)
+	$(MANTOOLS) -MTEXT -I$(MANUAL)/$(MANSRCNC) -O$(NORCROFTDIR)/$(README) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
+
+
 # Build the release Zip file.
 
 release: clean all documentation
@@ -195,4 +217,7 @@ clean:
 	$(RM) $(OUTDIR)/$(RUNIMAGE)
 	$(RM) $(OUTDIR)/$(HDRDIR)/*
 	$(RM) $(OUTDIR)/$(README)
+	$(RM) $(NORCROFTDIR)/c/*
+	$(RM) $(NORCROFTDIR)/h/*
+	$(RM) $(NORCROFTDIR)/$(README)
 

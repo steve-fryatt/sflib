@@ -39,9 +39,9 @@ The source for <cite>SFLib</cite> can be found alongside this binary download, a
 
 <cite>SFLib</cite> is a set of C libraries for use with RISC&nbsp;OS software. Supplied mainly to allow my other software to compile, they can also be used in their own right as part of software licensed under the EUPL or one of its &ldquo;compatible licences&rdquo; (such as the GPL&nbsp;v2).
 
-As supplied, the binary is in ELF format suitable for use with recent versions of GCC. To use it with other compilers, it will be necessary to recompile from the sources. Please be aware that the makefile is configured for cross-compilation on a Linux system, and might require modification to be used natively on RISC&nbsp;OS.
+As supplied, the binary is in AOF format suitable for use with the RISC&nbsp;OS Open Desktop Development Environment.
 
-Documentation for the libraries is provided within the header and source files, as well as in the form of output from Doxygen within the HTML folder.
+This archive only contains the C header files and an AOF file of the library itself. For the full library source, documentation and a version in ELF format which can be linked to in GCC, please see the other archives available to download from <link ref="#url http://www.stevefryatt.org.uk/software/build">http://www.stevefryatt.org.uk/software/build</link>
 
 </chapter>
 

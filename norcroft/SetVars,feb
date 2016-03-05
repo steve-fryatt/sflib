@@ -1,0 +1,7 @@
+| SFLib's SetVars
+| Sets the directory and path variables for SFLib.
+Set SFLib$Dir <Obey$Dir>
+
+| The SFLib: path is the presently preferred style for include files;
+| You always need to use this as the link path.
+Set SFLib$Path <SFLib$Dir>.

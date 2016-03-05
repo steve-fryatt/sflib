@@ -38,6 +38,10 @@
 #include "errors.h"
 #include "msgs.h"
 
+#ifdef __CC_NORCROFT
+#include "strdup.h"
+#endif
+
 /* ANSII C header files. */
 
 #include <string.h>
