@@ -203,7 +203,8 @@ $(OUTDIR)/$(HDRDIR)/%.h: $(SRCDIR)/%.h
 # Build the documentation
 
 documentation:
-	doxygen $(MANUAL)/Doxyfile
+	@$(call show-stage,DOXYGEN,$(MANUAL)/Doxyfile)
+	@doxygen $(MANUAL)/Doxyfile
 
 $(OUTDIR)/$(README): $(MANUAL)/$(MANSRC)
 	@$(call show-stage,TEXT MANUAL,$(OUTDIR)/$(README))
