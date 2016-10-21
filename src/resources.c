@@ -107,13 +107,13 @@ osspriteop_area *resources_load_user_sprite_area(char *file)
 
 	object = osfile_read_stamped_no_path(fullfile, NULL, NULL, &size, NULL, (bits *) &type);
 
-	if (object != fileswitch_IS_FILE || type != 0xff9) {
+	if (object != fileswitch_IS_FILE || type != osfile_TYPE_SPRITE) {
 		strncpy(fullfile, file, RESOURCES_MAX_FILENAME);
 		fullfile[RESOURCES_MAX_FILENAME - 1] = '\0';
 		object = osfile_read_stamped_no_path(fullfile, NULL, NULL, &size, NULL, (bits *) &type);
 	}
 
-	if (object != fileswitch_IS_FILE || type != 0xff9)
+	if (object != fileswitch_IS_FILE || type != osfile_TYPE_SPRITE)
 		return NULL;
 
 	size += 4;
