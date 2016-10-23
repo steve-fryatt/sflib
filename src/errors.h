@@ -70,6 +70,22 @@ wimp_error_box_selection error_msgs_report_info(char *token);
 
 /**
  * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_INFO, containg the
+ * message looked up via the given MessageTrans token and the supplied
+ * parameters, and an OK button.
+ *
+ * \param *message		The text of the message.
+  * \param *a			Parameter for %0.
+ * \param *b			Parameter for %1.
+ * \param *c			Parameter for %2.
+ * \param *d			Parameter for %3.
+* \return			The selection made.
+ */
+
+wimp_error_box_selection error_msgs_param_report_info(char *token, char *a, char *b, char *c, char *d);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_INFO, containg the
  * given message and an OK button.
  *
  * \param *message		The text of the message.
@@ -88,6 +104,22 @@ wimp_error_box_selection error_report_info(char *message);
  */
 
 wimp_error_box_selection error_msgs_report_error(char *token);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_ERROR, containg the
+ * message looked up via the given MessageTrans token and the supplied
+ * paramaters, and an OK button.
+ *
+ * \param *message		The text of the message.
+ * \param *a			Parameter for %0.
+ * \param *b			Parameter for %1.
+ * \param *c			Parameter for %2.
+ * \param *d			Parameter for %3.
+ * \return			The selection made.
+ */
+
+wimp_error_box_selection error_msgs_param_report_error(char *token, char *a, char *b, char *c, char *d);
 
 
 /**
@@ -114,6 +146,25 @@ wimp_error_box_selection error_report_error(char *message);
  */
 
 wimp_error_box_selection error_msgs_report_question(char *token, char *buttons);
+
+
+/**
+ * Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_QUESTION, containg the
+ * message looked up via the given MessageTrans token and the supplied parameters,
+ * and either OK and Cancel buttons or buttons as specified in the comma-separated
+ * list contained in the buttons token.
+ *
+ * \param *message		The text of the message.
+ * \param *buttons		A comma-separated list of buttons, or NULL
+ *				to use OK and Cancel.
+ * \param *a			Parameter for %0.
+ * \param *b			Parameter for %1.
+ * \param *c			Parameter for %2.
+ * \param *d			Parameter for %3.
+ * \return			The selection made.
+ */
+
+wimp_error_box_selection error_msgs_param_report_question(char *token, char *buttons, char *a, char *b, char *c, char *d);
 
 
 /**

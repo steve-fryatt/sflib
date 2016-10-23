@@ -149,10 +149,23 @@ wimp_error_box_selection error_report_os_error(os_error *error, wimp_error_box_f
 
 wimp_error_box_selection error_msgs_report_info(char *token)
 {
+	return error_msgs_param_report_info(token, NULL, NULL, NULL, NULL);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_INFO, containg the
+ * message looked up via the given MessageTrans token and the supplied
+ * parameters, and an OK button.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+wimp_error_box_selection error_msgs_param_report_info(char *token, char *a, char *b, char *c, char *d)
+{
 	os_error	error;
 
 	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	msgs_lookup(token, error.errmess, os_ERROR_LIMIT);
+	msgs_param_lookup(token, error.errmess, os_ERROR_LIMIT, a, b, c, d);
 
 	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_INFO, wimp_ERROR_BOX_OK_ICON, NULL);
 }
@@ -182,13 +195,25 @@ wimp_error_box_selection error_report_info(char *message)
  * This is an external interface, documented in errors.h
  */
 
-
 wimp_error_box_selection error_msgs_report_error(char *token)
+{
+	return error_msgs_param_report_error(token, NULL, NULL, NULL, NULL);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_ERROR, containg the
+ * message looked up via the given MessageTrans token and the supplied
+ * paramaters, and an OK button.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+wimp_error_box_selection error_msgs_param_report_error(char *token, char *a, char *b, char *c, char *d)
 {
 	os_error	error;
 
 	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	msgs_lookup(token, error.errmess, os_ERROR_LIMIT);
+	msgs_param_lookup(token, error.errmess, os_ERROR_LIMIT, a, b, c, d);
 
 	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_ERROR, wimp_ERROR_BOX_OK_ICON, NULL);
 }
@@ -222,11 +247,25 @@ wimp_error_box_selection error_report_error(char *message)
 
 wimp_error_box_selection error_msgs_report_question(char *token, char *buttons)
 {
+	return error_msgs_param_report_question(token, buttons, NULL, NULL, NULL, NULL);
+}
+
+
+/* Open a Wimp error box of type wimp_ERROR_BOX_CATEGORY_QUESTION, containg the
+ * message looked up via the given MessageTrans token and the supplied parameters,
+ * and either OK and Cancel buttons or buttons as specified in the comma-separated
+ * list contained in the buttons token.
+ *
+ * This is an external interface, documented in errors.h
+ */
+
+wimp_error_box_selection error_msgs_param_report_question(char *token, char *buttons, char *a, char *b, char *c, char *d)
+{
 	os_error	error;
 	char		button_text[ERROR_BUTTON_LENGTH];
 
 	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	msgs_lookup(token, error.errmess, os_ERROR_LIMIT);
+	msgs_param_lookup(token, error.errmess, os_ERROR_LIMIT, a, b, c, d);
 
 	if (buttons == NULL) {
 		return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION,
