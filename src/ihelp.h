@@ -1,4 +1,4 @@
-/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -30,8 +30,16 @@
 #ifndef SFLIB_IHELP
 #define SFLIB_IHELP
 
+/**
+ * The amount of space allocated for interactive help messages.
+ */
 
 #define IHELP_LENGTH 236
+
+/**
+ * The size of buffer supplied to decode functions for creating icon names.
+ */
+
 #define IHELP_INAME_LEN 64
 
 
