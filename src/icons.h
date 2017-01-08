@@ -1,4 +1,4 @@
-/* Copyright 2003-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -93,6 +93,19 @@ size_t icons_get_indirected_text_length(wimp_w w, wimp_i i);
  */
 
 osbool icons_get_validation_command(char *buffer, size_t length, wimp_w w, wimp_i i, char command);
+
+
+/**
+ * Extract a 'command' from an icon validation string.
+ * 
+ * \param *buffer	Pointer to a buffer to take the returned text.
+ * \param length	The length of the supplied buffer.
+ * \param *validation	Pointer to the validation string to be processed.
+ * \param command	The single character validation command to return.
+ * \return		TRUE if the command code was found; else FALSE.
+ */ 
+
+osbool icons_extract_validation_command(char *buffer, size_t length, char *validation, char command);
 
 
 /**

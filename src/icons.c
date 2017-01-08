@@ -1,4 +1,4 @@
-/* Copyright 2003-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -145,8 +145,26 @@ size_t icons_get_indirected_text_length(wimp_w w, wimp_i i)
 
 osbool icons_get_validation_command(char *buffer, size_t length, wimp_w w, wimp_i i, char command)
 {
+	char		*validation;
+
+	validation = icons_get_validation_addr(w, i);
+
+	if (validation == NULL)
+		return FALSE;
+
+	return icons_extract_validation_command(buffer, length, validation, command);
+}
+
+
+/* Extract a 'command' from an icon validation string.
+ * 
+ * This is an external interface, documented in icons.h
+ */ 
+
+osbool icons_extract_validation_command(char *buffer, size_t length, char *validation, char command)
+{
 	size_t		len;
-	char		*val, *copy, *part;
+	char		*copy, *part;
 	osbool		found = FALSE;
 
 	if (buffer == NULL || length == 0)
@@ -155,18 +173,13 @@ osbool icons_get_validation_command(char *buffer, size_t length, wimp_w w, wimp_
 	*buffer = '\0';
 	command = toupper(command);
 
-	val = icons_get_validation_addr(w, i);
-
-	if (val == NULL)
-		return FALSE;
-
-	len = strlen(val) + 1;
+	len = strlen(validation) + 1;
 	copy = malloc(len);
 
 	if (copy == NULL)
 		return FALSE;
 
-	string_ctrl_strncpy(copy, val, len);
+	string_ctrl_strncpy(copy, validation, len);
 	part = strtok(copy, ";");
 
 	while (part != NULL) {
