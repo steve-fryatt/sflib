@@ -12,4 +12,6 @@ CINCLUDES = -IC:,OSLib:
 
 include CLibrary
 
+C_NO_FNAMES =
+
 # Dynamic dependencies:
