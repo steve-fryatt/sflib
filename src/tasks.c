@@ -85,7 +85,7 @@ osbool tasks_test_for_duplicate(char *task_name, wimp_t handle, char *message, c
 	/* If one is found, offer the user the chance to cancel loading the current version. */
 
 	if (running) {
-		result = error_msgs_param_report_question(message, buttons, task_name, NULL, NULL, NULL)
+		result = error_msgs_param_report_question(message, buttons, task_name, NULL, NULL, NULL);
 
 		if ((buttons == NULL && result == wimp_ERROR_BOX_SELECTED_OK) || (buttons != NULL && result == 3))
 			exit = TRUE;
