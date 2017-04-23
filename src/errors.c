@@ -116,7 +116,7 @@ static wimp_error_box_selection error_wimp_os_report(os_error *error, wimp_error
 
 	if (custom_buttons != NULL && *custom_buttons != '\0') {
 		flags = wimp_ERROR_BOX_GIVEN_CATEGORY | (type << wimp_ERROR_BOX_CATEGORY_SHIFT);
-		click = wimp_report_error_by_category(error, flags, name, sprite, wimpspriteop_AREA, custom_buttons) - 2;
+		click = wimp_report_error_by_category(error, flags, name, sprite, wimpspriteop_AREA, custom_buttons);
 	} else {
 		flags = wimp_ERROR_BOX_GIVEN_CATEGORY | buttons | (type << wimp_ERROR_BOX_CATEGORY_SHIFT);
 		click = wimp_report_error_by_category(error, flags, name, sprite, wimpspriteop_AREA, NULL);

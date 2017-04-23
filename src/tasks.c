@@ -1,4 +1,4 @@
-/* Copyright 2009-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2009-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -73,10 +73,10 @@ osbool tasks_get_running(char *task_name, wimp_t ignore_task)
  * This is an external interface, documented in tasks.h
  */
 
-osbool tasks_test_for_duplicate (char *task_name, wimp_t handle, char *message, char *buttons)
+osbool tasks_test_for_duplicate(char *task_name, wimp_t handle, char *message, char *buttons)
 {
 	osbool			running, exit = FALSE;
-	char			mbuf[1024], bbuf[128];
+	wimp_error_box_selection	result;
 
 	/* Test to see if a task of the given name is running. */
 
@@ -85,10 +85,9 @@ osbool tasks_test_for_duplicate (char *task_name, wimp_t handle, char *message, 
 	/* If one is found, offer the user the chance to cancel loading the current version. */
 
 	if (running) {
-		msgs_param_lookup(message, mbuf, sizeof(mbuf), task_name, NULL, NULL, NULL);
-		msgs_lookup(buttons, bbuf, sizeof(bbuf));
+		result = error_msgs_param_report_question(message, buttons, task_name, NULL, NULL, NULL)
 
-		if (error_report_question(mbuf, bbuf) == 1)
+		if ((buttons == NULL && result == wimp_ERROR_BOX_SELECTED_OK) || (buttons != NULL && result == 3))
 			exit = TRUE;
 	}
 
