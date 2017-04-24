@@ -51,9 +51,9 @@
 #define ERROR_BUTTON_LENGTH 256							/**< The size of the buffer for expanding custom button message tokens.		*/
 
 
-static char			*app_name = NULL;				/**< The application name, as used in error messages.				*/
-static char			*app_sprite = NULL;				/**< The application sprite, as used in error messages.				*/
-static void			(*close_down_function)(void);			/**< Unused.									*/
+static char			*error_app_name = NULL;				/**< The application name, as used in error messages.				*/
+static char			*error_app_sprite = NULL;			/**< The application sprite, as used in error messages.				*/
+static void			(*error_close_down_function)(void);		/**< Unused.									*/
 
 static wimp_error_box_selection		error_wimp_os_report(os_error *error,
 		wimp_error_box_flags type, wimp_error_box_flags buttons, char *custom_buttons);
@@ -69,22 +69,22 @@ void error_initialise(char *name, char *sprite, void (*closedown)(void))
 {
 	char	lookup_buffer[APP_NAME_LOOKUP_LENGTH];
 
-	close_down_function = closedown;
+	error_close_down_function = closedown;
 
 	if (name != NULL) {
-		if (app_name != NULL)
-			free(app_name);
+		if (error_app_name != NULL)
+			free(error_app_name);
 
 		msgs_lookup(name, lookup_buffer, APP_NAME_LOOKUP_LENGTH);
-		app_name = strdup(lookup_buffer);
+		error_app_name = strdup(lookup_buffer);
 	}
 
 	if (sprite != NULL) {
-		if (app_sprite != NULL)
-			free(app_sprite);
+		if (error_app_sprite != NULL)
+			free(error_app_sprite);
 
 		msgs_lookup(sprite, lookup_buffer, APP_NAME_LOOKUP_LENGTH);
-		app_sprite = strdup(lookup_buffer);
+		error_app_sprite = strdup(lookup_buffer);
 	}
 }
 
@@ -111,8 +111,8 @@ static wimp_error_box_selection error_wimp_os_report(os_error *error, wimp_error
 	wimp_error_box_flags		flags;
 	char				*name, *sprite;
 
-	name = (app_name != NULL) ? app_name : "Application";
-	sprite = (app_sprite != NULL) ? app_sprite : "application";
+	name = (error_app_name != NULL) ? error_app_name : "Application";
+	sprite = (error_app_sprite != NULL) ? error_app_sprite : "application";
 
 	if (custom_buttons != NULL && *custom_buttons != '\0') {
 		flags = wimp_ERROR_BOX_GIVEN_CATEGORY | (type << wimp_ERROR_BOX_CATEGORY_SHIFT);
