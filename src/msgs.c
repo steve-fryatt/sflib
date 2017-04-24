@@ -1,4 +1,4 @@
-/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2017, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -162,12 +162,26 @@ osbool msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, c
 	if (buffer == NULL || buffer_size <= 0)
 		return FALSE;
 
+	/* If there's no token, return an empty buffer. */
+
 	if (token == NULL) {
 		*buffer = '\0';
 		return FALSE;
 	}
 
+	/* If there's no message block, instead of using the Global block, return the supplied token. */
+
+	if (message_block == NULL) {
+		strncpy(buffer, token, buffer_size);
+		buffer[buffer_size - 1] = '\0';
+		return FALSE;
+	}
+
+	/* Look up the token. */
+
 	error = xmessagetrans_lookup(message_block, token, buffer, buffer_size, a, b, c, d, NULL, NULL);
+
+	/* If there was an error, return an empty buffer. */
 
 	if (error != NULL) {
 		*buffer = '\0';
