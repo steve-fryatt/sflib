@@ -49,6 +49,7 @@
 
 #define APP_NAME_LOOKUP_LENGTH 256						/**< The size of the buffer used to look up application name tokens.		*/
 #define ERROR_BUTTON_LENGTH 256							/**< The size of the buffer for expanding custom button message tokens.		*/
+#define ERROR_NUMBER 255							/**< The error number used for the report boxes.				*/
 
 
 static char			*error_app_name = NULL;				/**< The application name, as used in error messages.				*/
@@ -57,6 +58,8 @@ static void			(*error_close_down_function)(void);		/**< Unused.									*/
 
 static wimp_error_box_selection		error_wimp_os_report(os_error *error,
 		wimp_error_box_flags type, wimp_error_box_flags buttons, char *custom_buttons);
+static void				error_complete_msgs_block(os_error *error, char *token, char *a, char *b, char *c, char *d);
+static void				error_complete_block(os_error *error, char *message);
 
 
 
@@ -126,6 +129,45 @@ static wimp_error_box_selection error_wimp_os_report(os_error *error, wimp_error
 }
 
 
+/**
+ * Complete an OS Error block using a MessageTrans lookup.
+ *
+ * \param *error		Pointer to the error block to be completed.
+ * \param *token		Pointer to the MessageTrans token for the message.
+ * \param *a			Pointer to the %0 substitution, or NULL.
+ * \param *b			Pointer to the %1 substitution, or NULL.
+ * \param *c			Pointer to the %2 substitution, or NULL.
+ * \param *d			Pointer to the %3 substitution, or NULL.
+ */
+
+static void error_complete_msgs_block(os_error *error, char *token, char *a, char *b, char *c, char *d)
+{
+	if (error == NULL || token == NULL)
+		return;
+
+	error->errnum = ERROR_NUMBER;
+	msgs_param_lookup(token, error->errmess, os_ERROR_LIMIT, a, b, c, d);
+}
+
+
+/**
+ * Complete an OS Error block using a supplied text string.
+ *
+ * \param *error		Pointer to the error block to be completed.
+ * \param *message		Pointer to the string to be used for the message.
+ */
+
+static void error_complete_block(os_error *error, char *message)
+{
+	if (error == NULL || message == NULL)
+		return;
+
+	error->errnum = ERROR_NUMBER;
+	strncpy(error->errmess, message, os_ERROR_LIMIT);
+	error->errmess[os_ERROR_LIMIT - 1] = '\0';
+}
+
+
 /* Display a Wimp error box of type wimp_ERROR_BOX_CATEGORY_ERROR, containing
  * details of the error as contained in an Error Block.
  *
@@ -134,10 +176,10 @@ static wimp_error_box_selection error_wimp_os_report(os_error *error, wimp_error
 
 wimp_error_box_selection error_report_os_error(os_error *error, wimp_error_box_flags buttons)
 {
-	if (error != NULL)
-		return error_wimp_os_report(error, wimp_ERROR_BOX_CATEGORY_ERROR, buttons, NULL);
-	else
+	if (error == NULL)
 		return wimp_ERROR_BOX_SELECTED_NOTHING;
+
+	return error_wimp_os_report(error, wimp_ERROR_BOX_CATEGORY_ERROR, buttons, NULL);
 }
 
 
@@ -164,9 +206,7 @@ wimp_error_box_selection error_msgs_param_report_info(char *token, char *a, char
 {
 	os_error	error;
 
-	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	msgs_param_lookup(token, error.errmess, os_ERROR_LIMIT, a, b, c, d);
-
+	error_complete_msgs_block(&error, token, a, b, c, d);
 	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_INFO, wimp_ERROR_BOX_OK_ICON, NULL);
 }
 
@@ -181,10 +221,7 @@ wimp_error_box_selection error_report_info(char *message)
 {
 	os_error	error;
 
-	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	strncpy(error.errmess, message, os_ERROR_LIMIT);
-	error.errmess[os_ERROR_LIMIT - 1] = '\0';
-
+	error_complete_block(&error, message);
 	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_INFO, wimp_ERROR_BOX_OK_ICON, NULL);
 }
 
@@ -212,9 +249,7 @@ wimp_error_box_selection error_msgs_param_report_error(char *token, char *a, cha
 {
 	os_error	error;
 
-	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	msgs_param_lookup(token, error.errmess, os_ERROR_LIMIT, a, b, c, d);
-
+	error_complete_msgs_block(&error, token, a, b, c, d);
 	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_ERROR, wimp_ERROR_BOX_OK_ICON, NULL);
 }
 
@@ -229,10 +264,7 @@ wimp_error_box_selection error_report_error(char *message)
 {
 	os_error	error;
 
-	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	strncpy(error.errmess, message, os_ERROR_LIMIT);
-	error.errmess[os_ERROR_LIMIT - 1] = '\0';
-
+	error_complete_block(&error, message);
 	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_ERROR, wimp_ERROR_BOX_OK_ICON, NULL);
 }
 
@@ -264,16 +296,13 @@ wimp_error_box_selection error_msgs_param_report_question(char *token, char *but
 	os_error	error;
 	char		button_text[ERROR_BUTTON_LENGTH];
 
-	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	msgs_param_lookup(token, error.errmess, os_ERROR_LIMIT, a, b, c, d);
+	error_complete_msgs_block(&error, token, a, b, c, d);
 
-	if (buttons == NULL) {
-		return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION,
-				wimp_ERROR_BOX_OK_ICON | wimp_ERROR_BOX_CANCEL_ICON, NULL);
-	} else {
+	if (buttons != NULL)
 		msgs_lookup(buttons, button_text, ERROR_BUTTON_LENGTH);
-		return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION, 0, button_text);
-	}
+
+	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION,
+			wimp_ERROR_BOX_OK_ICON | wimp_ERROR_BOX_CANCEL_ICON, (buttons == NULL) ? NULL : button_text);
 }
 
 
@@ -288,15 +317,10 @@ wimp_error_box_selection error_report_question(char *message, char *buttons)
 {
 	os_error	error;
 
-	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	strncpy(error.errmess, message, os_ERROR_LIMIT);
-	error.errmess[os_ERROR_LIMIT - 1] = '\0';
+	error_complete_block(&error, message);
 
-	if (buttons == NULL)
-		return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION,
-				wimp_ERROR_BOX_OK_ICON | wimp_ERROR_BOX_CANCEL_ICON, NULL);
-	else
-		return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION, 0, buttons);
+	return error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_QUESTION,
+			wimp_ERROR_BOX_OK_ICON | wimp_ERROR_BOX_CANCEL_ICON, buttons);
 }
 
 
@@ -327,9 +351,7 @@ void error_msgs_param_report_fatal(char *token, char *a, char *b, char *c, char 
 {
 	os_error	error;
 
-	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	msgs_param_lookup(token, error.errmess, os_ERROR_LIMIT, a, b, c, d);
-
+	error_complete_msgs_block(&error, token, a, b, c, d);
 	error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
 	exit(1);
 }
@@ -347,10 +369,7 @@ void error_report_fatal(char *message)
 {
 	os_error	error;
 
-	error.errnum = 255; /* A dummy error number, which should probably be checked. */
-	strncpy(error.errmess, message, os_ERROR_LIMIT);
-	error.errmess[os_ERROR_LIMIT - 1] = '\0';
-
+	error_complete_block(&error, message);
 	error_wimp_os_report(&error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
 	exit(1);
 }
@@ -364,9 +383,9 @@ void error_report_fatal(char *message)
 
 void error_report_program(os_error *error)
 {
-	if (error != NULL) {
-		error_wimp_os_report(error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
-		exit(1);
-	}
-}
+	if (error == NULL)
+		return;
 
+	error_wimp_os_report(error, wimp_ERROR_BOX_CATEGORY_PROGRAM, wimp_ERROR_BOX_CANCEL_ICON, NULL);
+	exit(1);
+}
