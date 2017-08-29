@@ -48,7 +48,7 @@
  * a null terminator.  If Reporter is not loaded, no characters will be
  * written.
  *
- * This function is an external interface, documented in debug.c.
+ * This function is an external interface, documented in debug.h.
  */
 
 int debug_printf(char *cntrl_string, ...)
