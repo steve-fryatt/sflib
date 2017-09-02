@@ -32,6 +32,7 @@
 #define SFLIB_ICONS
 
 #include <stddef.h>
+#include "oslib/wimp.h"
 
 
 /**
