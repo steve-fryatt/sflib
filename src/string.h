@@ -48,6 +48,20 @@
 char *string_copy(char *dest, char *src, size_t len);
 
 
+/* Perform a string_control_strncpy(), sanity-checking the supplied
+ * pointer details and ensuring that the copy is zero-terminated even if
+ * the source string is longer than the supplied buffer.
+ *
+ * \param *dest		A buffer to hold the copied string.
+ * \param *src		The string to be copied.
+ * \param len		The maximum number of characters to copy.
+ * \return		A pointer to the copy of the string, or NULL
+ *			if the supplied pointers were invalid.
+ */
+
+char *string_control_copy(char *dest, char *src, size_t len);
+
+
 /**
  * Perform an snprintf(), sanity-checking the supplied pointer details
  * and ensuring that the resulting string is zero-terminated even if the
@@ -105,7 +119,7 @@ char *string_ctrl_strncat(char *s1, const char *s2, size_t len);
  * \return		The length of the string, in characters.
  */
 
-int string_ctrl_strlen(char *s);
+size_t string_ctrl_strlen(char *s);
 
 
 /**

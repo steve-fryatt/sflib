@@ -34,6 +34,7 @@
 /* SF-Lib header files. */
 
 #include "general.h"
+#include "string.h"
 
 /* ANSII C header files. */
 
@@ -60,6 +61,27 @@ char *string_copy(char *dest, char *src, size_t len)
 		return NULL;
 
 	ret = strncpy(dest, src, len);
+	dest[len - 1] = '\0';
+
+	return ret;
+}
+
+
+/* Perform a string_control_strncpy(), sanity-checking the supplied
+ * pointer details and ensuring that the copy is zero-terminated even if
+ * the source string is longer than the supplied buffer.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_control_copy(char *dest, char *src, size_t len)
+{
+	char *ret;
+
+	if (dest == NULL || src == NULL || len == 0)
+		return NULL;
+
+	ret = string_ctrl_strncpy(dest, src, len);
 	dest[len - 1] = '\0';
 
 	return ret;
