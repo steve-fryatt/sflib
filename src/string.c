@@ -74,7 +74,7 @@ char *string_copy(char *dest, char *src, size_t len)
  * This is an external interface, documented in string.h
  */
 
-char *string_control_copy(char *dest, char *src, size_t len)
+char *string_ctrl_copy(char *dest, char *src, size_t len)
 {
 	char *ret;
 

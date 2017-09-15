@@ -59,7 +59,7 @@ char *string_copy(char *dest, char *src, size_t len);
  *			if the supplied pointers were invalid.
  */
 
-char *string_control_copy(char *dest, char *src, size_t len);
+char *string_ctrl_copy(char *dest, char *src, size_t len);
 
 
 /**
