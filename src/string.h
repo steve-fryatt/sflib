@@ -32,6 +32,37 @@
 
 #include <stddef.h>
 
+
+/**
+ * Perform a strncpy(), sanity-checking the supplied pointer details and
+ * ensuring that the copy is zero-terminated even if the source string
+ * is longer than the supplied buffer.
+ *
+ * \param *dest		A buffer to hold the copied string.
+ * \param *src		The string to be copied.
+ * \param len		The maximum number of characters to copy.
+ * \return		A pointer to the copy of the string, or NULL
+ *			if the supplied pointers were invalid.
+ */
+
+char *string_copy(char *dest, char *src, size_t len);
+
+
+/**
+ * Perform an snprintf(), sanity-checking the supplied pointer details
+ * and ensuring that the resulting string is zero-terminated even if the
+ * buffer is not long enough to accommodate it.
+ *
+ * \param *str			A buffer to hold the resulting string.
+ * \param len			The length of the supplied buffer.
+ * \param *cntrl_string		A standard printf() formatting string.
+ * \param ...			Additional printf() parameters as required.
+ * \return			The number of characters written, or <0 for error.
+ */
+
+int string_printf(char *str, size_t len, char *cntrl_string, ...);
+
+
 /**
  * Zero-terminate a ctrl-terminated string, overwriting the terminator
  * in the supplied buffer.

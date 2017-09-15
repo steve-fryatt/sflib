@@ -37,10 +37,56 @@
 
 /* ANSII C header files. */
 
+#include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+
+
+/* Perform a strncpy(), sanity-checking the supplied pointer details and
+ * ensuring that the copy is zero-terminated even if the source string
+ * is longer than the supplied buffer.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+char *string_copy(char *dest, char *src, size_t len)
+{
+	char *ret;
+
+	if (dest == NULL || src == NULL || len == 0)
+		return NULL;
+
+	ret = strncpy(dest, src, len);
+	dest[len - 1] = '\0';
+
+	return ret;
+}
+
+
+/* Perform an snprintf(), sanity-checking the supplied pointer details
+ * and ensuring that the resulting string is zero-terminated even if the
+ * buffer is not long enough to accommodate it.
+ *
+ * This is an external interface, documented in string.h
+ */
+
+int string_printf(char *str, size_t len, char *cntrl_string, ...)
+{
+	int		ret;
+	va_list		ap;
+
+	if (str == NULL || cntrl_string == NULL || len == 0)
+		return 0;
+
+	va_start(ap, cntrl_string);
+	ret = vsnprintf(str, len, cntrl_string, ap);
+	str[len - 1] = '\0';
+
+	return ret;
+}
 
 
 /* Zero-terminate a ctrl-terminated string, overwriting the terminator
