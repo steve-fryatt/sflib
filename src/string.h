@@ -31,6 +31,7 @@
 #define SFLIB_STRING
 
 #include <stddef.h>
+#include "oslib/types.h"
 
 
 /**
