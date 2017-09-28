@@ -566,6 +566,17 @@ wimp_menu *event_get_current_menu(void);
 
 
 /**
+ * Read the handle of the window which owns the currently-open menu.
+ *
+ *
+ * \return			The Wimp handle of the window owining the menu which is
+ *				currently open, or NULL if there isn't one.
+ */
+
+wimp_w event_get_current_menu_window(void);
+
+
+/**
  * Change the menu block associated with the current _menu_prepare() callback.
  *
  * \param *menu			The new menu block.

@@ -2049,6 +2049,20 @@ wimp_menu *event_get_current_menu(void)
 }
 
 
+/* Read the handle of the window which owns the currently-open menu.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+wimp_w event_get_current_menu_window(void)
+{
+	if (current_menu == NULL)
+		return NULL;
+
+	return current_menu->w;
+}
+
+
 /**
  * Change the menu block associated with the current _menu_prepare() callback.
  *
