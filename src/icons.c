@@ -681,7 +681,7 @@ void icons_replace_caret_in_window(wimp_w window)
 				 * the original icon than the current 'new_icon'; if so, update the new icon.
 				 */
 
-				for (i=0; i<info->icon_count; i++) {
+				for (i = 0; i < info->icon_count; i++) {
 					type = ((info->icons[i].flags & wimp_ICON_BUTTON_TYPE) >> wimp_ICON_BUTTON_TYPE_SHIFT);
 
 					if ((type == wimp_BUTTON_WRITE_CLICK_DRAG || type == wimp_BUTTON_WRITABLE) &&
@@ -710,7 +710,7 @@ void icons_replace_caret_in_window(wimp_w window)
 			icons_put_caret_at_end(caret.w, wimp_ICON_WINDOW);
 		}
 	} else {
-		icons_put_caret_at_end(caret.w, caret.i);
+		wimp_set_caret_position(caret.w, caret.i, 0, 0, -1, caret.index);
 	}
 }
 
