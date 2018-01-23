@@ -92,9 +92,10 @@ void windows_open_nested(wimp_w w, wimp_w p)
  * This is an external interface, documented in windows.h
  */
 
-void windows_open_nested_as_toolbar(wimp_w w, wimp_w p, int height)
+void windows_open_nested_as_toolbar(wimp_w w, wimp_w p, int height, osbool fixed)
 {
-	wimp_window_state	window, parent;
+	wimp_window_state		window, parent;
+	wimp_window_nesting_flags	flags;
 
 	parent.w = p;
 	wimp_get_window_state(&parent);
@@ -107,14 +108,19 @@ void windows_open_nested_as_toolbar(wimp_w w, wimp_w p, int height)
 	window.visible.y0 = parent.visible.y1 - height;
 	window.visible.y1 = parent.visible.y1;
 
-	window.next = wimp_TOP;
-	wimp_open_window_nested((wimp_open *) &window, p,
-			wimp_CHILD_LINKS_PARENT_VISIBLE_BOTTOM_OR_LEFT << wimp_CHILD_LS_EDGE_SHIFT |
+	flags = wimp_CHILD_LINKS_PARENT_VISIBLE_BOTTOM_OR_LEFT << wimp_CHILD_LS_EDGE_SHIFT |
 			wimp_CHILD_LINKS_PARENT_VISIBLE_TOP_OR_RIGHT << wimp_CHILD_RS_EDGE_SHIFT |
 			wimp_CHILD_LINKS_PARENT_VISIBLE_TOP_OR_RIGHT << wimp_CHILD_TS_EDGE_SHIFT |
 			wimp_CHILD_LINKS_PARENT_VISIBLE_TOP_OR_RIGHT << wimp_CHILD_BS_EDGE_SHIFT |
-			wimp_CHILD_LINKS_PARENT_WORK_AREA << wimp_CHILD_XORIGIN_SHIFT |
-			wimp_CHILD_LINKS_PARENT_VISIBLE_TOP_OR_RIGHT << wimp_CHILD_YORIGIN_SHIFT);
+			wimp_CHILD_LINKS_PARENT_VISIBLE_TOP_OR_RIGHT << wimp_CHILD_YORIGIN_SHIFT;
+
+	if (fixed)
+		flags |= (wimp_CHILD_LINKS_PARENT_VISIBLE_BOTTOM_OR_LEFT << wimp_CHILD_XORIGIN_SHIFT);
+	else
+		flags |= (wimp_CHILD_LINKS_PARENT_WORK_AREA << wimp_CHILD_XORIGIN_SHIFT);
+
+	window.next = wimp_TOP;
+	wimp_open_window_nested((wimp_open *) &window, p, flags);
 }
 
 
@@ -124,9 +130,10 @@ void windows_open_nested_as_toolbar(wimp_w w, wimp_w p, int height)
  * This is an external interface, documented in windows.h
  */
 
-void windows_open_nested_as_footer(wimp_w w, wimp_w p, int height)
+void windows_open_nested_as_footer(wimp_w w, wimp_w p, int height, osbool fixed)
 {
 	wimp_window_state	window, parent;
+	wimp_window_nesting_flags	flags;
 
 	parent.w = p;
 	wimp_get_window_state(&parent);
@@ -139,14 +146,19 @@ void windows_open_nested_as_footer(wimp_w w, wimp_w p, int height)
 	window.visible.y0 = parent.visible.y0;
 	window.visible.y1 = parent.visible.y0 + height;
 
-	window.next = wimp_TOP;
-	wimp_open_window_nested((wimp_open *) &window, p,
-			wimp_CHILD_LINKS_PARENT_VISIBLE_BOTTOM_OR_LEFT << wimp_CHILD_LS_EDGE_SHIFT |
+	flags = wimp_CHILD_LINKS_PARENT_VISIBLE_BOTTOM_OR_LEFT << wimp_CHILD_LS_EDGE_SHIFT |
 			wimp_CHILD_LINKS_PARENT_VISIBLE_TOP_OR_RIGHT << wimp_CHILD_RS_EDGE_SHIFT |
-			wimp_CHILD_LINKS_PARENT_VISIBLE_BOTTOM_OR_LEFT << wimp_CHILD_TS_EDGE_SHIFT |
-			wimp_CHILD_LINKS_PARENT_VISIBLE_BOTTOM_OR_LEFT << wimp_CHILD_BS_EDGE_SHIFT |
-			wimp_CHILD_LINKS_PARENT_WORK_AREA << wimp_CHILD_XORIGIN_SHIFT |
-			wimp_CHILD_LINKS_PARENT_VISIBLE_BOTTOM_OR_LEFT << wimp_CHILD_YORIGIN_SHIFT);
+			wimp_CHILD_LINKS_PARENT_VISIBLE_TOP_OR_RIGHT << wimp_CHILD_TS_EDGE_SHIFT |
+			wimp_CHILD_LINKS_PARENT_VISIBLE_TOP_OR_RIGHT << wimp_CHILD_BS_EDGE_SHIFT |
+			wimp_CHILD_LINKS_PARENT_VISIBLE_TOP_OR_RIGHT << wimp_CHILD_YORIGIN_SHIFT;
+
+	if (fixed)
+		flags |= (wimp_CHILD_LINKS_PARENT_VISIBLE_BOTTOM_OR_LEFT << wimp_CHILD_XORIGIN_SHIFT);
+	else
+		flags |= (wimp_CHILD_LINKS_PARENT_WORK_AREA << wimp_CHILD_XORIGIN_SHIFT);
+
+	window.next = wimp_TOP;
+	wimp_open_window_nested((wimp_open *) &window, p, flags);
 }
 
 

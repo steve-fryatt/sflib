@@ -68,9 +68,10 @@ void windows_open_nested(wimp_w w, wimp_w p);
  * \param w		The child, pane window to be opened.
  * \param p		The parent window, which should already be open.
  * \param height	The height of the pane window.
+ * \param fixed		TRUE to fix the horizontal scroll of the pane.
  */
 
-void windows_open_nested_as_toolbar(wimp_w w, wimp_w p, int height);
+void windows_open_nested_as_toolbar(wimp_w w, wimp_w p, int height, osbool fixed);
 
 
 /**
@@ -80,9 +81,10 @@ void windows_open_nested_as_toolbar(wimp_w w, wimp_w p, int height);
  * \param w		The child, pane window to be opened.
  * \param p		The parent window, which should already be open.
  * \param height	The height of the pane window.
+ * \param fixed		TRUE to fix the horizontal scroll of the pane.
  */
 
-void windows_open_nested_as_footer(wimp_w w, wimp_w p, int height);
+void windows_open_nested_as_footer(wimp_w w, wimp_w p, int height, osbool fixed);
 
 
 /**
