@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2019, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -52,7 +52,7 @@ int general_mode_width(void)
 	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_XWIND_LIMIT, &width);
 	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_XEIG_FACTOR, &shift);
 
-	return (width << shift);
+	return ((width + 1) << shift);
 }
 
 /* Return the height in OS units of the current screen mode.
@@ -67,6 +67,6 @@ int general_mode_height(void)
 	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_YWIND_LIMIT, &height);
 	os_read_mode_variable(os_CURRENT_MODE, os_MODEVAR_YEIG_FACTOR, &shift);
 
-	return (height << shift);
+	return ((height + 1) << shift);
 }
 
