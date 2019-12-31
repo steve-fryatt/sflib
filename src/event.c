@@ -478,10 +478,12 @@ static osbool event_process_mouse_click(wimp_pointer *pointer)
 		return FALSE;
 
 	win = event_find_window(pointer->w);
+	if (win == NULL)
+		return FALSE;
 
 	/* It's a menu click, and we have a window menu registered. */
 
-	if (win != NULL && pointer->buttons == wimp_CLICK_MENU && win->menu != NULL) {
+	if (pointer->buttons == wimp_CLICK_MENU && win->menu != NULL) {
 		new_client_menu = NULL;
 		if (win->menu_prepare != NULL)
 			(win->menu_prepare)(win->w, win->menu, pointer);
@@ -498,9 +500,6 @@ static osbool event_process_mouse_click(wimp_pointer *pointer)
 		event_set_current_menu(menu);
 		return TRUE;
 	}
-
-	if (win == NULL)
-		return FALSE;
 
 	/* Try to process an icon handler. */
 
