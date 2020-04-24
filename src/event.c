@@ -700,6 +700,10 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 	if (current_menu->menu_selection != NULL)
 		(current_menu->menu_selection)(current_menu->w, menu, selection);
 
+	/* If the client deletes itself as part of the menu_selection() callback,
+	 * there isn't anything else to be done as current_menu is no longer valid.
+	 */
+
 	if (current_menu == NULL)
 		return TRUE;
 
