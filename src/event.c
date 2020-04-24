@@ -700,6 +700,9 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 	if (current_menu->menu_selection != NULL)
 		(current_menu->menu_selection)(current_menu->w, menu, selection);
 
+	if (current_menu == NULL)
+		return TRUE;
+
 	if (pointer.buttons == wimp_CLICK_ADJUST) {
 		new_client_menu = NULL;
 		if (current_menu->menu_prepare != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
@@ -1617,8 +1620,14 @@ void event_delete_window(wimp_w w)
 				parent->next = block->next;
 		}
 
-		if (block == current_menu)
+		if (block == current_menu) {
 			current_menu = NULL;
+			current_menu_type = EVENT_MENU_NONE;
+			current_menu_icon = NULL;
+			current_menu_action = NULL;
+			event_clear_current_menu(current_menu->menu);
+		}
+
 		free(block);
 	}
 }
