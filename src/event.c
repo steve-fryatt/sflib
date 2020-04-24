@@ -1,4 +1,4 @@
-/* Copyright 2010-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2010-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
