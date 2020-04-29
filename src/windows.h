@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -276,6 +276,10 @@ void windows_redraw(wimp_w w);
  * Load a window template into memory from the currently open template file,
  * storing the details in a newly malloc()'d block.  The block should be released
  * after use with free() if no longer required.
+ * 
+ * *name is assumed to point to 12 bytes of word-aligned memory if it contains
+ * a wildcarded name. If it does not contain a wildcard, it can simply be a
+ * pointer to a string, based on the current Wimp implementation.
  *
  * \param *name		The name of the template to load.
  * \return		Pointer to the window definition, or NULL on failure.
