@@ -1,4 +1,4 @@
-/* Copyright 2003-2017, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -229,6 +229,10 @@ int icons_printf(wimp_w w, wimp_i i, char *cntrl_string, ...)
 			(icon.icon.data.indirected_sprite.size == 0))
 		return 0;
 
+	if (icon.icon.data.indirected_text.text == NULL ||
+			icon.icon.data.indirected_text.size <= 0)
+		return 0;
+
 	va_start(ap, cntrl_string);
 	ret = vsnprintf(icon.icon.data.indirected_text.text,
 				icon.icon.data.indirected_text.size,
@@ -259,6 +263,10 @@ char *icons_strncpy(wimp_w w, wimp_i i, char *s)
 
 	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) !=
 			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
+		return NULL;
+
+	if (icon.icon.data.indirected_text.text == NULL ||
+			icon.icon.data.indirected_text.size <= 0)
 		return NULL;
 
 	strncpy(icon.icon.data.indirected_text.text, s,

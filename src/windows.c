@@ -390,6 +390,10 @@ int windows_title_printf(wimp_w w, char *cntrl_string, ...)
 			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
 		return 0;
 
+	if (window.title_data.indirected_text.text == NULL ||
+			window.title_data.indirected_text.size <= 0)
+		return 0;
+
 	va_start(ap, cntrl_string);
 	ret = vsnprintf(window.title_data.indirected_text.text,
 				window.title_data.indirected_text.size,
@@ -419,6 +423,10 @@ char *windows_title_strncpy(wimp_w w, char *s)
 
 	if ((window.title_flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) !=
 			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
+		return NULL;
+
+	if (window.title_data.indirected_text.text == NULL ||
+			window.title_data.indirected_text.size <= 0)
 		return NULL;
 
 	strncpy(window.title_data.indirected_text.text, s,
@@ -550,9 +558,11 @@ wimp_window *windows_load_template(char *name)
 {
 	wimp_window	*window_def = NULL;
 	byte		*ind_data = NULL;
-	int		def_size, ind_size;
+	int		def_size, ind_size, context = 0;
+	os_error	*error;
 
-	if (wimp_load_template(wimp_GET_SIZE, 0, 0, wimp_NO_FONTS, name, 0, &def_size, &ind_size) == 0)
+	error = xwimp_load_template(wimp_GET_SIZE, 0, 0, wimp_NO_FONTS, name, 0, &def_size, &ind_size, &context);
+	if (error != NULL || context == 0)
 		return NULL;
 
 	window_def = malloc(def_size);
@@ -567,7 +577,15 @@ wimp_window *windows_load_template(char *name)
 		return NULL;
 	}
 
-	wimp_load_template(window_def, (char *) ind_data, (char const *) ind_data+ind_size, wimp_NO_FONTS, name, 0, NULL, NULL);
+	error = xwimp_load_template(window_def, (char *) ind_data, (char const *) ind_data+ind_size, wimp_NO_FONTS, name, 0, NULL, NULL, &context);
+	if (error != NULL || context == 0) {
+		if (window_def != NULL)
+			free(window_def);
+		if (ind_data != NULL)
+			free(ind_data);
+
+		return NULL;
+	}
 
 	return window_def;
 }
