@@ -174,17 +174,21 @@ void windows_open_centred_at_pointer(wimp_w w, wimp_pointer *p)
 
 	window.w = w;
 	wimp_get_window_state(&window);
-	width = window.visible.x1 - window.visible.x0;
-	height = window.visible.y1 - window.visible.y0;
 
-	window.visible.x0 = p->pos.x - (width / 2);
-	window.visible.y0 = p->pos.y - (height / 2);
+	if ((window.flags & wimp_WINDOW_OPEN) == 0) {
+		width = window.visible.x1 - window.visible.x0;
+		height = window.visible.y1 - window.visible.y0;
 
-	if (window.visible.y0 < sf_ICONBAR_HEIGHT)
-		window.visible.y0 = sf_ICONBAR_HEIGHT;
+		window.visible.x0 = p->pos.x - (width / 2);
+		window.visible.y0 = p->pos.y - (height / 2);
 
-	window.visible.x1 = window.visible.x0 + width;
-	window.visible.y1 = window.visible.y0 + height;
+		if (window.visible.y0 < sf_ICONBAR_HEIGHT)
+			window.visible.y0 = sf_ICONBAR_HEIGHT;
+
+		window.visible.x1 = window.visible.x0 + width;
+		window.visible.y1 = window.visible.y0 + height;
+	}
+
 	window.next = wimp_TOP;
 	wimp_open_window((wimp_open *) &window);
 }
@@ -202,17 +206,21 @@ void windows_open_centred_on_screen(wimp_w w)
 
 	window.w = w;
 	wimp_get_window_state(&window);
-	width = window.visible.x1 - window.visible.x0;
-	height = window.visible.y1 - window.visible.y0;
 
-	window.visible.x0 = (general_mode_width() - width) / 2;
-	window.visible.y0 = (general_mode_height() - height) / 2;
+	if ((window.flags & wimp_WINDOW_OPEN) == 0) {
+		width = window.visible.x1 - window.visible.x0;
+		height = window.visible.y1 - window.visible.y0;
 
-	if (window.visible.y0 < sf_ICONBAR_HEIGHT)
-		window.visible.y0 = sf_ICONBAR_HEIGHT;
+		window.visible.x0 = (general_mode_width() - width) / 2;
+		window.visible.y0 = (general_mode_height() - height) / 2;
 
-	window.visible.x1 = window.visible.x0 + width;
-	window.visible.y1 = window.visible.y0 + height;
+		if (window.visible.y0 < sf_ICONBAR_HEIGHT)
+			window.visible.y0 = sf_ICONBAR_HEIGHT;
+
+		window.visible.x1 = window.visible.x0 + width;
+		window.visible.y1 = window.visible.y0 + height;
+	}
+
 	window.next = wimp_TOP;
 	wimp_open_window((wimp_open *) &window);
 }
@@ -251,17 +259,20 @@ void windows_open_with_pane_centred_at_pointer(wimp_w parent_handle, wimp_w pane
 
 	parent.w = parent_handle;
 	wimp_get_window_state(&parent);
-	width = parent.visible.x1 - parent.visible.x0;
-	height = parent.visible.y1 - parent.visible.y0;
 
-	parent.visible.x0 = p->pos.x - (width / 2);
-	parent.visible.y0 = p->pos.y - (height / 2);
+	if ((parent.flags & wimp_WINDOW_OPEN) == 0) {
+		width = parent.visible.x1 - parent.visible.x0;
+		height = parent.visible.y1 - parent.visible.y0;
 
-	if (parent.visible.y0 < sf_ICONBAR_HEIGHT)
-		parent.visible.y0 = sf_ICONBAR_HEIGHT;
+		parent.visible.x0 = p->pos.x - (width / 2);
+		parent.visible.y0 = p->pos.y - (height / 2);
 
-	parent.visible.x1 = parent.visible.x0 + width;
-	parent.visible.y1 = parent.visible.y0 + height;
+		if (parent.visible.y0 < sf_ICONBAR_HEIGHT)
+			parent.visible.y0 = sf_ICONBAR_HEIGHT;
+
+		parent.visible.x1 = parent.visible.x0 + width;
+		parent.visible.y1 = parent.visible.y0 + height;
+	}
 
 	parent.next = wimp_TOP;
 	wimp_open_window((wimp_open *) &parent);
