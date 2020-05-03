@@ -96,33 +96,58 @@ void resources_find_path(char *path, size_t size)
 
 osspriteop_area *resources_load_user_sprite_area(char *file)
 {
-	int			size, type;
+	int			size;
+	bits			type;
 	fileswitch_object_type	object;
 	osspriteop_area		*area;
-	char			*suffix, fullfile[RESOURCES_MAX_FILENAME];
+	char			*suffix, full_file[RESOURCES_MAX_FILENAME];
+	os_error		*error;
+
+	if (file == NULL)
+		return NULL;
+
+	/* Identify the current mode sprite suffix. */
 
 	suffix = wimpreadsysinfo_sprite_suffix();
-	snprintf(fullfile, RESOURCES_MAX_FILENAME, "%s%s", file, suffix);
-	fullfile[RESOURCES_MAX_FILENAME - 1] = '\0';
+	snprintf(full_file, RESOURCES_MAX_FILENAME, "%s%s", file, suffix);
+	full_file[RESOURCES_MAX_FILENAME - 1] = '\0';
 
-	object = osfile_read_stamped_no_path(fullfile, NULL, NULL, &size, NULL, (bits *) &type);
+	/* Check for a suffixed sprite file. */
+
+	object = osfile_read_stamped_no_path(full_file, NULL, NULL, &size, NULL, &type);
+
+	/* If not found, check for an un-suffixed sprite file. */
 
 	if (object != fileswitch_IS_FILE || type != osfile_TYPE_SPRITE) {
-		strncpy(fullfile, file, RESOURCES_MAX_FILENAME);
-		fullfile[RESOURCES_MAX_FILENAME - 1] = '\0';
-		object = osfile_read_stamped_no_path(fullfile, NULL, NULL, &size, NULL, (bits *) &type);
+		strncpy(full_file, file, RESOURCES_MAX_FILENAME);
+		full_file[RESOURCES_MAX_FILENAME - 1] = '\0';
+		object = osfile_read_stamped_no_path(full_file, NULL, NULL, &size, NULL, &type);
 	}
+
+	/* If neither found, exit. */
 
 	if (object != fileswitch_IS_FILE || type != osfile_TYPE_SPRITE)
 		return NULL;
 
-	size += 4;
+	/* Allocate the sprite area memory. */
+
+	size += sizeof(int);
 	area = malloc(size);
+	if (area == NULL)
+		return NULL;
+
+	/* Initialise the sprite area. */
+
 	area->size = size;
 	area->first = 16;
 
-	osspriteop_load_sprite_file(osspriteop_NAME, area, fullfile);
+	/* Load the sprite file into the area. */
+
+	error = xosspriteop_load_sprite_file(osspriteop_USER_AREA, area, full_file);
+	if (error != NULL) {
+		free(area);
+		return NULL;
+	}
 
 	return area;
 }
-
