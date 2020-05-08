@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -352,7 +352,8 @@ wimp_menu *menus_create_iconbar_menu(wimp_menu *menu, wimp_pointer *pointer)
 			lines++;
 	} while ((menu->entries[entry++].menu_flags & wimp_MENU_LAST) == 0);
 
-	wimp_create_menu(menu, pointer->pos.x - 64, 96 + (entries * (menu->height + menu->gap)) + (lines * 24));
+	wimp_create_menu(menu, pointer->pos.x - 64,
+			96 + (entries * (menu->height + menu->gap)) + (lines * wimp_MENU_ITEM_SEPARATION));
 
 	return menu;
 }
