@@ -120,7 +120,11 @@ menu_template menus_load_templates(char *filename, wimp_w dbox_list[], wimp_menu
 	if (data == NULL)
 		return data;
 
-	osfile_load_stamped_no_path(filename, (byte *) data, NULL, NULL, NULL, NULL);
+	error = xosfile_load_stamped_no_path(filename, (byte *) data, NULL, NULL, NULL, NULL, NULL);
+	if (error != NULL) {
+		free(data);
+		return NULL;
+	}
 
 	/* Insert the dialogue box pointers.
 	 *
@@ -326,7 +330,8 @@ wimp_menu *menus_create_standard_menu(wimp_menu *menu, wimp_pointer *pointer)
 	if (menu == NULL || pointer == NULL)
 		return NULL;
 
-	wimp_create_menu(menu, pointer->pos.x - 64, pointer->pos.y);
+	if (xwimp_create_menu(menu, pointer->pos.x - 64, pointer->pos.y) != NULL)
+		return NULL;
 
 	return menu;
 }
@@ -352,8 +357,9 @@ wimp_menu *menus_create_iconbar_menu(wimp_menu *menu, wimp_pointer *pointer)
 			lines++;
 	} while ((menu->entries[entry++].menu_flags & wimp_MENU_LAST) == 0);
 
-	wimp_create_menu(menu, pointer->pos.x - 64,
-			96 + (entries * (menu->height + menu->gap)) + (lines * wimp_MENU_ITEM_SEPARATION));
+	if (xwimp_create_menu(menu, pointer->pos.x - 64,
+			96 + (entries * (menu->height + menu->gap)) + (lines * wimp_MENU_ITEM_SEPARATION)) != NULL)
+		return NULL;
 
 	return menu;
 }
@@ -381,8 +387,9 @@ wimp_menu *menus_create_popup_menu(wimp_menu *menu, wimp_pointer *pointer)
 	icon.i = pointer->i;
 	wimp_get_icon_state(&icon);
 
-	wimp_create_menu(menu, window.visible.x0 + icon.icon.extent.x1 - window.xscroll,
-			window.visible.y1 + icon.icon.extent.y1 - window.yscroll);
+	if (xwimp_create_menu(menu, window.visible.x0 + icon.icon.extent.x1 - window.xscroll,
+			window.visible.y1 + icon.icon.extent.y1 - window.yscroll) != NULL)
+		return NULL;
 
 	return menu;
 }
