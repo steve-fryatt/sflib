@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -41,6 +41,7 @@
 
 #define sf_MAX_CONFIG_NAME 32							/**< The maximum length of a config value name.		*/
 #define sf_MAX_CONFIG_STR  1024							/**< The maximum length of a textual config value.	*/
+#define sf_MAX_CONFIG_FILE_BUFFER 1024						/**< The maximum size of a file load buffer.		*/
 
 enum config_read_status {
 	sf_CONFIG_READ_EOF = 0,							/**< Nothing returned; End Of File.			*/

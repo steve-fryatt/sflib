@@ -452,7 +452,7 @@ void config_find_save_file(char *file, size_t len, char *leaf)
 
 osbool config_load(void)
 {
-	char		file[1024], token[1024], contents[1024];
+	char		file[sf_MAX_CONFIG_FILE_BUFFER], token[sf_MAX_CONFIG_FILE_BUFFER], contents[sf_MAX_CONFIG_FILE_BUFFER];
 	FILE		*in;
 
 
@@ -577,8 +577,8 @@ osbool config_restore_default(void)
  * sf_CONFIG_READ_VALUE_RETURNED.  New sections are returned with the first
  * token in the section.
  *
- * No buffer overrun protection is performed.  Ensure *token, *value and *section
- * are large enough.
+ * Supplied buffers are assumed to be sf_MAX_CONFIG_FILE_BUFFER bytes long. Ensure
+ * that *token, *value and *section are large enough.
  *
  * \param *file		The file to read from.
  * \param *token	Pointer to buffer to hold a token name.
@@ -589,7 +589,7 @@ osbool config_restore_default(void)
 
 enum config_read_status config_read_token_pair(FILE *file, char *token, char *value, char *section)
 {
-	char				line[1024], *stripped_line, *a, *b;
+	char				line[sf_MAX_CONFIG_FILE_BUFFER], *stripped_line, *a, *b;
 	enum config_read_status		result = sf_CONFIG_READ_EOF;
 	osbool				read = FALSE;
 
@@ -597,14 +597,14 @@ enum config_read_status config_read_token_pair(FILE *file, char *token, char *va
 	if (file == NULL)
 		return result;
 
-	while (!read && (fgets(line, sizeof(line), file) != NULL)) {
+	while (!read && (fgets(line, sf_MAX_CONFIG_FILE_BUFFER, file) != NULL)) {
 		if (*line != '#') {
 			stripped_line = string_strip_surrounding_whitespace(line);
 
 			if (string_wildcard_compare("[*]", stripped_line, 1)) {
 				*strrchr(stripped_line, ']') = '\0';
 				if (section != NULL)
-					strcpy(section, stripped_line + 1);
+					string_copy(section, stripped_line + 1, sf_MAX_CONFIG_FILE_BUFFER);
 				result = sf_CONFIG_READ_NEW_SECTION;
 			} else {
 				a = NULL;
@@ -615,7 +615,7 @@ enum config_read_status config_read_token_pair(FILE *file, char *token, char *va
 					*b++ = '\0';
 
 					if (token != NULL)
-						strcpy(token, a);
+						string_copy(token, a, sf_MAX_CONFIG_FILE_BUFFER);
 
 					if (value != NULL) {
 						/* Remove external whitespace and enclosing quotes if presnt. */
@@ -627,7 +627,7 @@ enum config_read_status config_read_token_pair(FILE *file, char *token, char *va
 							*(strchr(b, '\0')-1) = '\0';
 						}
 
-						strcpy(value, b);
+						string_copy(value, b, sf_MAX_CONFIG_FILE_BUFFER);
 					}
 
 					if (result != sf_CONFIG_READ_NEW_SECTION)
