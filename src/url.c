@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -48,6 +48,7 @@
 #include "errors.h"
 #include "event.h"
 #include "general.h"
+#include "string.h"
 
 /* ANSII C header files. */
 
@@ -143,8 +144,7 @@ static osbool url_antload(const char *url)
 	if (off == NULL)
 		return FALSE;
 
-	strncpy(buf, "Alias$URLOpen_", URL_BUFFER_LENGTH);
-	buf[URL_BUFFER_LENGTH - 1] = '\0';
+	string_copy(buf, "Alias$URLOpen_", URL_BUFFER_LENGTH);
 
 	prefix_length = strlen(buf);
 	suffix_length = off - url;

@@ -1,4 +1,4 @@
-/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -169,8 +169,7 @@ int config_opt_init(char *name, osbool value)
 	if (new == NULL)
 		return FALSE;
 
-	strncpy(new->name, name, sf_MAX_CONFIG_NAME);
-	new->name[sf_MAX_CONFIG_NAME - 1] = '\0';
+	string_copy(new->name, name, sf_MAX_CONFIG_NAME);
 	new->initial = value;
 	new->value = value;
 
@@ -256,8 +255,7 @@ osbool config_int_init(char *name, int value)
 	if (new == NULL)
 		return FALSE;
 
-	strncpy(new->name, name, sf_MAX_CONFIG_NAME);
-	new->name[sf_MAX_CONFIG_NAME - 1] = '\0';
+	string_copy(new->name, name, sf_MAX_CONFIG_NAME);
 	new->initial = value;
 	new->value = value;
 
@@ -343,12 +341,9 @@ osbool config_str_init(char *name, char *value)
 	if (new == NULL)
 		return FALSE;
 
-	strncpy(new->name, name, sf_MAX_CONFIG_NAME);
-	new->name[sf_MAX_CONFIG_NAME - 1] = '\0';
-	strncpy(new->initial, value, sf_MAX_CONFIG_STR);
-	new->initial[sf_MAX_CONFIG_STR - 1] = '\0';
-	strncpy(new->value, value, sf_MAX_CONFIG_STR);
-	new->value[sf_MAX_CONFIG_STR - 1] = '\0';
+	string_copy(new->name, name, sf_MAX_CONFIG_NAME);
+	string_copy(new->initial, value, sf_MAX_CONFIG_STR);
+	string_copy(new->value, value, sf_MAX_CONFIG_STR);
 
 	new->next = str_list;
 	str_list = new;
@@ -373,8 +368,7 @@ osbool config_str_set(char *name, char *value)
 	if (option == NULL)
 		return FALSE;
 
-	strncpy(option->value, value, sf_MAX_CONFIG_STR);
-	option->value[sf_MAX_CONFIG_STR - 1] = '\0';
+	string_copy(option->value, value, sf_MAX_CONFIG_STR);
 
 	return TRUE;
 }
@@ -410,12 +404,10 @@ char *config_str_read(char *name)
 
 void config_find_load_file(char *file, size_t len, char *leaf)
 {
-	snprintf(file, len, "Choices:%s.%s", choices_dir, leaf);
-	file[len - 1] = '\0';
+	string_printf(file, len, "Choices:%s.%s", choices_dir, leaf);
 
 	if (osfile_read_no_path(file, NULL, NULL, NULL, NULL) != fileswitch_IS_FILE) {
-		snprintf(file, len, "%s.%s", local_dir, leaf);
-		file[len - 1] = '\0';
+		string_printf(file, len, "%s.%s", local_dir, leaf);
 		if (osfile_read_no_path (file, NULL, NULL, NULL, NULL) != fileswitch_IS_FILE)
 			*file = '\0';
 	}
@@ -440,16 +432,13 @@ void config_find_save_file(char *file, size_t len, char *leaf)
 	os_read_var_val_size("Choices$Write", 0, os_VARTYPE_STRING, &var_len, NULL);
 
 	if (var_len == 0) {
-		snprintf(file, len, "%s.%s", local_dir, leaf);
-		file[len - 1] = '\0';
+		string_printf(file, len, "%s.%s", local_dir, leaf);
 	} else {
-		snprintf(file, len, "<Choices$Write>.%s", choices_dir);
-		file[len - 1] = '\0';
+		string_printf(file, len, "<Choices$Write>.%s", choices_dir);
 		if (osfile_read_no_path(file, NULL, NULL, NULL, NULL) == fileswitch_NOT_FOUND)
 			osfile_create_dir(file, 0);
 
-		snprintf(file, len, "<Choices$Write>.%s.%s", choices_dir, leaf);
-		file[len - 1] = '\0';
+		string_printf(file, len, "<Choices$Write>.%s.%s", choices_dir, leaf);
 	}
 }
 
@@ -714,10 +703,8 @@ osbool config_read_opt_string(char *str)
 {
 	char		line[CONFIG_BOOL_LEN];
 
-	strncpy(line, str, CONFIG_BOOL_LEN);
-	line[CONFIG_BOOL_LEN - 1] = '\0';
+	string_copy(line, str, CONFIG_BOOL_LEN);
 	string_tolower(line);
 
 	return (strcmp(line, "yes") == 0 || strcmp(line, "true") == 0 || strcmp(line, "on") == 0) ? TRUE : FALSE;
 }
-

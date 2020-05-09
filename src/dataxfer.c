@@ -1,4 +1,4 @@
-/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -51,6 +51,7 @@
 #include "errors.h"
 #include "event.h"
 #include "general.h"
+#include "string.h"
 
 #ifdef __CC_NORCROFT
 #include "strdup.h"
@@ -543,8 +544,7 @@ osbool dataxfer_start_save(wimp_pointer *pointer, char *name, int size, bits typ
 	message.est_size = size;
 	message.file_type = type;
 
-	strncpy(message.file_name, name, 212);
-	message.file_name[211] = '\0';
+	string_copy(message.file_name, name, 212);
 
 	error = xwimp_send_message_to_window(wimp_USER_MESSAGE_RECORDED, (wimp_message *) &message, pointer->w, pointer->i, &(descriptor->task));
 	if (error != NULL) {
@@ -606,8 +606,7 @@ osbool dataxfer_start_load(wimp_pointer *pointer, char *name, int size, bits typ
 	message.est_size = size;
 	message.file_type = type;
 
-	strncpy(message.file_name, name, 212);
-	message.file_name[211] = '\0';
+	string_copy(message.file_name, name, 212);
 
 	error = xwimp_send_message_to_window(wimp_USER_MESSAGE_RECORDED, (wimp_message *) &message, pointer->w, pointer->i, &(descriptor->task));
 	if (error != NULL) {
@@ -703,8 +702,7 @@ static osbool dataxfer_message_datarequest(wimp_message *message)
 	xferblock->est_size = clipboard_size;
 	xferblock->file_type = clipboard_type;
 
-	strncpy(xferblock->file_name, DATAXFER_CLIPBOARD_NAME, 212);
-	xferblock->file_name[211] = '\0';
+	string_copy(xferblock->file_name, DATAXFER_CLIPBOARD_NAME, 212);
 
 	error = xwimp_send_message_to_window(wimp_USER_MESSAGE_RECORDED, (wimp_message *) xferblock, xferblock->w, xferblock->i, &(descriptor->task));
 	if (error != NULL) {
@@ -991,8 +989,7 @@ static osbool dataxfer_message_data_save(wimp_message *message)
 	datasave->action = message_DATA_SAVE_ACK;
 	if (data_unsafe)
 		datasave->est_size = -1;
-	strncpy(datasave->file_name, descriptor->intermediate_filename, 212);
-	datasave->file_name[211] = '\0';
+	string_copy(datasave->file_name, descriptor->intermediate_filename, 212);
 	datasave->size = WORDALIGN(45 + strlen(datasave->file_name));
 
 	error = xwimp_send_message(wimp_USER_MESSAGE_RECORDED, (wimp_message *) datasave, datasave->sender);
@@ -1045,8 +1042,7 @@ static osbool dataxfer_message_ram_fetch_bounced(wimp_message *message)
 	descriptor->saved_message->your_ref = descriptor->saved_message->my_ref;
 	descriptor->saved_message->action = message_DATA_SAVE_ACK;
 	descriptor->saved_message->est_size = -1;
-	strncpy(descriptor->saved_message->file_name, descriptor->intermediate_filename, 212);
-	descriptor->saved_message->file_name[211] = '\0';
+	string_copy(descriptor->saved_message->file_name, descriptor->intermediate_filename, 212);
 	descriptor->saved_message->size = WORDALIGN(45 + strlen(descriptor->saved_message->file_name));
 
 	error = xwimp_send_message(wimp_USER_MESSAGE, (wimp_message *) descriptor->saved_message, descriptor->saved_message->sender);

@@ -1,4 +1,4 @@
-/* Copyright 2003-2017, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -40,6 +40,7 @@
 /* SF-Lib header files. */
 
 #include "msgs.h"
+#include "string.h"
 
 /* ANSII C header files. */
 
@@ -172,8 +173,7 @@ osbool msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, c
 	/* If there's no message block, instead of using the Global block, return the supplied token. */
 
 	if (message_block == NULL) {
-		strncpy(buffer, token, buffer_size);
-		buffer[buffer_size - 1] = '\0';
+		string_copy(buffer, token, buffer_size);
 		return FALSE;
 	}
 

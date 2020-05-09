@@ -169,7 +169,7 @@ struct saveas_block *saveas_create_dialogue(osbool selection, char *sprite, osbo
 
 	new->full_filename[0] = '\0';
 	new->selection_filename[0] = '\0';
-	strncpy(new->sprite, (sprite != NULL) ? sprite : "", SAVEAS_MAX_SPRNAME);
+	string_copy(new->sprite, (sprite != NULL) ? sprite : "", SAVEAS_MAX_SPRNAME);
 
 	new->window = (selection) ? saveas_sel_window : saveas_window;
 	new->selection = FALSE;
@@ -200,14 +200,12 @@ void saveas_initialise_dialogue(struct saveas_block *handle, char *filename, cha
 	if (handle == NULL)
 		return;
 
-	if (filename != NULL && *filename != '\0') {
-		strncpy(handle->full_filename, filename, SAVEAS_MAX_FILENAME);
-		handle->full_filename[SAVEAS_MAX_FILENAME - 1] = '\0';
-	} else if (fullname != NULL) {
+	if (filename != NULL && *filename != '\0')
+		string_copy(handle->full_filename, filename, SAVEAS_MAX_FILENAME);
+	else if (fullname != NULL)
 		msgs_lookup(fullname, handle->full_filename, SAVEAS_MAX_FILENAME);
-	} else {
+	else
 		handle->full_filename[0] = '\0';
-	}
 
 	if (selectname != NULL)
 		msgs_lookup(selectname, handle->selection_filename, SAVEAS_MAX_FILENAME);

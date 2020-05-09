@@ -37,6 +37,7 @@
 
 #include "general.h"
 #include "msgs.h"
+#include "string.h"
 #include "windows.h"
 
 /* ANSII C header files. */
@@ -440,7 +441,7 @@ char *windows_title_strncpy(wimp_w w, char *s)
 			window.title_data.indirected_text.size <= 0)
 		return NULL;
 
-	strncpy(window.title_data.indirected_text.text, s,
+	string_copy(window.title_data.indirected_text.text, s,
 				window.title_data.indirected_text.size);
 
 	return window.title_data.indirected_text.text;

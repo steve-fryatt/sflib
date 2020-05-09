@@ -1,4 +1,4 @@
-/* Copyright 2003-2017, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -37,6 +37,7 @@
 
 #include "errors.h"
 #include "msgs.h"
+#include "string.h"
 
 #ifdef __CC_NORCROFT
 #include "strdup.h"
@@ -163,8 +164,7 @@ static void error_complete_block(os_error *error, char *message)
 		return;
 
 	error->errnum = ERROR_NUMBER;
-	strncpy(error->errmess, message, os_ERROR_LIMIT);
-	error->errmess[os_ERROR_LIMIT - 1] = '\0';
+	string_copy(error->errmess, message, os_ERROR_LIMIT);
 }
 
 

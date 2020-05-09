@@ -1,4 +1,4 @@
-/* Copyright 2003-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -39,6 +39,7 @@
 /* SF-Lib header files. */
 
 #include "resources.h"
+#include "string.h"
 
 /* ANSII C header files. */
 
@@ -71,18 +72,15 @@ void resources_find_path(char *path, size_t size)
 
 	len = strlen(path);
 	strncat(path, ".", size - (len + 2));
-	strncpy(new_path, path, size);
-	new_path[size - 1] = '\0';
+	string_copy(new_path, path, size);
 
 	len = strlen(new_path);
 	territory_number_to_name(territory_number(), new_path + len, size - len);
 
-	if (osfile_read_stamped_no_path (new_path, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_DIR) {
-		strncpy(path, new_path, size);
-		path[size - 1] = '\0';
-	} else if ((size - len) >= strlen(uk) + 2) {
+	if (osfile_read_stamped_no_path (new_path, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_DIR)
+		string_copy(path, new_path, size);
+	else if ((size - len) >= strlen(uk) + 2)
 		strncat(path, uk, strlen(uk));
-	}
 
 	free(new_path);
 }
@@ -109,8 +107,7 @@ osspriteop_area *resources_load_user_sprite_area(char *file)
 	/* Identify the current mode sprite suffix. */
 
 	suffix = wimpreadsysinfo_sprite_suffix();
-	snprintf(full_file, RESOURCES_MAX_FILENAME, "%s%s", file, suffix);
-	full_file[RESOURCES_MAX_FILENAME - 1] = '\0';
+	string_printf(full_file, RESOURCES_MAX_FILENAME, "%s%s", file, suffix);
 
 	/* Check for a suffixed sprite file. */
 
@@ -119,8 +116,7 @@ osspriteop_area *resources_load_user_sprite_area(char *file)
 	/* If not found, check for an un-suffixed sprite file. */
 
 	if (object != fileswitch_IS_FILE || type != osfile_TYPE_SPRITE) {
-		strncpy(full_file, file, RESOURCES_MAX_FILENAME);
-		full_file[RESOURCES_MAX_FILENAME - 1] = '\0';
+		string_copy(full_file, file, RESOURCES_MAX_FILENAME);
 		object = osfile_read_stamped_no_path(full_file, NULL, NULL, &size, NULL, &type);
 	}
 

@@ -1,4 +1,4 @@
-/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -49,7 +49,7 @@
 #include "event.h"
 #include "general.h"
 #include "icons.h"
-//#include "menus.h"
+#include "string.h"
 #include "msgs.h"
 
 
@@ -125,8 +125,7 @@ void ihelp_add_window(wimp_w window, char* name, void (*decode) (char *, wimp_w,
 		return;
 
 	new->window = window;
-	strncpy(new->name, name, OBJECT_NAME_LENGTH);
-	new->name[OBJECT_NAME_LENGTH - 1] = '\0';
+	string_copy(new->name, name, OBJECT_NAME_LENGTH);
 	*(new->modifier) = '\0';
 	new->pointer_location = decode;
 
@@ -177,8 +176,7 @@ void ihelp_set_modifier(wimp_w window, char *modifier)
 	if (window_data == NULL)
 		return;
 
-	strncpy(window_data->modifier, (modifier != NULL) ? modifier : "", OBJECT_MODIFIER_LENGTH);
-	window_data->modifier[OBJECT_MODIFIER_LENGTH - 1] = '\0';
+	string_copy(window_data->modifier, (modifier != NULL) ? modifier : "", OBJECT_MODIFIER_LENGTH);
 }
 
 
@@ -221,8 +219,7 @@ void ihelp_add_menu(wimp_menu *menu, char* name)
 		return;
 
 	new->menu = menu;
-	strncpy(new->name, name, OBJECT_NAME_LENGTH);
-	new->name[OBJECT_NAME_LENGTH - 1] = '\0';
+	string_copy(new->name, name, OBJECT_NAME_LENGTH);
 
 	new->next = menus;
 	menus = new;
@@ -265,8 +262,7 @@ void ihelp_remove_menu(wimp_menu *menu)
 
 void ihelp_set_default_menu_token(char *token)
 {
-	strncpy(default_menu_help_token, (token != NULL) ? token : "", MENU_TOKEN_LENGTH);
-	default_menu_help_token[MENU_TOKEN_LENGTH - 1] = '\0';
+	string_copy(default_menu_help_token, (token != NULL) ? token : "", MENU_TOKEN_LENGTH);
 }
 
 
@@ -352,10 +348,8 @@ static char *ihelp_get_text(char *buffer, size_t length, wimp_w window, wimp_i i
 	if (window == wimp_ICON_BAR) {
 		/* Special case, if the window is the iconbar. */
 
-		if (msgs_lookup_result("Help.IconBar", help_text, IHELP_LENGTH)) {
-			strncpy(buffer, help_text, length);
-			buffer[length - 1] = '\0';
-		}
+		if (msgs_lookup_result("Help.IconBar", help_text, IHELP_LENGTH))
+			string_copy(buffer, help_text, length);
 	} else if ((window_data = ihelp_find_window(window)) != NULL) {
 		/* Otherwise, if the window is one of the windows registered for interactive help. */
 
@@ -371,33 +365,27 @@ static char *ihelp_get_text(char *buffer, size_t length, wimp_w window, wimp_i i
 		 * If the icon isn't validated, make a string of the form IconX where X is the number.
 		 */
 
-		if (*icon_name == '\0' && icon >= 0 && !icons_get_validation_command(icon_name, IHELP_INAME_LEN, window, icon, 'N')) {
-			snprintf(icon_name, IHELP_INAME_LEN, "Icon%d", icon);
-			icon_name[IHELP_INAME_LEN - 1] = '\0';
-		}
+		if (*icon_name == '\0' && icon >= 0 && !icons_get_validation_command(icon_name, IHELP_INAME_LEN, window, icon, 'N'))
+			string_printf(icon_name, IHELP_INAME_LEN, "Icon%d", icon);
 
 		/* If an icon name was found from somewhere, look up a token based on that name. */
 
 		if (*icon_name != '\0') {
-			snprintf(token, TOKEN_LENGTH, "Help.%s%s.%s", window_data->name, window_data->modifier, icon_name);
-			token[TOKEN_LENGTH - 1] = '\0';
+			string_printf(token, TOKEN_LENGTH, "Help.%s%s.%s", window_data->name, window_data->modifier, icon_name);
 			found = msgs_lookup_result(token, help_text, IHELP_LENGTH);
 		}
 
 		/* If the icon did not have a name, or it is the window background, look up a token for the window. */
 
 		if (!found) {
-			snprintf(token, TOKEN_LENGTH, "Help.%s%s", window_data->name, window_data->modifier);
-			token[TOKEN_LENGTH - 1] = '\0';
+			string_printf(token, TOKEN_LENGTH, "Help.%s%s", window_data->name, window_data->modifier);
 			found = msgs_lookup_result(token, help_text, IHELP_LENGTH);
 		}
 
 		/* If a message was found, return it. */
 
-		if (found) {
-			strncpy(buffer, help_text, length);
-			buffer[length - 1] = '\0';
-		}
+		if (found)
+			string_copy(buffer, help_text, length);
 	} else {
 		/* Otherwise, try the window as a menu structure. */
 
@@ -410,19 +398,15 @@ static char *ihelp_get_text(char *buffer, size_t length, wimp_w window, wimp_i i
 			menu_data = ihelp_find_menu(current_menu);
 
 			if (menu_data != NULL || *default_menu_help_token != '\0') {
-				snprintf(token, TOKEN_LENGTH, "Help.%s.", (menu_data == NULL) ? default_menu_help_token : menu_data->name);
-				token[TOKEN_LENGTH - 1] = '\0';
+				string_printf(token, TOKEN_LENGTH, "Help.%s.", (menu_data == NULL) ? default_menu_help_token : menu_data->name);
 
 				for (i=0; menu_selection.items[i] != -1; i++) {
-					snprintf(icon_name, IHELP_INAME_LEN, "%02x", menu_selection.items[i]);
-					icon_name[IHELP_INAME_LEN - 1] = '\0';
+					string_printf(icon_name, IHELP_INAME_LEN, "%02x", menu_selection.items[i]);
 					strncat(token, icon_name, TOKEN_LENGTH - (strlen(icon_name) + 1));
 				}
 
-				if (msgs_lookup_result(token, help_text, IHELP_LENGTH)) {
-					strncpy(buffer, help_text, length);
-					buffer[length - 1] = '\0';
-				}
+				if (msgs_lookup_result(token, help_text, IHELP_LENGTH))
+					string_copy(buffer, help_text, length);
 			}
 		}
 	}

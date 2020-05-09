@@ -66,16 +66,12 @@ char *icons_copy_text(wimp_w w, wimp_i i, char *buffer, size_t length)
 	icon.i = i;
 	wimp_get_icon_state(&icon);
 
-	if (icon.icon.flags & wimp_ICON_INDIRECTED) {
-		string_ctrl_strncpy(buffer, icon.icon.data.indirected_text.text, length - 1);
-		buffer[length - 1] = '\0';
-	} else if (length > 12) {
-		string_ctrl_strncpy(buffer, icon.icon.data.text, 12);
-		buffer[12] = '\0';
-	} else {
-		string_ctrl_strncpy(buffer, icon.icon.data.text, length - 1);
-		buffer[length - 1] = '\0';
-	}
+	if (icon.icon.flags & wimp_ICON_INDIRECTED)
+		string_ctrl_copy(buffer, icon.icon.data.indirected_text.text, length - 1);
+	else if (length > 12)
+		string_ctrl_copy(buffer, icon.icon.data.text, 12);
+	else
+		string_ctrl_copy(buffer, icon.icon.data.text, length - 1);
 
 	return buffer;
 }
@@ -188,7 +184,7 @@ osbool icons_extract_validation_command(char *buffer, size_t length, char *valid
 
 	while (part != NULL) {
 		if (toupper(*part) == command) {
-			string_ctrl_strncpy(buffer, part + 1, length);
+			string_ctrl_copy(buffer, part + 1, length);
 			found = TRUE;
 		}
 
@@ -269,7 +265,7 @@ char *icons_strncpy(wimp_w w, wimp_i i, char *s)
 			icon.icon.data.indirected_text.size <= 0)
 		return NULL;
 
-	strncpy(icon.icon.data.indirected_text.text, s,
+	string_copy(icon.icon.data.indirected_text.text, s,
 				icon.icon.data.indirected_text.size);
 
 	return icon.icon.data.indirected_text.text;

@@ -36,6 +36,7 @@
 #include "event.h"
 #include "icons.h"
 #include "menus.h"
+#include "string.h"
 
 /* ANSII C header files. */
 
@@ -1405,8 +1406,7 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 		malloc_len = strlen(token) + EVENT_TOKEN_INDEX_LEN + 1;
 		action->data.popup.token = malloc(malloc_len);
 		if (action->data.popup.token != NULL) {
-			strncpy(action->data.popup.token, token, malloc_len);
-			action->data.popup.token[malloc_len - 1] = '\0';
+			string_copy(action->data.popup.token, token, malloc_len);
 			action->data.popup.token_number = action->data.popup.token + strlen(token);
 		} else {
 			action->data.popup.token_number = NULL;
@@ -1549,8 +1549,7 @@ static void event_set_auto_menu_selection(struct event_window *window, struct ev
 		return;
 
 	if (action->data.popup.token != NULL) {
-		snprintf(action->data.popup.token_number, EVENT_TOKEN_INDEX_LEN, "%d", selection);
-		action->data.popup.token_number[EVENT_TOKEN_INDEX_LEN - 1] = '\0';
+		string_printf(action->data.popup.token_number, EVENT_TOKEN_INDEX_LEN, "%d", selection);
 		icons_msgs_lookup(window->w, action->data.popup.field, action->data.popup.token);
 	} else {
 		icons_strncpy(window->w, action->data.popup.field, menus_get_text_addr(action->data.popup.menu, selection));
