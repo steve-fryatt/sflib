@@ -381,11 +381,13 @@ wimp_menu *menus_create_popup_menu(wimp_menu *menu, wimp_pointer *pointer)
 		return NULL;
 
 	window.w = pointer->w;
-	wimp_get_window_state (&window);
+	if (xwimp_get_window_state(&window) != NULL)
+		return NULL;
 
 	icon.w = pointer->w;
 	icon.i = pointer->i;
-	wimp_get_icon_state(&icon);
+	if (xwimp_get_icon_state(&icon) != NULL)
+		return NULL;
 
 	if (xwimp_create_menu(menu, window.visible.x0 + icon.icon.extent.x1 - window.xscroll,
 			window.visible.y1 + icon.icon.extent.y1 - window.yscroll) != NULL)
