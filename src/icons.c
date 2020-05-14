@@ -231,8 +231,8 @@ int icons_printf(wimp_w w, wimp_i i, char *cntrl_string, ...)
 
 	va_start(ap, cntrl_string);
 	ret = vsnprintf(icon.icon.data.indirected_text.text,
-				icon.icon.data.indirected_text.size,
-				cntrl_string, ap);
+			icon.icon.data.indirected_text.size,
+			cntrl_string, ap);
 
 	icon.icon.data.indirected_text.text[icon.icon.data.indirected_text.size - 1] = '\0';
 
@@ -257,8 +257,11 @@ char *icons_strncpy(wimp_w w, wimp_i i, char *s)
 	if (error != NULL)
 		return NULL;
 
-	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) !=
-			(wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
+	if ((icon.icon.flags & wimp_ICON_INDIRECTED) != wimp_ICON_INDIRECTED)
+		return NULL;
+
+	if (((icon.icon.flags & (wimp_ICON_TEXT | wimp_ICON_SPRITE)) == wimp_ICON_SPRITE) &&
+			(icon.icon.data.indirected_sprite.size == 0))
 		return NULL;
 
 	if (icon.icon.data.indirected_text.text == NULL ||
@@ -266,7 +269,7 @@ char *icons_strncpy(wimp_w w, wimp_i i, char *s)
 		return NULL;
 
 	string_copy(icon.icon.data.indirected_text.text, s,
-				icon.icon.data.indirected_text.size);
+			icon.icon.data.indirected_text.size);
 
 	return icon.icon.data.indirected_text.text;
 }
