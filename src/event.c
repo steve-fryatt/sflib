@@ -101,6 +101,8 @@ struct event_icon_popup {
 	char				*token;										/**< The message token group to be used for the field entries.		*/
 	char				*token_number;									/**< Pointer to the end of the token name, to place the index.		*/
 	unsigned			selection;									/**< The currently selected item in the menu.				*/
+	osbool				complete;									/**< TRUE if no further processing is required by the task.		*/
+	osbool				(*callback)(wimp_w w, wimp_menu *menu, unsigned selection);			/**< Callback function for the menu selection.				*/
 };
 
 /**
@@ -554,7 +556,7 @@ static osbool event_process_icon(struct event_window *window, struct event_icon 
 		case EVENT_ICON_POPUP_AUTO:
 		case EVENT_ICON_POPUP_MANUAL:
 			new_client_menu = NULL;
-			if (window->menu_prepare != NULL)
+			if (window->menu_prepare != NULL && action->type != EVENT_ICON_POPUP_AUTO)
 				(window->menu_prepare)(window->w, action->data.popup.menu, pointer);
 			if (new_client_menu != NULL)
 				action->data.popup.menu = new_client_menu;
@@ -668,6 +670,7 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 {
 	wimp_pointer	pointer;
 	wimp_menu	*menu;
+	osbool		complete = FALSE;
 
 	if (current_menu == NULL)
 		return FALSE;
@@ -695,10 +698,21 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 		break;
 	}
 
-	if (current_menu_type == EVENT_MENU_POPUP_AUTO && selection->items[0] != -1)
+	/* Process an auto-popup menu, passing the result to any icon-level callback. */
+
+	if (current_menu_type == EVENT_MENU_POPUP_AUTO && selection->items[0] != -1) {
 		event_set_auto_menu_selection(current_menu, current_menu_action, selection->items[0]);
 
-	if (current_menu->menu_selection != NULL)
+		if (current_menu_action->data.popup.callback != NULL)
+			complete = (current_menu_action->data.popup.callback)(current_menu->w, menu,
+					current_menu_action->data.popup.selection);
+		else
+			complete = current_menu_action->data.popup.complete;
+	}
+
+	/* Process the window-level callback if required. */
+
+	if (current_menu->menu_selection != NULL && complete == FALSE)
 		(current_menu->menu_selection)(current_menu->w, menu, selection);
 
 	/* If the client deletes itself as part of the menu_selection() callback,
@@ -1423,6 +1437,34 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 
 
 /**
+ * Set the action for an auto popup menu.
+ *
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_set_window_icon_popup_action(wimp_w w, wimp_i i, osbool complete, osbool (*callback)(wimp_w, wimp_menu *, unsigned))
+{
+	struct event_window		*window;
+	struct event_icon		*icon;
+	struct event_icon_action	*action;
+
+	if ((window = event_find_window(w)) == NULL)
+		return FALSE;
+
+	if ((icon = event_find_icon(window, i)) == NULL)
+		return FALSE;
+
+	if ((action = event_find_action(icon, EVENT_ICON_POPUP_AUTO)) == NULL)
+		return FALSE;
+
+	action->data.popup.complete = complete;
+	action->data.popup.callback = callback;
+
+	return TRUE;
+}
+
+
+/**
  * Prepare an auto menu for opening, by ticking the entries in relation to the
  * current selection.
  *
@@ -1903,6 +1945,8 @@ static struct event_icon_action *event_create_action(struct event_icon *icon, en
 			block->data.popup.token = NULL;
 			block->data.popup.token_number = NULL;
 			block->data.popup.selection = 0;
+			block->data.popup.complete = FALSE;
+			block->data.popup.callback = NULL;
 			break;
 
 		case EVENT_ICON_BUMP_FIELD:

@@ -1,4 +1,4 @@
-/* Copyright 2010-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2010-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -423,6 +423,20 @@ osbool event_set_window_icon_bump_maximum(wimp_w w, wimp_i i, int maximum);
 
 osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i field, char *token);
 
+
+/**
+ * Set the action for an auto popup menu.
+ *
+ * \param w			The window containing the menu.
+ * \param i			The icon to which the menu is attached.
+ * \param complete		TRUE if the menu should be treated as complete if
+ *				no callback handler is provided; FALSE to call the
+ *				window-level handlers where available.
+ * \param *callback		A callback handler for menu selection, or NULL.
+ * \return			TRUE if successful; else FALSE.
+ */
+
+osbool event_set_window_icon_popup_action(wimp_w w, wimp_i i, osbool complete, osbool (*callback)(wimp_w, wimp_menu *, unsigned));
 
 /**
  * Set the menu to be used for a popup menu, and update its field.
