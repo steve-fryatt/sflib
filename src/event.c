@@ -1596,6 +1596,7 @@ static void event_set_auto_menu_selection(struct event_window *window, struct ev
 	} else {
 		icons_strncpy(window->w, action->data.popup.field, menus_get_text_addr(action->data.popup.menu, selection));
 	}
+
 	wimp_set_icon_state(window->w, action->data.popup.field, 0, 0);
 	action->data.popup.selection = selection;
 }
