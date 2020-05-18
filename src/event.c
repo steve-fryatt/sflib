@@ -1408,10 +1408,10 @@ osbool event_add_window_icon_popup(wimp_w w, wimp_i i, wimp_menu *menu, wimp_i f
 
 	/* An icon can't have both Auto and Manual menus attached at the same time! */
 
-	if (event_find_action(icon, (field == -1) ? EVENT_ICON_POPUP_AUTO : EVENT_ICON_POPUP_MANUAL) != NULL)
+	if (event_find_action(icon, (field == wimp_ICON_WINDOW) ? EVENT_ICON_POPUP_AUTO : EVENT_ICON_POPUP_MANUAL) != NULL)
 		return FALSE;
 
-	action = event_create_action(icon, (field == -1) ? EVENT_ICON_POPUP_MANUAL : EVENT_ICON_POPUP_AUTO);
+	action = event_create_action(icon, (field == wimp_ICON_WINDOW) ? EVENT_ICON_POPUP_MANUAL : EVENT_ICON_POPUP_AUTO);
 
 	if (action == NULL)
 		return FALSE;
@@ -1587,7 +1587,7 @@ unsigned event_get_window_icon_popup_selection(wimp_w w, wimp_i i)
 
 static void event_set_auto_menu_selection(struct event_window *window, struct event_icon_action *action, unsigned selection)
 {
-	if (window == NULL || action == NULL || action->type != EVENT_ICON_POPUP_AUTO || action->data.popup.field == -1)
+	if (window == NULL || action == NULL || action->type != EVENT_ICON_POPUP_AUTO || action->data.popup.field == wimp_ICON_WINDOW)
 		return;
 
 	if (action->data.popup.token != NULL) {
