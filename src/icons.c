@@ -66,12 +66,14 @@ char *icons_copy_text(wimp_w w, wimp_i i, char *buffer, size_t length)
 	icon.i = i;
 	wimp_get_icon_state(&icon);
 
-	if (icon.icon.flags & wimp_ICON_INDIRECTED)
+	if (icon.icon.flags & wimp_ICON_INDIRECTED) {
 		string_ctrl_copy(buffer, icon.icon.data.indirected_text.text, length - 1);
-	else if (length > 12)
-		string_ctrl_copy(buffer, icon.icon.data.text, 12);
-	else
+	} else if (length > 12) {
+		string_ctrl_strncpy(buffer, icon.icon.data.text, 12);
+		buffer[12] = '\0';
+	} else {
 		string_ctrl_copy(buffer, icon.icon.data.text, length - 1);
+	}
 
 	return buffer;
 }
