@@ -414,7 +414,7 @@ osbool event_set_window_icon_bump_maximum(wimp_w w, wimp_i i, int maximum);
  * \param i		The icon handle to attach the action to.
  * \param *menu		The menu to use for the popup.
  * \param field		The display field icon for the popup (for an automatic
- *			menu; -1 for a manual menu).
+ *			menu; wimp_ICON_WINDOW for a manual menu).
  * \param *token	The token base for the field entries, to which the
  *			selection number is added for lookup, or NULL to use
  *			the menu entry texts.
