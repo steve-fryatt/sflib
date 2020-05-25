@@ -652,10 +652,7 @@ static osbool event_process_key_pressed(wimp_key *key)
 	if (win == NULL || win->key == NULL)
 		return FALSE;
 
-	if (!(win->key)(key))
-		wimp_process_key(key->c);
-
-	return TRUE;
+	return (win->key)(key);
 }
 
 
