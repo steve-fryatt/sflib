@@ -337,7 +337,7 @@ static osbool event_process_null_reason_code(void)
 	if (event_drag_null_poll == NULL)
 		return FALSE;
 
-	 return (event_drag_null_poll)(event_drag_data);
+	return (event_drag_null_poll)(event_drag_data);
 }
 
 
