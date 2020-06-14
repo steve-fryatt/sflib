@@ -125,6 +125,7 @@
 #ifndef SFLIB_EVENT
 #define SFLIB_EVENT
 
+#include "oslib/os.h"
 #include "oslib/types.h"
 #include "oslib/wimp.h"
 
@@ -146,16 +147,18 @@ enum event_message_type {
 	EVENT_MESSAGE_ACKNOWLEDGE = 4						/**< Handle only Wimp Message Acknowledge (19).				*/
 };
 
+
 /**
  * Accept and process a wimp event.
  *
  * \param  event	The Wimp event code to be handled.
  * \param  block	The Wimp poll block.
  * \param  pollword	The Wimp pollword.
+ * \param  *next	Pointer to variable to take the time of the next poll, or NULL for none.
  * \return		TRUE if the event was handled; else FALSE.
  */
 
-osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword);
+osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword, os_t *next);
 
 
 /**
@@ -598,5 +601,40 @@ wimp_w event_get_current_menu_window(void);
 
 void event_set_menu_block(wimp_menu *menu);
 
-#endif
 
+/**
+ * Add a new single, one-shot callback to the callback queue.
+ * 
+ * \param w			A window to associate the callback with, or NULL.
+ * \param delay			The time until the callback, in centiseconds.
+ * \param *callback		The callback function to be called.
+ * \param *data			A data pointer to be passed to the callback function.
+ * \return			TRUE if the callback was added; otherwise FALSE.
+ */
+
+osbool event_add_single_callback(wimp_w w, os_t delay, osbool (*callback)(int time, void *data), void *data);
+
+
+/**
+ * Add a new regular, repeating callback to the callback queue.
+ * 
+ * \param w			A window to associate the callback with, or NULL.
+ * \param delay			The time until the first callback, in centiseconds.
+ * \param interval		The time between repeating callbacks, in centiseconds.
+ * \param *callback		The callback function to be called.
+ * \param *data			A data pointer to be passed to the callback function.
+ * \return			TRUE if the callback was added; otherwise FALSE.
+ */
+
+osbool event_add_regular_callback(wimp_w w, os_t delay, os_t interval, osbool (*callback)(int time, void *data), void *data);
+
+
+/**
+ * Delete all references to a callback from the callback queue.
+ * 
+ * \param *callback		The callback to be deleted.
+ */
+
+void event_delete_callback(osbool (*callback)(os_t time, void *data));
+
+#endif

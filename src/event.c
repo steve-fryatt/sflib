@@ -29,6 +29,7 @@
 
 /* OS-Lib header files. */
 
+#include "oslib/os.h"
 #include "oslib/wimp.h"
 
 /* SFLib Header Files. */
@@ -214,11 +215,26 @@ struct event_message {
 };
 
 /**
+ * Details of a callback event.
+ */
+
+struct event_callback {
+	os_t				time;										/**< The time of the next callback.					*/
+	os_t				interval;									/**< The interval between callbacks for regular callbacks, or zero.	*/
+	osbool				(*callback)(os_t time, void *data);						/**< Callback handler to be called when the time arrives.		*/
+	void				*data;										/**< Data to be passed to the callback handler.				*/
+	struct event_window		*window;									/**< The associated window, or NULL.					*/
+
+	struct event_callback		*next;										/**< Pointer to the next callback in the chain, or NULL.		*/
+};
+
+/**
  * Global Variables for the module.
  */
 
 static struct event_message	*event_message_list = NULL;
 static struct event_window	*event_window_list = NULL;
+static struct event_callback	*event_callback_list = NULL;
 
 static struct event_window	*current_menu = NULL;
 static enum event_menu_type	current_menu_type = EVENT_MENU_NONE;
@@ -239,8 +255,7 @@ static void *event_drag_data = NULL;
  * Function prototypes for internal functions.
  */
 
-
-static osbool event_process_null_reason_code(void);
+static osbool event_process_null_reason_code(os_t time);
 static osbool event_process_redraw_window_request(wimp_draw *draw);
 static osbool event_process_open_window_request(wimp_open *open);
 static osbool event_process_close_window_request(wimp_close *close);
@@ -265,79 +280,121 @@ static struct event_icon *event_create_icon(struct event_window *window, wimp_i 
 static struct event_icon_action *event_find_action(struct event_icon *icon, enum event_icon_type type);
 static struct event_icon_action *event_create_action(struct event_icon *icon, enum event_icon_type type);
 static struct event_message *event_find_message(int message);
+static void event_insert_callback(struct event_callback *callback);
+static void event_delete_window_callbacks(struct event_window *window);
+static osbool event_process_callbacks(os_t time);
+
 
 /* Accept and process a wimp event.
  *
  * This function is an external interface, documented in event.h.
  */
 
-osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword)
+osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword, os_t *next)
 {
+	osbool	result = FALSE;
+	os_t	time = 0;
+
 	if (block == NULL)
 		return FALSE;
 
+	/* If there's a next callback time pointer, read the current time. An error disabled callbacks. */
+
+	if (next != NULL && xos_read_monotonic_time(&time) != NULL)
+		next = NULL;
+
 	switch (event) {
 	case wimp_NULL_REASON_CODE:
-		return event_process_null_reason_code();
+		result = event_process_null_reason_code(time);
+		break;
 
 	case wimp_REDRAW_WINDOW_REQUEST:
-		return event_process_redraw_window_request(&(block->redraw));
+		result = event_process_redraw_window_request(&(block->redraw));
+		break;
 
 	case wimp_OPEN_WINDOW_REQUEST:
-		return event_process_open_window_request(&(block->open));
+		result = event_process_open_window_request(&(block->open));
+		break;
 
 	case wimp_CLOSE_WINDOW_REQUEST:
-		return event_process_close_window_request(&(block->close));
+		result = event_process_close_window_request(&(block->close));
+		break;
 
 	case wimp_POINTER_LEAVING_WINDOW:
-		return event_process_pointer_leaving_window(&(block->leaving));
+		result = event_process_pointer_leaving_window(&(block->leaving));
+		break;
 
 	case wimp_POINTER_ENTERING_WINDOW:
-		return event_process_pointer_entering_window(&(block->entering));
+		result = event_process_pointer_entering_window(&(block->entering));
+		break;
 
 	case wimp_MOUSE_CLICK:
-		return event_process_mouse_click(&(block->pointer));
+		result = event_process_mouse_click(&(block->pointer));
+		break;
 
 	case wimp_USER_DRAG_BOX:
-		return event_process_user_drag_box(&(block->dragged));
+		result = event_process_user_drag_box(&(block->dragged));
+		break;
 
 	case wimp_KEY_PRESSED:
-		return event_process_key_pressed(&(block->key));
+		result = event_process_key_pressed(&(block->key));
+		break;
 
 	case wimp_MENU_SELECTION:
-		return event_process_menu_selection(&(block->selection));
+		result = event_process_menu_selection(&(block->selection));
+		break;
 
 	case wimp_SCROLL_REQUEST:
-		return event_process_scroll_request(&(block->scroll));
+		result = event_process_scroll_request(&(block->scroll));
+		break;
 
 	case wimp_LOSE_CARET:
-		return event_process_lose_caret(&(block->caret));
+		result = event_process_lose_caret(&(block->caret));
+		break;
 
 	case wimp_GAIN_CARET:
-		return event_process_gain_caret(&(block->caret));
+		result = event_process_gain_caret(&(block->caret));
+		break;
 
 	case wimp_USER_MESSAGE:
 	case wimp_USER_MESSAGE_RECORDED:
 	case wimp_USER_MESSAGE_ACKNOWLEDGE:
-		return event_process_user_message(event, &(block->message));
+		result =  event_process_user_message(event, &(block->message));
+		break;
 	}
 
-	return FALSE;
+	/* Return the time for the next poll, if required. Note that we avoid
+	 * returning zero unless the client should disable Null Events, and so
+	 * delay by 1 centisecond in the unlikely event that the poll falls
+	 * on a tick of zero.
+	 */
+
+	if (next != NULL) {
+		if (event_drag_null_poll != NULL)
+			*next = (time != 0) ? time : 1;
+		else if (event_callback_list == NULL)
+			*next = 0;
+		else
+			*next = (event_callback_list->time != 0) ? event_callback_list->time : 1;
+	}
+
+	return result;
 }
 
 
 /**
  * Handle null events.
- *
+ * 
+ * \param time			The current time.
  * \return			TRUE if the event has been handled; FALSE if not.
  */
 
-static osbool event_process_null_reason_code(void)
+static osbool event_process_null_reason_code(os_t time)
 {
-	if (event_drag_null_poll == NULL)
-		return FALSE;
+	if (event_drag_null_poll != NULL)
+		return (event_drag_null_poll)(event_drag_data);
 
-	return (event_drag_null_poll)(event_drag_data);
+	return event_process_callbacks(time);
 }
 
 
@@ -1647,6 +1704,10 @@ void event_delete_window(wimp_w w)
 	block = event_find_window(w);
 
 	if (block != NULL) {
+		/* Delete all associated callbacks. */
+
+		event_delete_window_callbacks(block);
+
 		/* Delete all linked icon and action definitions. */
 
 		while (block->icons != NULL)
@@ -2119,7 +2180,7 @@ wimp_w event_get_current_menu_window(void)
 /**
  * Change the menu block associated with the current _menu_prepare() callback.
  *
- * \param *menu			The new menu block.
+ * This function is an external interface, documented in event.h.
  */
 
 void event_set_menu_block(wimp_menu *menu)
@@ -2127,3 +2188,168 @@ void event_set_menu_block(wimp_menu *menu)
 	new_client_menu = menu;
 }
 
+
+/**
+ * Add a new single, one-shot callback to the callback queue.
+ * 
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_add_single_callback(wimp_w w, os_t delay, osbool (*callback)(os_t time, void *data), void *data)
+{
+	return event_add_regular_callback(w, delay, 0, callback, data);
+}
+
+
+/**
+ * Add a new regular, repeating callback to the callback queue.
+ * 
+ * This function is an external interface, documented in event.h.
+ */
+
+osbool event_add_regular_callback(wimp_w w, os_t delay, os_t interval, osbool (*callback)(os_t time, void *data), void *data)
+{
+	struct event_callback	*new;
+	struct event_window	*window = NULL;
+	os_t			time;
+
+	/* Find the current time, to act as a base for the delay. */
+
+	if (xos_read_monotonic_time(&time) != NULL)
+		return FALSE;
+
+	/* Create a new callback block. */
+
+	new = (struct event_callback *) malloc(sizeof(struct event_callback));
+	if (new == NULL)
+		return FALSE;
+
+	/* Find the associated window block, if required. */
+
+	if (w != NULL)
+		window = event_create_window(w);
+
+	/* Fill in the callback data. */
+
+	new->time = time + delay;
+	new->interval = interval;
+	new->callback = callback;
+	new->data = data;
+	new->window = window;
+	new->next = NULL;
+
+	/* Add the callback to the list. */
+
+	event_insert_callback(new);
+
+	return TRUE;
+}
+
+
+/**
+ * Insert a callback into the callback queue, at the correct location
+ * based on its next time.
+ *
+ * \param *callback		The callback to be inserted.
+ */
+
+static void event_insert_callback(struct event_callback *callback)
+{
+	struct event_callback **list = &event_callback_list;
+
+	while ((*list != NULL) && (callback->time - (((*list)->time)) >= 0))
+		list = &((*list)->next);
+
+	callback->next = *list;
+	*list = callback;
+}
+
+
+/**
+ * Delete all references to a callback from the callback queue.
+ * 
+ * This function is an external interface, documented in event.h.
+ */
+
+void event_delete_callback(osbool (*callback)(os_t time, void *data))
+{
+	struct event_callback **list = &event_callback_list, *delete;
+
+	while (*list != NULL) {
+		if ((*list)->callback == callback) {
+			delete = *list;
+			*list = (*list)->next;
+			free(delete);
+		} else {
+			list = &((*list)->next);
+		}
+	}
+}
+
+
+/**
+ * Delete all callbacks in the callback queue which relate to a given window.
+ *
+ * \param *window		The window reference.
+ */
+
+static void event_delete_window_callbacks(struct event_window *window)
+{
+	struct event_callback **list = &event_callback_list, *delete;
+
+	while (*list != NULL) {
+		if ((*list)->window == window) {
+			delete = *list;
+			*list = (*list)->next;
+			free(delete);
+		} else {
+			list = &((*list)->next);
+		}
+	}
+}
+
+
+/**
+ * Process the callback queue, executing the next callback it it has fallen due
+ * and returning its result.
+ * 
+ * \param time			The time to use for testing the callback.
+ * \return			The return value from the callback, or FALSE if none.
+ */
+
+static osbool event_process_callbacks(os_t time)
+{
+	struct event_callback	*callback = event_callback_list;
+	osbool			result = FALSE;
+
+	/* If there's no callback waiting, or the next one isn't due, return. */
+
+	if ((callback == NULL) || (callback->time - time) > 0)
+		return FALSE;
+
+	/* Remove the event to be processed from the list, and call its callback. */
+
+	event_callback_list = callback->next;
+
+	if (callback->callback != NULL)
+		result = callback->callback(time, callback->data);
+
+	/* If this is a one-shot, free the memory and return. */
+
+	if (callback->interval == 0) {
+		free(callback);
+		return result;
+	}
+
+	/* This is a repeating callback, so re-schedule for next time. Ensure that
+	 * we skip past the current time, in case things get held up for a long
+	 * period.
+	 */
+
+	while ((callback->time - time) <= 0)
+		callback->time += callback->interval;
+
+	event_insert_callback(callback);
+
+	return result;
+}
