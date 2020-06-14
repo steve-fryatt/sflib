@@ -34,7 +34,6 @@
 
 /* SFLib Header Files. */
 
-#include "debug.h"
 #include "event.h"
 #include "icons.h"
 #include "menus.h"
@@ -373,8 +372,6 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword,
 			*next = 0;
 		else
 			*next = (event_callback_list->time != 0) ? event_callback_list->time : -1;
-
-		debug_printf("Calculating next poll: tile=%d, next poll=%d", time, *next);
 	}
 
 	return result;
@@ -2194,7 +2191,7 @@ void event_set_menu_block(wimp_menu *menu)
  * This function is an external interface, documented in event.h.
  */
 
-osbool event_add_single_callback(wimp_w w, int delay, osbool (*callback)(os_t time, void *data), void *data)
+osbool event_add_single_callback(wimp_w w, os_t delay, osbool (*callback)(os_t time, void *data), void *data)
 {
 	return event_add_regular_callback(w, delay, 0, callback, data);
 }
@@ -2206,7 +2203,7 @@ osbool event_add_single_callback(wimp_w w, int delay, osbool (*callback)(os_t ti
  * This function is an external interface, documented in event.h.
  */
 
-osbool event_add_regular_callback(wimp_w w, int delay, int interval, osbool (*callback)(os_t time, void *data), void *data)
+osbool event_add_regular_callback(wimp_w w, os_t delay, os_t interval, osbool (*callback)(os_t time, void *data), void *data)
 {
 	struct event_callback	*new;
 	struct event_window	*window = NULL;
@@ -2256,13 +2253,8 @@ static void event_insert_callback(struct event_callback *callback)
 {
 	struct event_callback **list = &event_callback_list;
 
-	debug_printf("\\AInserting callback 0x%x at 0x%x into queue", callback, callback->time);
-
-	while ((*list != NULL) && (callback->time - (((*list)->time)) >= 0)) {
-		debug_printf("Comparing our 0x%x with queued 0x%x to get %d",
-				callback->time, (*list)->time, (callback->time - ((*list)->time)));
+	while ((*list != NULL) && (callback->time - (((*list)->time)) >= 0))
 		list = &((*list)->next);
-	}
 
 	callback->next = *list;
 	*list = callback;
@@ -2279,15 +2271,11 @@ void event_delete_callback(osbool (*callback)(os_t time, void *data))
 {
 	struct event_callback **list = &event_callback_list, *delete;
 
-	debug_printf("\\DDeleting callbacks referencing 0x%x from queue", callback);
-
 	while (*list != NULL) {
 		if ((*list)->callback == callback) {
 			delete = *list;
 			*list = (*list)->next;
 			free(delete);
-
-			debug_printf("Callback 0x%x deleted.", delete);
 		} else {
 			list = &((*list)->next);
 		}
@@ -2305,15 +2293,11 @@ static void event_delete_window_callbacks(struct event_window *window)
 {
 	struct event_callback **list = &event_callback_list, *delete;
 
-	debug_printf("\\DDeleting callbacks relating to window 0x%x from queue", window);
-
 	while (*list != NULL) {
 		if ((*list)->window == window) {
 			delete = *list;
 			*list = (*list)->next;
 			free(delete);
-
-			debug_printf("Callback 0x%x deleted.", delete);
 		} else {
 			list = &((*list)->next);
 		}

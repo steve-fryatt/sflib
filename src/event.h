@@ -612,7 +612,7 @@ void event_set_menu_block(wimp_menu *menu);
  * \return			TRUE if the callback was added; otherwise FALSE.
  */
 
-osbool event_add_single_callback(wimp_w w, int delay, osbool (*callback)(int time, void *data), void *data);
+osbool event_add_single_callback(wimp_w w, os_t delay, osbool (*callback)(int time, void *data), void *data);
 
 
 /**
@@ -626,7 +626,7 @@ osbool event_add_single_callback(wimp_w w, int delay, osbool (*callback)(int tim
  * \return			TRUE if the callback was added; otherwise FALSE.
  */
 
-osbool event_add_regular_callback(wimp_w w, int delay, int interval, osbool (*callback)(int time, void *data), void *data);
+osbool event_add_regular_callback(wimp_w w, os_t delay, os_t interval, osbool (*callback)(int time, void *data), void *data);
 
 
 /**
