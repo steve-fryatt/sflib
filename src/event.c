@@ -363,15 +363,19 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword,
 		break;
 	}
 
-	/* Return the time for the next poll, if required. */
+	/* Return the time for the next poll, if required. Note that we avoid
+	 * returning zero unless the client should disable Null Events, and so
+	 * delay by 1 centisecond in the unlikely event that the poll falls
+	 * on a tick of zero.
+	 */
 
 	if (next != NULL) {
 		if (event_drag_null_poll != NULL)
-			*next = (time != 0) ? time : -1;
+			*next = (time != 0) ? time : 1;
 		else if (event_callback_list == NULL)
 			*next = 0;
 		else
-			*next = (event_callback_list->time != 0) ? event_callback_list->time : -1;
+			*next = (event_callback_list->time != 0) ? event_callback_list->time : 1;
 	}
 
 	return result;
