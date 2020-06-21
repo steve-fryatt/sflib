@@ -34,6 +34,11 @@
 #include <stdlib.h>
 #include "oslib/osspriteop.h"
 
+/**
+ * A set of resource folders to be used for looking up internationalised data.
+ */
+
+typedef char resources_path_set;
 
 /**
  * Locate a regional resource directory on the specified path, updating the
@@ -45,6 +50,42 @@
  */
 
 void resources_find_path(char *path, size_t size);
+
+
+/**
+ * Initialise the resources path set, ready for looking up resource file names.
+ * If successful, on exit the *path_set buffer will contain the original
+ * path, followed by one or more country folder names, each terminated by
+ * a '\0'. The final entry will be followed by a second '\0' to indicate
+ * the end of the list.
+ *
+ * \param *path_set		Pointer to the buffer to hold the path set, which
+ *				should contain the path of the resources folder
+ *				terminated by '\0'.
+ * \param length		The length of the path set buffer.
+ * \param *appvar		Pointer to the application language variable name.
+ * \return			TRUE if successful; FALSE on failure.
+ */
+
+osbool resources_initialise_paths(char *path_set, size_t length, char *appvar);
+
+
+/**
+ * Given a pre-configured resource path set from resources_initialise_paths(),
+ * search for a file of a given name and filetype by order of preference. If
+ * one is found, copy the full name into the supplied buffer. If no file is
+ * found, the buffer will be returned containing a terminated, empty string.
+ * 
+ * \param *paths		Pointer to the path set created by
+ *				resources_initialise_paths().
+ * \param *buffer		Pointer to a buffer to take a returned filename.
+ * \param length		The length of the supplied buffer.
+ * \param *file			Pointer to the name of the required file.
+ * \param type			The RISC OS filetype of the required file.
+ * \return			TRUE if a file was found; otherwise FALSE.
+ */
+
+osbool resources_find_file(char *paths, char *buffer, size_t length, char *file, bits type);
 
 
 /**
