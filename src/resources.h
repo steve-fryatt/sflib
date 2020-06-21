@@ -64,10 +64,11 @@ void resources_find_path(char *path, size_t size);
  *				terminated by '\0'.
  * \param length		The length of the path set buffer.
  * \param *appvar		Pointer to the application language variable name.
+ * \param *fallback		Pointer to the default folder name.
  * \return			TRUE if successful; FALSE on failure.
  */
 
-osbool resources_initialise_paths(char *path_set, size_t length, char *appvar);
+osbool resources_initialise_paths(char *path_set, size_t length, char *appvar, char *fallback);
 
 
 /**

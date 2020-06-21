@@ -116,10 +116,11 @@ void resources_find_path(char *path, size_t size)
  *				terminated by '\0'.
  * \param length		The length of the path set buffer.
  * \param *appvar		Pointer to the application language variable name.
+ * \param *fallback		Pointer to the default folder name.
  * \return			TRUE if successful; FALSE on failure.
  */
 
-osbool resources_initialise_paths(char *path_set, size_t length, char *appvar)
+osbool resources_initialise_paths(char *path_set, size_t length, char *appvar, char *fallback)
 {
 	char *out = NULL, *end = NULL;
 	char variable[RESOURCES_MAX_PATH_SET_LEN];
@@ -158,7 +159,7 @@ osbool resources_initialise_paths(char *path_set, size_t length, char *appvar)
 
 	/* Add in the fallback of "UK". */
 
-	resources_add_path_set(path_set, "UK", &out, end);
+	resources_add_path_set(path_set, (fallback != NULL) ? fallback : "UK", &out, end);
 
 	/* If there was a buffer overrun, pull the pointer back and terminate
 	 * the final string to be written.
