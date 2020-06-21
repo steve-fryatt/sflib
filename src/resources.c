@@ -43,7 +43,6 @@
 
 #include "resources.h"
 
-#include "debug.h"
 #include "string.h"
 
 /* ANSII C header files. */
