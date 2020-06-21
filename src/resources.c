@@ -143,7 +143,7 @@ osbool resources_initialise_paths(char *path_set, size_t length, char *appvar)
 
 	/* Add any countries stored in ResFind$LanguagesPref. */
 
-	if (resources_read_variable("ResFind$LanguagePref", variable, RESOURCES_MAX_PATH_SET_LEN))
+	if (resources_read_variable("ResFind$LanguagesPref", variable, RESOURCES_MAX_PATH_SET_LEN))
 		resources_add_path_set(path_set, variable, &out, end);
 
 	/* Add the configured country. */
@@ -153,7 +153,7 @@ osbool resources_initialise_paths(char *path_set, size_t length, char *appvar)
 
 	/* Add any countries stored in ResFind$LanguagesSuff. */
 
-	if (resources_read_variable("ResFind$LanguageSuff", variable, RESOURCES_MAX_PATH_SET_LEN))
+	if (resources_read_variable("ResFind$LanguagesSuff", variable, RESOURCES_MAX_PATH_SET_LEN))
 		resources_add_path_set(path_set, variable, &out, end);
 
 	/* Add in the fallback of "UK". */
