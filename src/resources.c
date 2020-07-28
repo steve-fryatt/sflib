@@ -71,39 +71,6 @@ static void resources_add_path_set(char *path, char *set, char **out, char *end)
 static void resources_copy_and_separate(char *buffer, size_t length, int *tail, char **string);
 
 
-/* Locate a regional resource directory on the specified path, updating the
- * path in the process.
- *
- * This is an external interface, documented in resources.h
- */
-
-void resources_find_path(char *path, size_t size)
-{
-	int	len;
-	char	*new_path;
-	char	*uk = "UK";
-
-	new_path = malloc(size);
-
-	if (new_path == NULL)
-		return;
-
-	len = strlen(path);
-	strncat(path, ".", size - (len + 2));
-	string_copy(new_path, path, size);
-
-	len = strlen(new_path);
-	territory_number_to_name(territory_number(), new_path + len, size - len);
-
-	if (osfile_read_stamped_no_path (new_path, NULL, NULL, NULL, NULL, NULL) == fileswitch_IS_DIR)
-		string_copy(path, new_path, size);
-	else if ((size - len) >= strlen(uk) + 2)
-		strncat(path, uk, strlen(uk));
-
-	free(new_path);
-}
-
-
 /**
  * Initialise the resources path set, ready for looking up resource file names.
  * If successful, on exit the *path_set buffer will contain the original

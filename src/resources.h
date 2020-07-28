@@ -34,23 +34,6 @@
 #include <stdlib.h>
 #include "oslib/osspriteop.h"
 
-/**
- * A set of resource folders to be used for looking up internationalised data.
- */
-
-typedef char resources_path_set;
-
-/**
- * Locate a regional resource directory on the specified path, updating the
- * path in the process.
- *
- * \param *path		Buffer containing base resource path and space for
- *			regional folder name.
- * \param size		The size of the buffer.
- */
-
-void resources_find_path(char *path, size_t size);
-
 
 /**
  * Initialise the resources path set, ready for looking up resource file names.
