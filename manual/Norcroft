@@ -9,7 +9,7 @@
 =============================================================================
 SFLib - RISC OS Wimp Libraries for C                             Version $$version$$
 
-(C) Stephen Fryatt, 2002-2016                  $$date$$
+(C) Stephen Fryatt, 2002-2020                  $$date$$
 =============================================================================
 </literal>
 
@@ -19,7 +19,7 @@ SFLib - RISC OS Wimp Libraries for C                             Version $$versi
 
 <chapter title="License" file="License">
 
-<cite>SFLib</cite> is licensed under the EUPL, Version&nbsp;1.1 only (the &ldquo;Licence&rdquo;); you may not use this work except in compliance with the Licence.
+<cite>SFLib</cite> is licensed under the EUPL, Version&nbsp;1.2 only (the &ldquo;Licence&rdquo;); you may not use this work except in compliance with the Licence.
 
 You may obtain a copy of the Licence at <link ref="#url http://joinup.ec.europa.eu/software/page/eupl">http://joinup.ec.europa.eu/software/page/eupl</link>
 
