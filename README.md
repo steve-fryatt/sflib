@@ -9,7 +9,7 @@ Introduction
 
 SFLib is a set of C libraries for use when developing RISC OS software. Supplied mainly to allow my other software to compile, they can also be used in their own right as part of software licensed under the EUPL or one of its "compatible licences" (such as the GPL v2).
 
-As supplied, the library is intended to be built into an ELF binary using the GCCSDK. When built, it assembles a collection of files in the norcroft folder which can be used to build an AOF binary.
+As supplied, the library is intended to be built into an ELF binary using the GCCSDK. When built, it also assembles a collection of files in the norcroft folder which can be used with the DDE to build an AOF binary.
 
 Documentation for the libraries is provided within the header and source files, as well as in the form of output from Doxygen within the HTML folder.
 
@@ -36,6 +36,14 @@ If
 	make documentation
 
 is used, Docygen will be used to generate documentation within the manual folder.
+
+
+Building with the DDE
+---------------------
+
+When the library is built using `make`, a collection of files are assembled in the norcroft folder in a structure suitable for use with the ROOL Desktop Development Environment. If you have access to a copy in a RISC OS environment, double-clicking on Mk from within RISC OS will invoke the DDE and build an AOF version of the binary.
+
+A copy of Zip will need to be on the `Run$Path` so that a distribution archive can be constructed from the result.
 
 
 Licence
