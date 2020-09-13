@@ -31,6 +31,7 @@ ARCHIVE := sflib
 LIBRARY := libSFLib32.a
 
 INCFOLDER := sflib
+HDRDIR := sflib
 
 OBJS := colpick.o config.o dataxfer.o debug.o errors.o event.o		\
 	general.o heap.o icons.o ihelp.o menus.o msgs.o resources.o	\
