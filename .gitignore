@@ -3,7 +3,10 @@ build/sflib
 build/libSFLib32.a
 build/Licence,fff
 build/ReadMe,fff
-manual
+manual/html
+manual/latex
+manual/perlmod
+manual/xml
 norcroft/Licence,fff
 norcroft/ReadMe,fff
 norcroft/c
