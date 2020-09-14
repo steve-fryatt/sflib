@@ -35,7 +35,7 @@ from the root folder of the project, which will compile the code copy the necess
 If
 	make documentation
 
-is used, Docygen will be used to generate documentation within the manual folder.
+is used, Doxygen will be used to generate documentation within the manual folder.
 
 
 Building with the DDE
