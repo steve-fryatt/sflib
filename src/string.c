@@ -105,6 +105,8 @@ int string_printf(char *str, size_t len, char *cntrl_string, ...)
 
 	va_start(ap, cntrl_string);
 	ret = vsnprintf(str, len, cntrl_string, ap);
+	va_end(ap);
+
 	str[len - 1] = '\0';
 
 	return ret;
