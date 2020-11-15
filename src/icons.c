@@ -235,6 +235,7 @@ int icons_printf(wimp_w w, wimp_i i, char *cntrl_string, ...)
 	ret = vsnprintf(icon.icon.data.indirected_text.text,
 			icon.icon.data.indirected_text.size,
 			cntrl_string, ap);
+	va_end(ap);
 
 	icon.icon.data.indirected_text.text[icon.icon.data.indirected_text.size - 1] = '\0';
 

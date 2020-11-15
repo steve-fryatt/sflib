@@ -62,6 +62,8 @@ int debug_printf(char *cntrl_string, ...)
 
 	va_start(ap, cntrl_string);
 	ret = vsnprintf(s, DEBUG_MAX_LINE_LENGTH, cntrl_string, ap);
+	va_end(ap);
+
 	s[DEBUG_MAX_LINE_LENGTH - 1] = '\0';
 	report_text0(s);
 
