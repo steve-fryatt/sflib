@@ -410,6 +410,7 @@ int windows_title_printf(wimp_w w, char *cntrl_string, ...)
 	ret = vsnprintf(window.title_data.indirected_text.text,
 				window.title_data.indirected_text.size,
 				cntrl_string, ap);
+	va_end(ap);
 
 	window.title_data.indirected_text.text[window.title_data.indirected_text.size - 1] = '\0';
 
