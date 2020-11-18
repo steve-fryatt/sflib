@@ -140,15 +140,16 @@ char *string_ctrl_zero_terminate(char *s1)
 
 char *string_ctrl_strncpy(char *s1, const char *s2, size_t len)
 {
-	char	*s = s1;
+	size_t i = 0;
+	char *s = s1;
 
 	if (s1 == NULL)
 		return NULL;
 
-	while (*s2 >= os_VDU_SPACE && len-- > 0)
+	while (*s2 >= os_VDU_SPACE && i++ < len)
 		*s1++ = *s2++;
 
-	while (len-- > 0)
+	while (i++ < len)
 		*s1++ = '\0';
 
 	return s;
