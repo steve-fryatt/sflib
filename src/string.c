@@ -495,4 +495,3 @@ int string_convert_version_number(char *string)
 
 	return atoi(start);
 }
-
