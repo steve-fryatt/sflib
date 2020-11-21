@@ -1,4 +1,4 @@
-/* Copyright 2003-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -84,10 +84,11 @@ int string_printf(char *str, size_t len, char *cntrl_string, ...);
  * in the supplied buffer.
  *
  * \param *s1		The string to reterminate.
+ * \param len		The maximum number of characters to include.
  * \return		Pointer to the reterminated string.
  */
 
-char *string_ctrl_zero_terminate(char *s1);
+char *string_ctrl_zero_terminate(char *s1, size_t len);
 
 
 /**
