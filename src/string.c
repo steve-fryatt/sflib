@@ -167,6 +167,9 @@ char *string_ctrl_strncat(char *s1, const char *s2, size_t len)
 {
 	char	*s = s1;
 
+	if (s1 == NULL)
+		return NULL;
+
 	while (*s1 >= os_VDU_SPACE)
 		s1++;
 
