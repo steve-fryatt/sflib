@@ -351,9 +351,11 @@ char *string_strip_surrounding_whitespace(char *string)
 	while (isspace(*start))
 		start++;
 
-	end = strrchr(string, '\0') - 1;
-	while (isspace(*end))
-		*end-- = '\0';
+	end = strrchr(start, '\0');
+	while ((end > start) && isspace(*(end - 1)))
+		end--;
+
+	*end = '\0';
 
 	return start;
 }
