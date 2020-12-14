@@ -94,5 +94,13 @@ size_t heap_size(void *ptr);
 
 char *heap_strdup(char *string);
 
-#endif
 
+/**
+ * Return the pointer to the heap base.
+ *
+ * \return		Pointer to the heap base, or NULL if not initialised.
+ */
+
+byte *heap_base(void);
+
+#endif

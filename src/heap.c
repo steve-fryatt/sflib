@@ -201,3 +201,13 @@ char *heap_strdup(char *string)
 	return new;
 }
 
+
+/* Return the pointer to the heap base.
+ *
+ * This is an external interface, documented in heap.h
+ */
+
+byte *heap_base(void)
+{
+	return heap_anchor;
+}
