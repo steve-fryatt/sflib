@@ -371,6 +371,9 @@ char *string_find_leafname(char *filename)
 {
 	char	*leaf;
 
+	if (filename == NULL)
+		return NULL;
+
 	leaf = strrchr(filename, '.');
 
 	if (leaf != NULL)
@@ -393,6 +396,9 @@ char *string_find_pathname(char *filename)
 {
 	char	*leaf;
 
+	if (filename == NULL)
+		return NULL;
+
 	leaf = strrchr(filename, '.');
 
 	if (leaf != NULL)
@@ -413,13 +419,16 @@ char *string_find_extension(char *filename)
 {
 	char	*leaf, *ext;
 
+	if (filename == NULL)
+		return NULL;
+
 	leaf = string_find_leafname(filename);
 	ext = strrchr(leaf, '/');
 
 	if (ext != NULL)
 		ext++;
 	else
-		ext = strchr (leaf, '\0');
+		ext = strchr(leaf, '\0');
 
 	return ext;
 }
@@ -435,6 +444,9 @@ char *string_find_extension(char *filename)
 char *string_strip_extension(char *filename)
 {
 	char	*leaf, *ext;
+
+	if (filename == NULL)
+		return NULL;
 
 	leaf = string_find_leafname(filename);
 	ext = strrchr(leaf, '/');
