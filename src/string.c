@@ -468,7 +468,7 @@ int string_convert_version_number(char *string)
 	char	*start, *end, *p;
 	int	count;
 
-	if (*string == '\0')
+	if (string == NULL || *string == '\0')
 		return -1;
 
 
