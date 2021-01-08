@@ -471,18 +471,17 @@ int string_convert_version_number(char *string)
 	if (string == NULL || *string == '\0')
 		return -1;
 
-
-	/* Clean up the string, removing surplus characters from start and finish. */
-
-	start = string;
-	while (!isdigit(*start))
-		start++;
-
+	/* Remove non-digit characters from the end of the string. */
 
 	end = strrchr(string, '\0') - 1;
-
-	while (!isdigit(*end))
+	while (end > string && !isdigit(*end))
 		*end-- = '\0';
+
+	/* Remove non-digit characters from the start of the string. */
+
+	start = string;
+	while (*start != '\0' && !isdigit(*start))
+		start++;
 
 	/* Check that we're all digits and one decimal point. */
 
