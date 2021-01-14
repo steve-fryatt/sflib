@@ -297,7 +297,7 @@ static void saveas_click_handler(wimp_pointer *pointer)
 	switch (pointer->i) {
 	case SAVEAS_ICON_CANCEL:
 		if (pointer->buttons == wimp_CLICK_SELECT)
-			wimp_create_menu(NULL, 0, 0);
+			wimp_create_menu((wimp_menu *) -1, 0, 0);
 		break;
 
 	case SAVEAS_ICON_SAVE:
@@ -342,7 +342,7 @@ static osbool saveas_keypress_handler(wimp_key *key)
 		break;
 
 	case wimp_KEY_ESCAPE:
-		wimp_create_menu(NULL, 0, 0);
+		wimp_create_menu((wimp_menu *) -1, 0, 0);
 		break;
 
 	default:
@@ -401,7 +401,7 @@ static osbool saveas_save_handler(char *filename, void *data)
 
 	result = handle->callback(filename, handle->selected, handle->callback_data);
 
-	wimp_create_menu(NULL, 0, 0);
+	wimp_create_menu((wimp_menu *) -1, 0, 0);
 
 	return result;
 }
@@ -439,6 +439,6 @@ static void saveas_immediate_save(struct saveas_block *handle)
 	if (handle->callback !=NULL)
 		handle->callback(filename, handle->selected, handle->callback_data);
 
-	wimp_create_menu(NULL, 0, 0);
+	wimp_create_menu((wimp_menu *) -1, 0, 0);
 }
 
