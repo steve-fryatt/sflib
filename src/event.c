@@ -2343,7 +2343,7 @@ static void event_delete_window_callbacks(struct event_window *window)
 static osbool event_process_callbacks(os_t time)
 {
 	struct event_callback	*callback = event_callback_list;
-	osbool			result = FALSE;
+	osbool			result = FALSE, free_pending = FALSE;
 
 	/* If there's no callback waiting, or the next one isn't due, return. */
 
@@ -2368,6 +2368,8 @@ static osbool event_process_callbacks(os_t time)
 			callback->time += callback->interval;
 
 		event_insert_callback(callback);
+	} else if (callback->interval == 0) {
+		free_pending = TRUE;
 	}
 
 	/* Call the callback routine. */
@@ -2377,7 +2379,7 @@ static osbool event_process_callbacks(os_t time)
 
 	/* If this is a one-shot, free the memory. */
 
-	if (callback->interval == 0)
+	if (free_pending == TRUE)
 		free(callback);
 
 	return result;
