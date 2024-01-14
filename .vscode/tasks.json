@@ -1,0 +1,80 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build",
+			"type": "shell",
+			"command": "make",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "clean",
+			"type": "shell",
+			"command": "make",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"args": [
+				"clean",
+			],
+			"group": "build",
+	//		"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "install",
+			"type": "shell",
+			"command": "make",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"args": [
+				"install",
+			],
+			"group": "build",
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "install",
+			"type": "shell",
+			"command": "make",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"args": [
+				"documentation",
+			],
+			"group": "build",
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "release",
+			"type": "shell",
+			"command": "make",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"args": [
+				"release",
+				"VERSION=${input:version}"
+			],
+			"group": "build",
+			"problemMatcher": "$msCompile"
+		}
+	],
+	"inputs": [
+		{
+			"id": "version",
+			"type": "promptString",
+			"description": "Version"
+		}
+	]
+}
