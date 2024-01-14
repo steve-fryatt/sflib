@@ -1,4 +1,3 @@
-.vscode
 build/sflib
 build/libSFLib32.a
 build/Licence,fff
@@ -11,4 +10,9 @@ norcroft/Licence,fff
 norcroft/ReadMe,fff
 norcroft/c
 norcroft/h
+norcroft/o
+norcroft/od
+norcroft/odz
+norcroft/oz
+norcroft/sflib
 obj
