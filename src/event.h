@@ -605,6 +605,10 @@ void event_set_menu_block(wimp_menu *menu);
 /**
  * Add a new single, one-shot callback to the callback queue.
  * 
+ * The routine is sent the time of the callback, and the client data pointer. It
+ * should return TRUE if it wishes to claim the Null event and prevent it from
+ * being passed on to the default handler.
+ * 
  * \param w			A window to associate the callback with, or NULL.
  * \param delay			The time until the callback, in centiseconds.
  * \param *callback		The callback function to be called.
@@ -612,11 +616,15 @@ void event_set_menu_block(wimp_menu *menu);
  * \return			TRUE if the callback was added; otherwise FALSE.
  */
 
-osbool event_add_single_callback(wimp_w w, os_t delay, osbool (*callback)(int time, void *data), void *data);
+osbool event_add_single_callback(wimp_w w, os_t delay, osbool (*callback)(os_t time, void *data), void *data);
 
 
 /**
  * Add a new regular, repeating callback to the callback queue.
+ * 
+ * The routine is sent the time of the callback, and the client data pointer. It
+ * should return TRUE if it wishes to claim the Null event and prevent it from
+ * being passed on to the default handler.
  * 
  * \param w			A window to associate the callback with, or NULL.
  * \param delay			The time until the first callback, in centiseconds.
@@ -626,7 +634,7 @@ osbool event_add_single_callback(wimp_w w, os_t delay, osbool (*callback)(int ti
  * \return			TRUE if the callback was added; otherwise FALSE.
  */
 
-osbool event_add_regular_callback(wimp_w w, os_t delay, os_t interval, osbool (*callback)(int time, void *data), void *data);
+osbool event_add_regular_callback(wimp_w w, os_t delay, os_t interval, osbool (*callback)(os_t time, void *data), void *data);
 
 
 /**
