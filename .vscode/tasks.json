@@ -43,7 +43,7 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
-			"label": "install",
+			"label": "documentation",
 			"type": "shell",
 			"command": "make",
 			"options": {
