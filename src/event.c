@@ -2288,6 +2288,29 @@ void event_delete_callback(osbool (*callback)(os_t time, void *data))
 
 
 /**
+ * Delete references to a callback from the callback queue where
+ * the client data pointer matches the one supplied.
+ * 
+ * This function is an external interface, documented in event.h.
+ */
+
+void event_delete_callback_by_data(osbool (*callback)(os_t time, void *data), void *data)
+{
+	struct event_callback **list = &event_callback_list, *delete;
+
+	while (*list != NULL) {
+		if ((*list)->callback == callback && (*list)->data == data) {
+			delete = *list;
+			*list = (*list)->next;
+			free(delete);
+		} else {
+			list = &((*list)->next);
+		}
+	}
+}
+
+
+/**
  * Delete all callbacks in the callback queue which relate to a given window.
  *
  * \param *window		The window reference.
@@ -2327,29 +2350,35 @@ static osbool event_process_callbacks(os_t time)
 	if ((callback == NULL) || (callback->time - time) > 0)
 		return FALSE;
 
-	/* Remove the event to be processed from the list, and call its callback. */
+	/* Remove the event to be processed from the list. */
 
 	event_callback_list = callback->next;
+
+	/* If this is a repeating callback, re-schedule for next time. Ensure that
+	 * we skip past the current time, in case things get held up for a long
+	 * period.
+	 * 
+	 * We do this before calling the callback, so that if the callback wishes
+	 * to remove itself, it can do so without us adding it back in again
+	 * after it returns.
+	 */
+
+	if (callback->interval > 0) {
+		while ((callback->time - time) <= 0)
+			callback->time += callback->interval;
+
+		event_insert_callback(callback);
+	}
+
+	/* Call the callback routine. */
 
 	if (callback->callback != NULL)
 		result = callback->callback(time, callback->data);
 
-	/* If this is a one-shot, free the memory and return. */
+	/* If this is a one-shot, free the memory. */
 
-	if (callback->interval == 0) {
+	if (callback->interval == 0)
 		free(callback);
-		return result;
-	}
-
-	/* This is a repeating callback, so re-schedule for next time. Ensure that
-	 * we skip past the current time, in case things get held up for a long
-	 * period.
-	 */
-
-	while ((callback->time - time) <= 0)
-		callback->time += callback->interval;
-
-	event_insert_callback(callback);
 
 	return result;
 }

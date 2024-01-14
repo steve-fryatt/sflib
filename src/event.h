@@ -637,4 +637,15 @@ osbool event_add_regular_callback(wimp_w w, os_t delay, os_t interval, osbool (*
 
 void event_delete_callback(osbool (*callback)(os_t time, void *data));
 
+
+/**
+ * Delete references to a callback from the callback queue where
+ * the client data pointer matches the one supplied.
+ * 
+ * \param *callback		The callback to be deleted.
+ * \param *data			The client data pointer to be matched.
+ */
+
+void event_delete_callback_by_data(osbool (*callback)(os_t time, void *data), void *data);
+
 #endif
