@@ -2361,6 +2361,9 @@ static osbool event_process_callbacks(os_t time)
 	 * We do this before calling the callback, so that if the callback wishes
 	 * to remove itself, it can do so without us adding it back in again
 	 * after it returns.
+	 * 
+	 * We also read the free_pending state now, because if the block is freed
+	 * by the callback, it won't be safe to read it after the callback returns.
 	 */
 
 	if (callback->interval > 0) {
