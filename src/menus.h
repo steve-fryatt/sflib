@@ -35,6 +35,16 @@
 #include "oslib/wimp.h"
 
 /**
+ * Options for adding a separator to a menu.
+ */
+
+enum menus_separator {
+	MENUS_SEPARATOR_NONE,
+	MENUS_SEPARATOR_THIS,
+	MENUS_SEPARATOR_PREVIOUS
+};
+
+/**
  * Pointer to a menu template block, which holds all of the loaded menu
  * definition blocks and any indirected data.
  */
@@ -75,12 +85,49 @@ osbool menus_link_dbox(menu_template data, char *tag, wimp_w dbox);
 /* Return a menu block pointer from a menu template block, given
  * a textual menu tag.
  *
+ * The memory is allocated using malloc(), and must be freed after
+ * use if no longer required.
+ *
  * \param data		The menu templates to link to.
  * \param *tag		The menu tag name from the templates.
  * \return		The required menu handle, or NULL on failure.
  */
 
 wimp_menu *menus_get_menu(menu_template data, char *tag);
+
+
+/**
+ * Create a new menu in memory, setting the title and blanking the
+ * entries ready for them to be filled in by menu_build_entry().
+ *
+ * The memory is allocated using malloc(), and must be freed after
+ * use if no longer required.
+ *
+ * \param *title		Pointer to the title text.
+ * \param external_title	TRUE if the title should be used in-situ;
+ *				FALSE if it should be copied into the menu.
+ * \param entries		The number of entries to include in the menu.
+ * \return			A pointer to the menu, or NULL on failure.
+ */
+
+wimp_menu *menus_build_menu(char *title, osbool external_title, size_t entries);
+
+
+/**
+ * Add a menu entry to an existing menu created by menus_build_menu().
+ * 
+ * \param *menu			Pointer to the menu to use.
+ * \param entry			The index of the entry in the menu.
+ * \param *text			Pointer to the text for the menu entry.
+ * \param text_length		If >0, the length of an exernal indirection
+ *				buffer pointed to by *text. If 0 or less,
+ *				allow the function to allocate memory for
+ *				the entry.
+ * \param separator		Should the entry be followed by a separator?
+ * \param *sub_menu		Pointer to a submenu, or NULL for none.
+ */
+
+void menus_build_entry(wimp_menu *menu, int entry, char *text, size_t text_length, enum menus_separator separator, wimp_menu *sub_menu);
 
 
 /**

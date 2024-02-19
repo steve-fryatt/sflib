@@ -38,6 +38,7 @@
 
 #include "menus.h"
 #include "windows.h"
+#include "string.h"
 
 /* ANSII C header files. */
 
@@ -316,6 +317,155 @@ wimp_menu *menus_get_menu(menu_template data, char *tag)
 		return NULL;
 
 	return (wimp_menu *) ((int) data + (int) *(current + MENU_NAME_OFFSET));
+}
+
+/**
+ * Create a new menu in memory, setting the title and blanking the
+ * entries ready for them to be filled in by menu_build_entry().
+ *
+ * The memory is allocated using malloc(), and must be freed after
+ * use if no longer required.
+ * 
+ * This is an external interface, documented in menus.h
+ */
+
+wimp_menu *menus_build_menu(char *title, osbool external_title, size_t entries)
+{
+	wimp_menu	*menu = NULL;
+	wimp_menu_entry	*entry = NULL;
+	char		*buffer = NULL;
+	size_t		len, size;
+
+	/* A menu must have one entry. */
+
+	if (entries < 1)
+		return NULL;
+
+	/* Allocate the menu definition block. */
+
+	size = wimp_SIZEOF_MENU(entries);
+
+	menu = malloc(size);
+	if (menu == NULL)
+		return NULL;
+
+	/* Set up the menu title. */
+
+	if (external_title == FALSE) {
+		len = strlen(title);
+		if (len > 12)
+			buffer = malloc(len + 1);
+	} else {
+		buffer = title;
+	}
+
+	if (buffer != NULL) {
+		if (external_title == FALSE)
+			string_copy(buffer, title, len);
+		menu->title_data.indirected_text.text = buffer;
+	} else {
+		strncpy(menu->title_data.text, title, 12);
+	}
+
+	/* Set up the remainder of the menu header. */
+
+	menu->title_fg = wimp_COLOUR_BLACK;
+	menu->title_bg = wimp_COLOUR_LIGHT_GREY;
+	menu->work_fg = wimp_COLOUR_BLACK;
+	menu->work_bg = wimp_COLOUR_WHITE;
+	menu->width = (16 * strlen(title)) + 16;
+	menu->height = wimp_MENU_ITEM_HEIGHT;
+	menu->gap = wimp_MENU_ITEM_GAP;
+
+	/* Initialise the menu entries. */
+
+	entry = menu->entries;
+
+	while (entries-- > 0) {
+		entry->menu_flags = (entries > 0) ? 0 : wimp_MENU_LAST;
+		entry->sub_menu = NULL;
+		entry->icon_flags = wimp_ICON_TEXT | wimp_ICON_FILLED |
+				(wimp_COLOUR_BLACK << wimp_ICON_FG_COLOUR_SHIFT) |
+				(wimp_COLOUR_WHITE << wimp_ICON_BG_COLOUR_SHIFT);
+		strncpy(entry->data.text, "", 12);
+
+		entry++;
+	}
+
+	/* Set the title indirection flag. */
+
+	if (buffer != NULL)
+		menu->entries[0].menu_flags |= wimp_MENU_TITLE_INDIRECTED;
+
+	return menu;
+}
+
+
+/**
+ * Add a menu entry to an existing menu created by menus_build_menu().
+ *
+ * The memory is allocated using malloc(), and must be freed after
+ * use if no longer required.
+ * 
+ * This is an external interface, documented in menus.h
+ */
+
+void menus_build_entry(wimp_menu *menu, int entry, char *text, size_t text_length, enum menus_separator separator, wimp_menu *sub_menu)
+{
+	wimp_menu_entry	*definition = NULL, *previous = NULL;
+	char		*buffer = NULL;
+	int		width;
+	size_t		len;
+
+	if (menu == NULL || text == NULL)
+		return;
+
+	/* Find the menu definition that we're to update. */
+
+	definition = menu->entries;
+
+	while (entry > 0) {
+		if (definition->menu_flags & wimp_MENU_LAST)
+			return;
+
+		entry--;
+		previous = definition++;
+	}
+
+	/* Set up the menu text. */
+
+	if (text_length > 0) {
+		buffer = text;
+		len = text_length;
+	} else {
+		len = strlen(text);
+		if (len > 12)
+			buffer = malloc(len + 1);
+	}
+
+	if (buffer != NULL) {
+		if (text_length == 0)
+			string_copy(buffer, text, len);
+		definition->data.indirected_text.text = text;
+		definition->data.indirected_text.validation = "";
+		definition->data.indirected_text.size = len + 1;
+		definition->icon_flags |= wimp_ICON_INDIRECTED;
+	} else {
+		strncpy(definition->data.text, text, 12);
+	}
+
+	definition->sub_menu = sub_menu;
+
+	if (separator == MENUS_SEPARATOR_THIS)
+		definition->menu_flags |= wimp_MENU_SEPARATE;
+	else if (separator == MENUS_SEPARATOR_PREVIOUS && previous != NULL)
+		previous->menu_flags |= wimp_MENU_SEPARATE;
+
+	/* Recalculate the menu width. */
+
+	width = (16 * strlen(text)) + 16;
+	if (width > menu->width)
+		menu->width = width;
 }
 
 
