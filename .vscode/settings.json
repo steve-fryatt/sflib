@@ -6,7 +6,8 @@
 		"markdown",
 		"latex",
 		"plaintext",
-		"xml"
+		"xml",
+		"git-commit"
 	],
 	"cmake.configureOnOpen": false
 }
