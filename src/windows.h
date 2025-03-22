@@ -1,4 +1,4 @@
-/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2025, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -104,6 +104,16 @@ void windows_open_centred_at_pointer(wimp_w w, wimp_pointer *p);
  */
 
 void windows_open_centred_on_screen(wimp_w w);
+
+
+/**
+ * Open a window centred in the current desktop screen mode,
+ * using an existing wimp_window_state block.
+ *
+ * \param *window	The window state block to open.
+ */
+
+ void windows_open_state_centred_on_screen(wimp_window_state *window);
 
 
 /**

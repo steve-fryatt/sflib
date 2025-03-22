@@ -1,4 +1,4 @@
-/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2025, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -195,7 +195,8 @@ void windows_open_centred_at_pointer(wimp_w w, wimp_pointer *p)
 }
 
 
-/* Open a window centred in the current desktop screen mode.
+/* Open a window centred in the current desktop screen mode,
+ * using a window handle.
  *
  * This is an external interface, documented in windows.h
  */
@@ -203,29 +204,48 @@ void windows_open_centred_at_pointer(wimp_w w, wimp_pointer *p)
 void windows_open_centred_on_screen(wimp_w w)
 {
 	wimp_window_state	window;
-	int			width, height;
+
+	if (w == NULL)
+		return;
 
 	window.w = w;
 	wimp_get_window_state(&window);
 
-	if ((window.flags & wimp_WINDOW_OPEN) == 0) {
-		width = window.visible.x1 - window.visible.x0;
-		height = window.visible.y1 - window.visible.y0;
-
-		window.visible.x0 = (general_mode_width() - width) / 2;
-		window.visible.y0 = (general_mode_height() - height) / 2;
-
-		if (window.visible.y0 < sf_ICONBAR_HEIGHT)
-			window.visible.y0 = sf_ICONBAR_HEIGHT;
-
-		window.visible.x1 = window.visible.x0 + width;
-		window.visible.y1 = window.visible.y0 + height;
-	}
-
-	window.next = wimp_TOP;
-	wimp_open_window((wimp_open *) &window);
+	windows_open_state_centred_on_screen(&window);
 }
 
+
+/* Open a window centred in the current desktop screen mode,
+ * using an existing wimp_window_state block.
+ *
+ * This is an external interface, documented in windows.h
+ */
+
+void windows_open_state_centred_on_screen(wimp_window_state *window)
+{
+	int			width, height;
+
+	if (window == NULL)
+		return;
+
+	if ((window->flags & wimp_WINDOW_OPEN) == 0) {
+		width = window->visible.x1 - window->visible.x0;
+		height = window->visible.y1 - window->visible.y0;
+
+		window->visible.x0 = (general_mode_width() - width) / 2;
+		window->visible.y0 = (general_mode_height() - height) / 2;
+
+		if (window->visible.y0 < sf_ICONBAR_HEIGHT)
+			window->visible.y0 = sf_ICONBAR_HEIGHT;
+
+		window->visible.x1 = window->visible.x0 + width;
+		window->visible.y1 = window->visible.y0 + height;
+	}
+
+	window->next = wimp_TOP;
+	wimp_open_window((wimp_open *) window);
+}
+ 
 /* Open a window transiently centred on the given pointer position.
  *
  * This is an external interface, documented in windows.h
