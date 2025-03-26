@@ -31,6 +31,7 @@
 #define SFLIB_DATAXFER
 
 #include <stddef.h>
+#include "oslib/wimp.h"
 
 /* ==================================================================================================================
  * Static constants
@@ -46,6 +47,7 @@
 #define dataxfer_TYPE_PDF	0xadfu
 #define dataxfer_TYPE_FANCYTEXT	0xaf8u
 #define dataxfer_TYPE_CSV	0xdfeu
+#define dataxfer_TYPE_HTML	0xfafu
 #define dataxfer_TYPE_TSV	0xfffu
 
 /**
