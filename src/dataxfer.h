@@ -41,6 +41,7 @@
  * Filetypes which aren't defined in OSLib.
  */
 
+#define dataxfer_TYPE_PUZZLE	0x05fu
 #define dataxfer_TYPE_LOCATE	0x1a1u
 #define dataxfer_TYPE_CASHBOOK	0x1cau
 #define dataxfer_TYPE_PRINTPDF	0x1d8u
@@ -220,4 +221,3 @@ void dataxfer_delete_drop_target(unsigned filetype, wimp_w w, wimp_i i);
 void dataxfer_delete_load_type(unsigned filetype);
 
 #endif
-
