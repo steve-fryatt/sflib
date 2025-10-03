@@ -55,10 +55,12 @@ enum config_read_status {
  * \param *app_name		The name of the application.
  * \param *c_dir		The name of the application's Choices: folder.
  * \param *l_dir		The application's directory path.
+ * \param *s_dir		A subdirectory to use in the application's
+ *				directory, or NULL.
  * \return			TRUE if the system was initialised OK; else FALSE.
  */
 
-osbool config_initialise(char *app_name, char *c_dir, char *l_dir);
+osbool config_initialise(char *app_name, char *c_dir, char *l_dir, char *s_dir);
 
 
 /**
@@ -261,4 +263,3 @@ void config_find_load_file(char *file, size_t len, char *leaf);
 void config_find_save_file(char *file, size_t len, char *leaf);
 
 #endif
-

@@ -103,6 +103,7 @@ static config_str		*str_list = NULL;				/**< The chain of textual config values.
 
 static char			*choices_dir = NULL;				/**< The name of the application's folder in Choices:.		*/
 static char			*local_dir = NULL;				/**< The full path to the application's own folder.		*/
+static char			*local_sub_dir = NULL;				/**< A folder to use inside the application folder, or NULL.	*/
 static char			*application_name = NULL;			/**< The application name as registered with the Wimp.		*/
 
 
@@ -113,20 +114,26 @@ static char			*application_name = NULL;			/**< The application name as registere
  * \param *app_name		The name of the application.
  * \param *c_dir		The name of the application's Choices: folder.
  * \param *l_dir		The application's directory path.
+ * \param *s_dir		A subdirectory to use in the application's
+ *				directory, or NULL.
  * \return			TRUE if the system was initialised OK; else FALSE.
  */
 
-osbool config_initialise(char *app_name, char *c_dir, char *l_dir)
+osbool config_initialise(char *app_name, char *c_dir, char *l_dir, char *s_dir)
 {
 	application_name = strdup(app_name);
 	if (application_name == NULL)
 		return FALSE;
 
-	local_dir = strdup(l_dir);
+	local_dir = (l_dir != NULL) ? strdup(l_dir) : NULL;
 	if (local_dir == NULL)
 		return FALSE;
 
-	choices_dir = strdup(c_dir);
+	local_sub_dir = (s_dir != NULL) ? strdup(s_dir) : NULL;
+	if (local_sub_dir == NULL && s_dir != NULL)
+		return FALSE;
+
+	choices_dir = (c_dir != NULL) ? strdup(c_dir) : NULL;
 	if (choices_dir == NULL)
 		return FALSE;
 
@@ -404,11 +411,17 @@ char *config_str_read(char *name)
 
 void config_find_load_file(char *file, size_t len, char *leaf)
 {
+	fileswitch_object_type type;
+
 	string_printf(file, len, "Choices:%s.%s", choices_dir, leaf);
 
-	if (osfile_read_no_path(file, NULL, NULL, NULL, NULL) != fileswitch_IS_FILE) {
-		string_printf(file, len, "%s.%s", local_dir, leaf);
-		if (osfile_read_no_path (file, NULL, NULL, NULL, NULL) != fileswitch_IS_FILE)
+	if (xosfile_read_no_path(file, &type, NULL, NULL, NULL, NULL) != NULL || type != fileswitch_IS_FILE) {
+		if (local_sub_dir != NULL)
+			string_printf(file, len, "%s.%s.%s", local_dir, local_sub_dir, leaf);
+		else
+			string_printf(file, len, "%s.%s", local_dir, leaf);
+
+		if (xosfile_read_no_path(file, &type, NULL, NULL, NULL, NULL) != NULL || type != fileswitch_IS_FILE)
 			*file = '\0';
 	}
 }
@@ -425,17 +438,27 @@ void config_find_load_file(char *file, size_t len, char *leaf)
 
 void config_find_save_file(char *file, size_t len, char *leaf)
 {
-	int		var_len;
+	fileswitch_object_type type;
+	int var_len;
 
 	*file = '\0';
 
 	os_read_var_val_size("Choices$Write", 0, os_VARTYPE_STRING, &var_len, NULL);
 
 	if (var_len == 0) {
-		string_printf(file, len, "%s.%s", local_dir, leaf);
+		if (local_sub_dir != NULL) {
+			string_printf(file, len, "%s.%s", local_dir, local_sub_dir);
+
+			if (xosfile_read_no_path(file, &type, NULL, NULL, NULL, NULL) == NULL || type == fileswitch_NOT_FOUND)
+				osfile_create_dir(file, 0);
+
+			string_printf(file, len, "%s.%s.%s", local_dir, local_sub_dir, leaf);
+		} else {
+			string_printf(file, len, "%s.%s", local_dir, leaf);
+		}
 	} else {
 		string_printf(file, len, "<Choices$Write>.%s", choices_dir);
-		if (osfile_read_no_path(file, NULL, NULL, NULL, NULL) == fileswitch_NOT_FOUND)
+		if (xosfile_read_no_path(file, &type, NULL, NULL, NULL, NULL) == NULL || type == fileswitch_NOT_FOUND)
 			osfile_create_dir(file, 0);
 
 		string_printf(file, len, "<Choices$Write>.%s.%s", choices_dir, leaf);
