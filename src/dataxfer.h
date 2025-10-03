@@ -41,10 +41,10 @@
  * Filetypes which aren't defined in OSLib.
  */
 
-#define dataxfer_TYPE_PUZZLE	0x05fu
 #define dataxfer_TYPE_LOCATE	0x1a1u
 #define dataxfer_TYPE_CASHBOOK	0x1cau
 #define dataxfer_TYPE_PRINTPDF	0x1d8u
+#define dataxfer_TYPE_PUZZLE	0x1f2u
 #define dataxfer_TYPE_PDF	0xadfu
 #define dataxfer_TYPE_FANCYTEXT	0xaf8u
 #define dataxfer_TYPE_CSV	0xdfeu
