@@ -1,4 +1,4 @@
-/* Copyright 2012-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2012-2025, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -80,6 +80,8 @@ struct saveas_block {
 	char				selection_filename[SAVEAS_MAX_FILENAME];	/**< The selection filename to be used in the savebox.			*/
 	char				sprite[SAVEAS_MAX_SPRNAME];			/**< The sprite to be used in the savebox.				*/
 
+	bits				filetype;					/**< The filetype to be saved.						*/
+
 	wimp_w				window;						/**< The window handle of the savebox to be used.			*/
 	osbool				selection;					/**< TRUE if the selection icon is enabled; else FALSE.			*/
 	osbool				selected;					/**< TRUE if the selection icon is ticked; else FALSE.			*/
@@ -143,14 +145,15 @@ void saveas_initialise(char *dialogue, char *select_dialogue)
 /**
  * Create a new save dialogue definition.
  *
- * \param: selection		TRUE if the dialogue has a Selection switch; FALSE if not.
- * \param: *sprite		Pointer to the sprite name for the dialogue.
- * \param: *save_callback	The callback function for saving data.
+ * \param selection		TRUE if the dialogue has a Selection switch; FALSE if not.
+ * \param *sprite		Pointer to the sprite name for the dialogue.
+ * \param filetype		The filetype to use when initiating a datatransfer.
+ * \param *save_callback	The callback function for saving data.
  * \return			The handle to use for the new save dialogue, or NULL
  *				on failure.
  */
 
-struct saveas_block *saveas_create_dialogue(osbool selection, char *sprite, osbool (*save_callback)(char *filename, osbool selection, void *data))
+struct saveas_block *saveas_create_dialogue(osbool selection, char *sprite, bits filetype, osbool (*save_callback)(char *filename, osbool selection, void *data))
 {
 	struct saveas_block		*new;
 
@@ -170,6 +173,8 @@ struct saveas_block *saveas_create_dialogue(osbool selection, char *sprite, osbo
 	new->full_filename[0] = '\0';
 	new->selection_filename[0] = '\0';
 	string_copy(new->sprite, (sprite != NULL) ? sprite : "", SAVEAS_MAX_SPRNAME);
+
+	new->filetype = filetype;
 
 	new->window = (selection) ? saveas_sel_window : saveas_window;
 	new->selection = FALSE;
@@ -379,7 +384,7 @@ static void saveas_drag_end_handler(wimp_pointer *pointer, void *data)
 
 	leafname = string_find_leafname((handle->selected) ? handle->selection_filename : handle->full_filename);
 
-	dataxfer_start_save(pointer, leafname, 0, 0xffffffffu, 0, saveas_save_handler, handle);
+	dataxfer_start_save(pointer, leafname, 0, handle->filetype, 0, saveas_save_handler, handle);
 }
 
 
@@ -441,4 +446,3 @@ static void saveas_immediate_save(struct saveas_block *handle)
 
 	wimp_create_menu((wimp_menu *) -1, 0, 0);
 }
-

@@ -1,4 +1,4 @@
-/* Copyright 2012-2015, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2012-2025, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -56,14 +56,15 @@ void saveas_initialise(char *dialogue, char *select_dialogue);
 /**
  * Create a new save dialogue definition.
  *
- * \param: selection		TRUE if the dialogue has a Selection switch; FALSE if not.
- * \param: *sprite		Pointer to the sprite name for the dialogue.
- * \param: *save_callback	The callback function for saving data.
+ * \param selection		TRUE if the dialogue has a Selection switch; FALSE if not.
+ * \param *sprite		Pointer to the sprite name for the dialogue.
+ * \param filetype		The filetype to use when initiating a datatransfer.
+ * \param *save_callback	The callback function for saving data.
  * \return			The handle to use for the new save dialogue, or NULL
  *				on failure.
  */
 
-struct saveas_block *saveas_create_dialogue(osbool selection, char *sprite, osbool (*save_callback)(char *filename, osbool selection, void *data));
+struct saveas_block *saveas_create_dialogue(osbool selection, char *sprite, bits filetype, osbool (*save_callback)(char *filename, osbool selection, void *data));
 
 
 /**
@@ -104,4 +105,3 @@ void saveas_prepare_dialogue(struct saveas_block *handle);
 void saveas_open_dialogue(struct saveas_block *handle, wimp_pointer *pointer);
 
 #endif
-
