@@ -191,11 +191,11 @@ static osbool url_acornlaunch(const char *url)
 	uri_dispatch_flags	flags;
 
 
-	if (xwimpreadsysinfo_task (&taskhan, NULL) != NULL)
+	if (xwimpreadsysinfo_task(&taskhan, NULL) != NULL)
 		success = FALSE;
 
 	if (success)
-		if (xuri_dispatch (uri_DISPATCH_INFORM_CALLER, url, taskhan, &flags, NULL, NULL) != NULL || flags & 1)
+		if (xuri_dispatch(uri_DISPATCH_INFORM_CALLER, url, taskhan, &flags, NULL, NULL) != NULL || flags & 1)
 			success = FALSE;
 
 	if (!success)
