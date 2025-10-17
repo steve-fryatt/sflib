@@ -134,20 +134,28 @@ static osbool url_antbroadcast(const char *url)
 static osbool url_antload(const char *url)
 {
 	char	buf[URL_BUFFER_LENGTH];
-	char	*off;
+	char	*protocol_offset;
 	char	*separator = " ";
 	int	prefix_length, suffix_length, separator_length;
 
+	/* Find the offset of the protocol separator in the URL. */
 
-	off = strchr(url, ':');
+	protocol_offset = strchr(url, ':');
 
-	if (off == NULL)
+	if (protocol_offset == NULL)
 		return FALSE;
+
+	/* Extract the protocol from the URL (the bit before the colon, so http, file, etc),
+	 * and tack it on to the URLOpen_ Alias prefix to make the name of a possible
+	 * system variable.
+	 *
+	 * If the variable we need doesn't exist, give up.
+	 */
 
 	string_copy(buf, "Alias$URLOpen_", URL_BUFFER_LENGTH);
 
 	prefix_length = strlen(buf);
-	suffix_length = off - url;
+	suffix_length = protocol_offset - url;
 	separator_length = strlen(separator);
 
 	if (prefix_length + suffix_length + separator_length + 1 > URL_BUFFER_LENGTH) /* +1 for terminator. */
@@ -157,10 +165,12 @@ static osbool url_antload(const char *url)
 	if (getenv(buf) == NULL)
 		return FALSE;
 
+	/* Append the URL to the end of the Alias name, and then call the command. */
+
 	strncat(buf, separator, separator_length);
 	strncat(buf, url, URL_BUFFER_LENGTH - (prefix_length + suffix_length + separator_length + 1));
 
-	if (xwimp_start_task(buf + strlen("Alias$") - 1, NULL) != NULL)
+	if (xwimp_start_task(buf + strlen("Alias$"), NULL) != NULL)
 		return FALSE;
 
 	return TRUE;
