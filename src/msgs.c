@@ -1,4 +1,4 @@
-/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2026, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -28,10 +28,6 @@
  * up tokens.
  */
 
-/* Acorn C header files. */
-
-
-
 /* OS-Lib header files. */
 
 #include "oslib/messagetrans.h"
@@ -47,9 +43,24 @@
 #include <string.h>
 #include <stdlib.h>
 
+/**
+ * Pointer to the MessageTrans control block for the file.
+ */
 
-static messagetrans_control_block	*message_block = NULL;
-static osbool				external_file = FALSE;
+static messagetrans_control_block *message_block = NULL;
+
+/**
+ * Pointer to the buffer holding the file for MessageTrans, or NULL if
+ * we're using an external file.
+ */
+
+static char *message_buffer = NULL;
+
+/**
+ * Are we using an external file instance?
+ */
+
+static osbool external_file = FALSE;
 
 
 /* Iniitialise the Msgs module, loading the specified file and preparing the
@@ -60,13 +71,52 @@ static osbool				external_file = FALSE;
 
 osbool msgs_initialise(char *messages_file)
 {
-	int	message_size;
-	char	*message_buffer;
+	int message_size = 0;
 
-	messagetrans_file_info(messages_file, NULL, &message_size);
+	/* Validate the inputs. */
+
+	if (message_block != NULL || message_buffer != NULL || messages_file == NULL)
+		return FALSE;
+
+	/* Read the file details and allocate the necessary memory. */
+
+	if (xmessagetrans_file_info(messages_file, NULL, &message_size) != NULL)
+		return FALSE;
+
 	message_block = malloc(sizeof (messagetrans_control_block));
 	message_buffer = malloc(message_size);
-	messagetrans_open_file(message_block, messages_file, message_buffer);
+
+	if (message_block == NULL || message_buffer == NULL) {
+		if (message_block != NULL)
+			free(message_block);
+
+		if (message_buffer != NULL)
+			free(message_buffer);
+
+		message_block = NULL;
+		message_buffer = NULL;
+
+		return FALSE;
+	}
+
+	/* Load the file */
+
+	if (xmessagetrans_open_file(message_block, messages_file, message_buffer) != NULL) {
+		if (message_block != NULL)
+			free(message_block);
+
+		if (message_buffer != NULL)
+			free(message_buffer);
+
+		message_block = NULL;
+		message_buffer = NULL;
+
+		return FALSE;
+	}
+
+	/* Return successfully. */
+
+	external_file = FALSE;
 
 	return TRUE;
 }
@@ -80,6 +130,9 @@ osbool msgs_initialise(char *messages_file)
 
 osbool msgs_initialise_external(messagetrans_control_block *block)
 {
+	if (message_block != NULL || message_buffer != NULL || block == NULL)
+		return FALSE;
+
 	message_block = block;
 	external_file = TRUE;
 
@@ -101,9 +154,13 @@ osbool msgs_terminate(void)
 	if (external_file == FALSE) {
 		messagetrans_close_file(message_block);
 		free(message_block);
+
+		if (message_buffer != NULL)
+			free(message_buffer);
 	}
 
 	message_block = NULL;
+	message_buffer = NULL;
 	external_file = FALSE;
 
 	return TRUE;
@@ -190,4 +247,3 @@ osbool msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, c
 
 	return TRUE;
 }
-
