@@ -325,7 +325,7 @@ wimp_menu *menus_get_menu(menu_template data, char *tag)
  *
  * The memory is allocated using malloc(), and must be freed after
  * use if no longer required.
- * 
+ *
  * This is an external interface, documented in menus.h
  */
 
@@ -406,7 +406,7 @@ wimp_menu *menus_build_menu(char *title, osbool external_title, size_t entries)
  *
  * The memory is allocated using malloc(), and must be freed after
  * use if no longer required.
- * 
+ *
  * This is an external interface, documented in menus.h
  */
 
@@ -446,7 +446,7 @@ void menus_build_entry(wimp_menu *menu, int entry, char *text, size_t text_lengt
 	if (buffer != NULL) {
 		if (text_length == 0)
 			string_copy(buffer, text, len);
-		definition->data.indirected_text.text = text;
+		definition->data.indirected_text.text = buffer;
 		definition->data.indirected_text.validation = "";
 		definition->data.indirected_text.size = len + 1;
 		definition->icon_flags |= wimp_ICON_INDIRECTED;
@@ -628,5 +628,3 @@ unsigned menus_get_entries(wimp_menu *menu)
 
 	return entries;
 }
-
-
