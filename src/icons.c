@@ -64,7 +64,8 @@ char *icons_copy_text(wimp_w w, wimp_i i, char *buffer, size_t length)
 
 	icon.w = w;
 	icon.i = i;
-	wimp_get_icon_state(&icon);
+	if (xwimp_get_icon_state(&icon) != NULL)
+		return NULL;
 
 	if (icon.icon.flags & wimp_ICON_INDIRECTED) {
 		string_ctrl_copy(buffer, icon.icon.data.indirected_text.text, length);
@@ -90,7 +91,8 @@ char *icons_get_indirected_text_addr(wimp_w w, wimp_i i)
 
 	icon.w = w;
 	icon.i = i;
-	wimp_get_icon_state(&icon);
+	if (xwimp_get_icon_state(&icon) != NULL)
+		return NULL;
 
 	if (icon.icon.flags & wimp_ICON_INDIRECTED)
 		return icon.icon.data.indirected_text.text;
@@ -110,7 +112,8 @@ char *icons_get_validation_addr(wimp_w w, wimp_i i)
 
 	icon.w = w;
 	icon.i = i;
-	wimp_get_icon_state(&icon);
+	if (xwimp_get_icon_state(&icon) != NULL)
+		return NULL;
 
 	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) == (wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
 		return icon.icon.data.indirected_text.validation;
@@ -130,7 +133,8 @@ size_t icons_get_indirected_text_length(wimp_w w, wimp_i i)
 
 	icon.w = w;
 	icon.i = i;
-	wimp_get_icon_state(&icon);
+	if (xwimp_get_icon_state(&icon) != NULL)
+		return -1;
 
 	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) == (wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
 		return icon.icon.data.indirected_text.size;
@@ -159,9 +163,9 @@ osbool icons_get_validation_command(char *buffer, size_t length, wimp_w w, wimp_
 
 
 /* Extract a 'command' from an icon validation string.
- * 
+ *
  * This is an external interface, documented in icons.h
- */ 
+ */
 
 osbool icons_extract_validation_command(char *buffer, size_t length, char *validation, char command)
 {
@@ -361,7 +365,8 @@ osbool icons_get_selected(wimp_w w, wimp_i i)
 
 	icon.w = w;
 	icon.i = i;
-	wimp_get_icon_state(&icon);
+	if (xwimp_get_icon_state(&icon) != NULL)
+		return FALSE;
 
 	return ((icon.icon.flags & wimp_ICON_SELECTED) != 0) ? TRUE : FALSE;
 }
@@ -378,7 +383,8 @@ osbool icons_get_shaded(wimp_w w, wimp_i i)
 
 	icon.w = w;
 	icon.i = i;
-	wimp_get_icon_state(&icon);
+	if (xwimp_get_icon_state(&icon) != NULL)
+		return FALSE;
 
 	return ((icon.icon.flags & wimp_ICON_SHADED) != 0) ? TRUE : FALSE;
 }
@@ -574,9 +580,9 @@ void icons_put_caret_at_end(wimp_w window, wimp_i icon)
 	if (icon != wimp_ICON_WINDOW) {
 		icon_state.w = window;
 		icon_state.i = icon;
-		wimp_get_icon_state(&icon_state);
 
-		index = string_ctrl_strlen(icon_state.icon.data.indirected_text.text);
+		if (xwimp_get_icon_state(&icon_state) != NULL)
+			index = string_ctrl_strlen(icon_state.icon.data.indirected_text.text);
 	}
 
 	wimp_set_caret_position(window, icon, 0, 0, -1, index);
@@ -609,7 +615,8 @@ void icons_put_caret_in_group(wimp_w window, int icons, ...)
 		icon = va_arg(ap, wimp_i);
 
 		state.i = icon;
-		wimp_get_icon_state(&state);
+		if (xwimp_get_icon_state(&state) != NULL)
+			break;
 
 		if ((state.icon.flags & (wimp_ICON_SHADED | wimp_ICON_DELETED)) == 0) {
 			icons_put_caret_at_end(window, icon);
@@ -645,7 +652,8 @@ void icons_replace_caret_in_window(wimp_w window)
 
 	state.w = window;
 	state.i = caret.i;
-	wimp_get_icon_state(&state);
+	if (xwimp_get_icon_state(&state) != NULL)
+		return;
 
 	if ((state.icon.flags & (wimp_ICON_SHADED | wimp_ICON_DELETED)) != 0) {
 		/* If the icon where the caret is located is now shaded or deleted, it needs to be moved.  To do this,
@@ -740,7 +748,8 @@ void icons_insert_text(wimp_w w, wimp_i i, int index, char *text, int n)
 
 	icon_state.w = w;
 	icon_state.i = i;
-	wimp_get_icon_state(&icon_state);
+	if (xwimp_get_icon_state(&icon_state) != NULL)
+		return;
 
 	/* Calculate the length of the current icon text (including terminator), the amount of free space and hence the
 	 * amount of the new text to be copied in.
@@ -768,4 +777,3 @@ void icons_insert_text(wimp_w w, wimp_i i, int index, char *text, int n)
 
 	wimp_set_icon_state(w, i, 0, 0);
 }
-
