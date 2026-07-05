@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2026, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -115,7 +115,7 @@ wimp_menu *menus_build_menu(char *title, osbool external_title, size_t entries);
 
 /**
  * Add a menu entry to an existing menu created by menus_build_menu().
- * 
+ *
  * \param *menu			Pointer to the menu to use.
  * \param entry			The index of the entry in the menu.
  * \param *text			Pointer to the text for the menu entry.
@@ -191,15 +191,17 @@ void menus_shade_entry(wimp_menu *menu, int entry, osbool shade);
 
 
 /**
- * Return a pointer to the text of a menu entry, ignoring its indirected
- * status.
+ * Copy the text of a menu entry (indirected or otherwise) into the
+ * supplied buffer.
  *
  * \param *menu		The menu block to read.
  * \param entry		The entry to read.
- * \return		Pointer to the start of the entry text.
+ * \param *buffer	A buffer to contain the entry text.
+ * \param length	The length of the supplied buffer.
+ * \return		A pointer to the start of the returned text.
  */
 
-char *menus_get_text_addr(wimp_menu *menu, int entry);
+char *menus_copy_text(wimp_menu *menu, int entry, char *buffer, size_t length);
 
 
 /**
@@ -224,4 +226,3 @@ char *menus_get_indirected_text_addr(wimp_menu *menu, int entry);
 unsigned menus_get_entries(wimp_menu *menu);
 
 #endif
-

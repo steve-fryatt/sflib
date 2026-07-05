@@ -1,4 +1,4 @@
-/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2026, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -579,21 +579,28 @@ void menus_shade_entry(wimp_menu *menu, int entry, osbool shade)
 }
 
 
-/* Return a pointer to the text of a menu entry, ignoring its indirected
- * status.
+/**
+ * Copy the text of a menu entry (indirected or otherwise) into the
+ * supplied buffer.
  *
  * This is an external interface, documented in menus.h
  */
 
-char *menus_get_text_addr(wimp_menu *menu, int entry)
+char *menus_copy_text(wimp_menu *menu, int entry, char *buffer, size_t length)
 {
-	if (menu == NULL)
+	if (menu == NULL || buffer == NULL || length == 0)
 		return NULL;
 
-	if (menu->entries[entry].icon_flags & wimp_ICON_INDIRECTED)
-		return menu->entries[entry].data.indirected_text.text;
-	else
-		return menu->entries[entry].data.text;
+	if (menu->entries[entry].icon_flags & wimp_ICON_INDIRECTED) {
+		string_ctrl_copy(buffer, menu->entries[entry].data.indirected_text.text, length);
+	} else if (length > 12) {
+		string_ctrl_strncpy(buffer, menu->entries[entry].data.text, 12);
+		buffer[12] = '\0';
+	} else {
+		string_ctrl_copy(buffer, menu->entries[entry].data.text, length);
+	}
+
+	return buffer;
 }
 
 

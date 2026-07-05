@@ -384,7 +384,7 @@ osbool event_process_event(wimp_event_no event, wimp_block *block, int pollword,
 
 /**
  * Handle null events.
- * 
+ *
  * \param time			The current time.
  * \return			TRUE if the event has been handled; FALSE if not.
  */
@@ -685,7 +685,7 @@ static osbool event_process_user_drag_box(wimp_dragged *dragged)
 	event_drag_end = NULL;
 	event_drag_null_poll = NULL;
 	event_drag_data = NULL;
-	
+
 	return TRUE;
 }
 
@@ -728,7 +728,7 @@ static osbool event_process_menu_selection(wimp_selection *selection)
 
 	if (current_menu == NULL)
 		return FALSE;
-	
+
 	wimp_get_pointer_info(&pointer);
 
 	menu = NULL;
@@ -1648,7 +1648,16 @@ static void event_set_auto_menu_selection(struct event_window *window, struct ev
 		string_printf(action->data.popup.token_number, EVENT_TOKEN_INDEX_LEN, "%d", selection);
 		icons_msgs_lookup(window->w, action->data.popup.field, action->data.popup.token);
 	} else {
-		icons_strncpy(window->w, action->data.popup.field, menus_get_text_addr(action->data.popup.menu, selection));
+		wimp_icon_state icon = {
+			.w = window->w,
+			.i = action->data.popup.field
+		};
+
+		if (xwimp_get_icon_state(&icon) != NULL || (icon.icon.flags & wimp_ICON_INDIRECTED) == 0)
+			return;
+
+		menus_copy_text(action->data.popup.menu, selection,
+				icon.icon.data.indirected_text.text, icon.icon.data.indirected_text.size);
 	}
 
 	wimp_set_icon_state(window->w, action->data.popup.field, 0, 0);
@@ -2191,7 +2200,7 @@ void event_set_menu_block(wimp_menu *menu)
 
 /**
  * Add a new single, one-shot callback to the callback queue.
- * 
+ *
  * This function is an external interface, documented in event.h.
  */
 
@@ -2203,7 +2212,7 @@ osbool event_add_single_callback(wimp_w w, os_t delay, osbool (*callback)(os_t t
 
 /**
  * Add a new regular, repeating callback to the callback queue.
- * 
+ *
  * This function is an external interface, documented in event.h.
  */
 
@@ -2267,7 +2276,7 @@ static void event_insert_callback(struct event_callback *callback)
 
 /**
  * Delete all references to a callback from the callback queue.
- * 
+ *
  * This function is an external interface, documented in event.h.
  */
 
@@ -2290,7 +2299,7 @@ void event_delete_callback(osbool (*callback)(os_t time, void *data))
 /**
  * Delete references to a callback from the callback queue where
  * the client data pointer matches the one supplied.
- * 
+ *
  * This function is an external interface, documented in event.h.
  */
 
@@ -2335,7 +2344,7 @@ static void event_delete_window_callbacks(struct event_window *window)
 /**
  * Process the callback queue, executing the next callback it it has fallen due
  * and returning its result.
- * 
+ *
  * \param time			The time to use for testing the callback.
  * \return			The return value from the callback, or FALSE if none.
  */
@@ -2357,11 +2366,11 @@ static osbool event_process_callbacks(os_t time)
 	/* If this is a repeating callback, re-schedule for next time. Ensure that
 	 * we skip past the current time, in case things get held up for a long
 	 * period.
-	 * 
+	 *
 	 * We do this before calling the callback, so that if the callback wishes
 	 * to remove itself, it can do so without us adding it back in again
 	 * after it returns.
-	 * 
+	 *
 	 * We also read the free_pending state now, because if the block is freed
 	 * by the callback, it won't be safe to read it after the callback returns.
 	 */
