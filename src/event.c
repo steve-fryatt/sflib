@@ -911,7 +911,7 @@ static osbool event_process_user_message(wimp_event_no event, wimp_message *mess
 		case message_MENUS_DELETED:
 			menus_deleted = (wimp_full_message_menus_deleted *) message;
 			if (current_menu != NULL && ((current_menu_type == EVENT_MENU_WINDOW && current_menu->menu == menus_deleted->menu) ||
-					((current_menu_type == EVENT_MENU_POPUP_MANUAL || current_menu_type == EVENT_MENU_POPUP_MANUAL) &&
+					((current_menu_type == EVENT_MENU_POPUP_AUTO || current_menu_type == EVENT_MENU_POPUP_MANUAL) &&
 							current_menu_action->data.popup.menu == menus_deleted->menu))  ) {
 				if (current_menu->menu_close != NULL && current_menu_type != EVENT_MENU_POPUP_AUTO)
 					(current_menu->menu_close)(current_menu->w, menus_deleted->menu);
