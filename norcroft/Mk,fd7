@@ -1,5 +1,46 @@
+| >Mk
+|
+| Copyright 2026, Stephen Fryatt (info@stevefryatt.org.uk)
+|
+| This file is part of SFLib:
+|
+|   http://www.stevefryatt.org.uk/risc-os/
+|
+| Licensed under the EUPL, Version 1.2 only (the "Licence");
+| You may not use this work except in compliance with the
+| Licence.
+|
+| You may obtain a copy of the Licence at:
+|
+|   http://joinup.ec.europa.eu/software/page/eupl
+|
+| Unless required by applicable law or agreed to in
+| writing, software distributed under the Licence is
+| distributed on an "AS IS" basis, WITHOUT WARRANTIES
+| OR CONDITIONS OF ANY KIND, either express or implied.
+|
+| See the Licence for the specific language governing
+| permissions and limitations under the Licence.
+
+| Obtain the date and version information from the parent folder.
+
+Dir <Obey$Dir>.^
+
+BuildInfo -quiet -versionvar SFLib$BuildVersion
+
+| Compile the library.
+
 Dir <Obey$Dir>
+
+WimpSlot -min 8192k
 amu all_libs THROWBACK=-throwback
+
+| Copy the files around and package them up.
+
 CDir sflib
 Copy h sflib.h ~CFRV
-zip -9 -r ^.^.SFLibAOF/zip Licence o.SFLib ReadMe SetVars sflib.h -x sflib.h.strdup
+zip -9 -r "^.^.sflib<SFLib$BuildVersion>/zip" "Licence" "o.SFLib" "ReadMe" "SetVars" "sflib.h" -x "sflib.h.strdup"
+
+| Tidy up.
+
+Unset SFLib$BuildVersion

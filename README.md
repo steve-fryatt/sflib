@@ -41,7 +41,9 @@ is used, Doxygen will be used to generate documentation within the manual folder
 Building with the DDE
 ---------------------
 
-When the library is built using `make`, a collection of files are assembled in the norcroft folder in a structure suitable for use with the ROOL Desktop Development Environment. If you have access to a copy in a RISC OS environment, double-clicking on Mk from within RISC OS will invoke the DDE and build an AOF version of the binary.
+When the library is built using `make`, a collection of files are assembled in the norcroft folder in a structure suitable for use with the [Desktop Development Environment](https://www.riscosopen.org/content/sales/dde) from RISC OS Open. If you have access to a copy in a RISC OS environment, double-clicking on Mk from within RISC OS will invoke the DDE and build an AOF version of the binary.
+
+You will need to have the BuildInfo utility installed on your Run Path for the build to work. This can be obtained from <https://www.stevefryatt.org.uk/risc-os/programming-tools>, and the easiest way to ensure that it is found is to install it into Boot:Library.
 
 A copy of Zip will need to be on the `Run$Path` so that a distribution archive can be constructed from the result.
 
