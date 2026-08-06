@@ -68,6 +68,19 @@
 			],
 			"group": "build",
 			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "test",
+			"type": "shell",
+			"command": "make",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"args": [
+				"test",
+			],
+			"group": "build",
+			"problemMatcher": "$msCompile"
 		}
 	],
 	"inputs": [

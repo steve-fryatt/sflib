@@ -16,3 +16,4 @@ norcroft/odz
 norcroft/oz
 norcroft/sflib
 obj
+test/absolute/test_*,ff8

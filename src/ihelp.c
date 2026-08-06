@@ -1,4 +1,4 @@
-/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2026, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -348,7 +348,7 @@ static char *ihelp_get_text(char *buffer, size_t length, wimp_w window, wimp_i i
 	if (window == wimp_ICON_BAR) {
 		/* Special case, if the window is the iconbar. */
 
-		if (msgs_lookup_result("Help.IconBar", help_text, IHELP_LENGTH))
+		if (msgs_lookup_result("Help.IconBar", help_text, IHELP_LENGTH) != MSGS_STATUS_ERROR)
 			string_copy(buffer, help_text, length);
 	} else if ((window_data = ihelp_find_window(window)) != NULL) {
 		/* Otherwise, if the window is one of the windows registered for interactive help. */
@@ -372,14 +372,14 @@ static char *ihelp_get_text(char *buffer, size_t length, wimp_w window, wimp_i i
 
 		if (*icon_name != '\0') {
 			string_printf(token, TOKEN_LENGTH, "Help.%s%s.%s", window_data->name, window_data->modifier, icon_name);
-			found = msgs_lookup_result(token, help_text, IHELP_LENGTH);
+			found = (msgs_lookup_result(token, help_text, IHELP_LENGTH) == MSGS_STATUS_ERROR) ? FALSE : TRUE;
 		}
 
 		/* If the icon did not have a name, or it is the window background, look up a token for the window. */
 
 		if (!found) {
 			string_printf(token, TOKEN_LENGTH, "Help.%s%s", window_data->name, window_data->modifier);
-			found = msgs_lookup_result(token, help_text, IHELP_LENGTH);
+			found = (msgs_lookup_result(token, help_text, IHELP_LENGTH) == MSGS_STATUS_ERROR) ? FALSE : TRUE;
 		}
 
 		/* If a message was found, return it. */
@@ -405,7 +405,7 @@ static char *ihelp_get_text(char *buffer, size_t length, wimp_w window, wimp_i i
 					strncat(token, icon_name, TOKEN_LENGTH - (strlen(icon_name) + 1));
 				}
 
-				if (msgs_lookup_result(token, help_text, IHELP_LENGTH))
+				if (msgs_lookup_result(token, help_text, IHELP_LENGTH) != MSGS_STATUS_ERROR)
 					string_copy(buffer, help_text, length);
 			}
 		}
@@ -413,4 +413,3 @@ static char *ihelp_get_text(char *buffer, size_t length, wimp_w window, wimp_i i
 
 	return buffer;
 }
-

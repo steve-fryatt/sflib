@@ -1,4 +1,4 @@
-/* Copyright 2003-2012, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2026, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -34,6 +34,29 @@
 #include <stdlib.h>
 #include "oslib/messagetrans.h"
 
+/**
+ * The possible return statuses from message lookups.
+ */
+
+enum msgs_status {
+	/**
+	 * The token wasn't found or another error occurred.
+	 */
+	MSGS_STATUS_ERROR = 0,
+
+	/**
+	 * The token was found, and the corresponding message was copied into the
+	 * supplied buffer with space left at the end.
+	 */
+	MSGS_STATUS_OK,
+
+	/**
+	 * The token was found, and the corresponding message was copied into the
+	 * supplied buffer with left at the end. This may be a perfectly-sized
+	 * message, or it may be that the message was truncated.
+	 */
+	MSGS_STATUS_BUFFER_FULL
+};
 
 /**
  * Iniitialise the Msgs module, loading the specified file and preparing the
@@ -104,10 +127,10 @@ char *msgs_param_lookup(char *token, char *buffer, size_t buffer_size, char *a, 
  * \param *token		The message token to look up.
  * \param *buffer		The buffer to hold the result.
  * \param buffer_size		The size of the result buffer.
- * \return			TRUE if the token was found; else FALSE.
+ * \return			The outcome of the operation.
  */
 
-osbool msgs_lookup_result(char *token, char *buffer, size_t buffer_size);
+enum msgs_status msgs_lookup_result(char *token, char *buffer, size_t buffer_size);
 
 
 /**
@@ -121,10 +144,9 @@ osbool msgs_lookup_result(char *token, char *buffer, size_t buffer_size);
  * \param *b			Parameter for %1.
  * \param *c			Parameter for %2.
  * \param *d			Parameter for %3.
- * \return			TRUE if the token was found; else FALSE.
+ * \return			The outcome of the operation.
  */
 
-osbool msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, char *a, char *b, char *c, char *d);
+enum msgs_status msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, char *a, char *b, char *c, char *d);
 
 #endif
-

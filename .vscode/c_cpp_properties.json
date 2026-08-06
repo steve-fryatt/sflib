@@ -5,13 +5,31 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/home/steve/gccsdk/env/include/",
-                "/usr/lib/gcc/x86_64-linux-gnu/9/include/"
+                "/home/steve/gccsdk/cross/lib/gcc/arm-unknown-riscos/4.7.4/include/"
             ],
-            "defines": [],
+            "defines": [
+                "UNITY_INT_WIDTH 32"
+            ],
             "compilerPath": "/home/steve/gccsdk/cross/arm-unknown-riscos/bin/gcc",
-            "cStandard": "c99",
+            "cStandard": "gnu99",
             "cppStandard": "gnu++14"
-        }
+        },
+		{
+		"name": "Unit Test",
+		"includePath": [
+			"${workspaceFolder}/**",
+			"/home/steve/gccsdk/env/include/",
+			"/home/steve/gccsdk/cross/lib/gcc/arm-unknown-riscos/4.7.4/include/"
+		],
+		"defines": [
+			"UNITY_INT_WIDTH 32",
+			"UNIT_TESTING"
+		],
+		"compilerPath": "/home/steve/gccsdk/cross/arm-unknown-riscos/bin/gcc",
+		"cStandard": "gnu99",
+		"cppStandard": "gnu++14"
+	//	"configurationProvider": "ms-vscode.makefile-tools"
+		}
     ],
     "version": 4
 }

@@ -201,7 +201,7 @@ char *msgs_param_lookup(char *token, char *buffer, size_t buffer_size, char *a, 
  * This is an external interface, documented in msgs.h
  */
 
-osbool msgs_lookup_result(char *token, char *buffer, size_t buffer_size)
+enum msgs_status msgs_lookup_result(char *token, char *buffer, size_t buffer_size)
 {
 	return msgs_param_lookup_result(token, buffer, buffer_size, NULL, NULL, NULL, NULL);
 }
@@ -213,37 +213,41 @@ osbool msgs_lookup_result(char *token, char *buffer, size_t buffer_size)
  * This is an external interface, documented in msgs.h
  */
 
-osbool msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, char *a, char *b, char *c, char *d)
+enum msgs_status msgs_param_lookup_result(char *token, char *buffer, size_t buffer_size, char *a, char *b, char *c, char *d)
 {
-	os_error	*error;
-
 	if (buffer == NULL || buffer_size <= 0)
-		return FALSE;
+		return MSGS_STATUS_ERROR;
 
 	/* If there's no token, return an empty buffer. */
 
 	if (token == NULL) {
 		*buffer = '\0';
-		return FALSE;
+		return MSGS_STATUS_ERROR;
 	}
 
 	/* If there's no message block, instead of using the Global block, return the supplied token. */
 
 	if (message_block == NULL) {
 		string_copy(buffer, token, buffer_size);
-		return FALSE;
+		return MSGS_STATUS_ERROR;
 	}
 
 	/* Look up the token. */
 
-	error = xmessagetrans_lookup(message_block, token, buffer, buffer_size, a, b, c, d, NULL, NULL);
+	int used = 0;
+
+	os_error *error = xmessagetrans_lookup(message_block, token, buffer, buffer_size, a, b, c, d, NULL, &used);
 
 	/* If there was an error, return an empty buffer. */
 
 	if (error != NULL) {
 		*buffer = '\0';
-		return FALSE;
+		return MSGS_STATUS_ERROR;
 	}
 
-	return TRUE;
+	/* We can't differentiate between a perfectly-sized buffer and one that's too small.
+	 * MessageTrans returns the number of characters written excluding the terminator.
+	 */
+
+	return (used >= (buffer_size - 1)) ? MSGS_STATUS_BUFFER_FULL : MSGS_STATUS_OK;
 }

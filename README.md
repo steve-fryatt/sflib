@@ -37,6 +37,18 @@ If
 
 is used, Doxygen will be used to generate documentation within the manual folder.
 
+Unit tests can be built using
+
+	make test
+
+
+Unit tests
+----------
+
+Unit tests for some parts of SFLib are implemented using [Unity](https://www.throwtheswitch.org/unity) from https://www.throwtheswitch.org, with the tests defined within the `test/tests/` folder. When `make test` is run, a collection of absolute files are created in `test/absolute/` and these can be run on a RISC OS system using the `RunTests` TaskObey file in the same folder.
+
+Test coverage is nowhere near complete! The focus is mainly on the back-end code away from the user interface and, due to the relatively recent addition of testing to the codebase, on parts of the code which have recently seen active development.
+
 
 Building with the DDE
 ---------------------
