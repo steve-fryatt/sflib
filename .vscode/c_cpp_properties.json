@@ -8,7 +8,7 @@
                 "/home/steve/gccsdk/cross/lib/gcc/arm-unknown-riscos/4.7.4/include/"
             ],
             "defines": [
-                "UNITY_INT_WIDTH 32"
+                "UNITY_INT_WIDTH=32"
             ],
             "compilerPath": "/home/steve/gccsdk/cross/arm-unknown-riscos/bin/gcc",
             "cStandard": "gnu99",
@@ -22,7 +22,7 @@
 			"/home/steve/gccsdk/cross/lib/gcc/arm-unknown-riscos/4.7.4/include/"
 		],
 		"defines": [
-			"UNITY_INT_WIDTH 32",
+			"UNITY_INT_WIDTH=32",
 			"UNIT_TESTING"
 		],
 		"compilerPath": "/home/steve/gccsdk/cross/arm-unknown-riscos/bin/gcc",
