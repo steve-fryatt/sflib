@@ -32,6 +32,7 @@
 #define SFLIB_HEAP
 
 #include <stdlib.h>
+#include <stddef.h>
 #include "oslib/types.h"
 
 /**

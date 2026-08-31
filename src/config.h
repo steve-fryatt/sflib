@@ -33,6 +33,7 @@
 #ifndef SFLIB_CONFIG
 #define SFLIB_CONFIG
 
+#include <stddef.h>
 #include <stdio.h>
 
 #include "oslib/types.h"

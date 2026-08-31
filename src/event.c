@@ -45,6 +45,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stddef.h>
 
 #define EVENT_TOKEN_INDEX_LEN 12											/**< The number of digits in a message token index.			*/
 

@@ -44,6 +44,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 
 /* Offsets into the menu template header */
 

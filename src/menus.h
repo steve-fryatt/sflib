@@ -32,6 +32,7 @@
 #define SFLIB_MENUS
 
 #include <stdlib.h>
+#include <stddef.h>
 #include "oslib/wimp.h"
 
 /**

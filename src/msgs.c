@@ -42,6 +42,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 /**
  * Pointer to the MessageTrans control block for the file.

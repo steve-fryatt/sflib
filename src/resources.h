@@ -32,6 +32,7 @@
 #define SFLIB_RESOURCES
 
 #include <stdlib.h>
+#include <stddef.h>
 #include "oslib/osspriteop.h"
 
 
@@ -59,7 +60,7 @@ osbool resources_initialise_paths(char *path_set, size_t length, char *appvar, c
  * search for a file of a given name and filetype by order of preference. If
  * one is found, copy the full name into the supplied buffer. If no file is
  * found, the buffer will be returned containing a terminated, empty string.
- * 
+ *
  * \param *paths		Pointer to the path set created by
  *				resources_initialise_paths().
  * \param *buffer		Pointer to a buffer to take a returned filename.
@@ -83,4 +84,3 @@ osbool resources_find_file(char *paths, char *buffer, size_t length, char *file,
 osspriteop_area *resources_load_user_sprite_area(char *file);
 
 #endif
-

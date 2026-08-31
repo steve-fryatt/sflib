@@ -50,6 +50,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stddef.h>
 
 /**
  * The maximum length of an expanded filename.
@@ -220,7 +221,7 @@ static osbool resources_read_country(char *buffer, size_t length)
  * Take a comma-separated list of country names, and test each
  * one against the available resource folders. For each that exists,
  * add the name to our list.
- * 
+ *
  * \param *path			Pointer to the path name for the resources folder.
  * \param *set			Pointer to a comma-separated list of country
  *				folder names to be tested.
@@ -284,7 +285,7 @@ static void resources_add_path_set(char *path, char *set, char **out, char *end)
  * search for a file of a given name and filetype by order of preference. If
  * one is found, copy the full name into the supplied buffer. If no file is
  * found, the buffer will be returned containing a terminated, empty string.
- * 
+ *
  * \param *paths		Pointer to the path set created by
  *				resources_initialise_paths().
  * \param *buffer		Pointer to a buffer to take a returned filename.
@@ -345,7 +346,7 @@ osbool resources_find_file(char *paths, char *buffer, size_t length, char *file,
  * Copy a string from one buffer to another, updating pointers as we
  * go. The copy is NOT terminated, but will have a RISC OS directory
  * separator added to the end if one is not present.
- * 
+ *
  * \param *buffer		Pointer to the buffer to hold the copy.
  * \param length		The length of the buffer.
  * \param *tail			Pointer to a variable indicating the point

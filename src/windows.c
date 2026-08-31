@@ -46,7 +46,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <stddef.h>
 
 /* Open a window at the top of the window stack.
  *
@@ -245,7 +245,7 @@ void windows_open_state_centred_on_screen(wimp_window_state *window)
 	window->next = wimp_TOP;
 	wimp_open_window((wimp_open *) window);
 }
- 
+
 /* Open a window transiently centred on the given pointer position.
  *
  * This is an external interface, documented in windows.h
@@ -579,7 +579,7 @@ void windows_redraw(wimp_w w)
 /* Load a window template into memory from the currently open template file,
  * storing the details in a newly malloc()'d block.  The block should be released
  * after use with free() if no longer required.
- * 
+ *
  * *name is assumed to point to 12 bytes of word-aligned memory if it contains
  * a wildcarded name. If it does not contain a wildcard, it can simply be a
  * pointer to a string, based on the current Wimp implementation.

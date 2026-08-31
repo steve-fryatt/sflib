@@ -30,6 +30,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 
 /* Acorn C header files. */
 

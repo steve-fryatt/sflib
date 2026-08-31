@@ -32,6 +32,7 @@
 #define SFLIB_WINDOWS
 
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "oslib/wimp.h"
 
@@ -286,7 +287,7 @@ void windows_redraw(wimp_w w);
  * Load a window template into memory from the currently open template file,
  * storing the details in a newly malloc()'d block.  The block should be released
  * after use with free() if no longer required.
- * 
+ *
  * *name is assumed to point to 12 bytes of word-aligned memory if it contains
  * a wildcarded name. If it does not contain a wildcard, it can simply be a
  * pointer to a string, based on the current Wimp implementation.
@@ -298,4 +299,3 @@ void windows_redraw(wimp_w w);
 wimp_window *windows_load_template(char *name);
 
 #endif
-

@@ -35,6 +35,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 char *strdup(const char *string)
 {
@@ -53,4 +54,3 @@ char *strdup(const char *string)
 	return copy;
 }
 #endif
-

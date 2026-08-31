@@ -32,6 +32,7 @@
 #define SFLIB_MSGS
 
 #include <stdlib.h>
+#include <stddef.h>
 #include "oslib/messagetrans.h"
 
 /**
