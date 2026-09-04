@@ -30,7 +30,7 @@
 #ifndef SFLIB_COLPICK
 #define SFLIB_COLPICK
 
-#include "oslib/wimp.h"
+#include <oslib/wimp.h>
 
 
 /**
@@ -73,4 +73,3 @@ void colpick_select_colour(wimp_colour colour);
 void colpick_set_icon_colour(wimp_w w, wimp_i i, wimp_colour colour);
 
 #endif
-

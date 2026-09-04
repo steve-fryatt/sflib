@@ -37,12 +37,12 @@
 
 /* OSLib header files */
 
-#include "oslib/dragasprite.h"
-#include "oslib/osbyte.h"
-#include "oslib/osfile.h"
-#include "oslib/osfscontrol.h"
-#include "oslib/wimp.h"
-#include "oslib/wimpspriteop.h"
+#include <oslib/dragasprite.h>
+#include <oslib/osbyte.h>
+#include <oslib/osfile.h>
+#include <oslib/osfscontrol.h>
+#include <oslib/wimp.h>
+#include <oslib/wimpspriteop.h>
 
 /* SF-Lib header files. */
 
@@ -227,7 +227,7 @@ void dataxfer_initialise(wimp_t task_handle, struct dataxfer_memory *handlers)
 	event_add_message_handler(message_DATA_LOAD, EVENT_MESSAGE_ACKNOWLEDGE, dataxfer_message_bounced);
 	event_add_message_handler(message_DATA_SAVE_ACK, EVENT_MESSAGE_ACKNOWLEDGE, dataxfer_message_bounced);
 	event_add_message_handler(message_DATA_REQUEST, EVENT_MESSAGE_ACKNOWLEDGE, dataxfer_message_bounced);
-	
+
 	dataxfer_memory_handlers = handlers;
 
 	if (handlers != NULL) {
@@ -455,7 +455,7 @@ osbool dataxfer_request_clipboard(wimp_w w, wimp_i i, os_coord pos, bits types[]
 		return FALSE;
 
 	descriptor->purpose = DATAXFER_CLIPBOARD_RECEIVE;
-	
+
 	descriptor->save_callback = NULL;
 	descriptor->receive_callback = receive_callback;
 	descriptor->callback_data = data;
@@ -917,7 +917,7 @@ static osbool dataxfer_message_data_save(wimp_message *message)
 
 	if (message->your_ref != 0) {
 		/* See if this is a reply to a message we think we've sent. */
-	
+
 		descriptor = dataxfer_find_descriptor(message->your_ref, DATAXFER_MESSAGE_REQUEST);
 		if (descriptor == NULL || descriptor->purpose != DATAXFER_CLIPBOARD_RECEIVE)
 			return FALSE;
@@ -1750,4 +1750,3 @@ static void dataxfer_delete_descriptor(struct dataxfer_descriptor *message)
 
 	free(message);
 }
-

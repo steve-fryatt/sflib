@@ -33,7 +33,7 @@
 
 #include <stdlib.h>
 #include <stddef.h>
-#include "oslib/messagetrans.h"
+#include <oslib/messagetrans.h>
 
 /**
  * The possible return statuses from message lookups.

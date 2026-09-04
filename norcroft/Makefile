@@ -10,8 +10,12 @@ OBJS = colpick config dataxfer debug errors event general   \
 
 CINCLUDES = -IC:,OSLib:
 
+# Don't warn of non-ANSII includes in the <> path.
+CFLAGS = -Wp
+
 include CLibrary
 
+# Include function names in the binary.
 C_NO_FNAMES =
 
 # Dynamic dependencies:

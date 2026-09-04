@@ -30,14 +30,14 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/territory.h"
-#include "oslib/os.h"
-#include "oslib/osbyte.h"
-#include "oslib/osfile.h"
-#include "oslib/fileswitch.h"
-#include "oslib/osspriteop.h"
-#include "oslib/serviceinternational.h"
-#include "oslib/wimpreadsysinfo.h"
+#include <oslib/territory.h>
+#include <oslib/os.h>
+#include <oslib/osbyte.h>
+#include <oslib/osfile.h>
+#include <oslib/fileswitch.h>
+#include <oslib/osspriteop.h>
+#include <oslib/serviceinternational.h>
+#include <oslib/wimpreadsysinfo.h>
 
 /* SF-Lib header files. */
 

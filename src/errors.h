@@ -30,8 +30,8 @@
 #ifndef SFLIB_ERRORS
 #define SFLIB_ERRORS
 
-#include "oslib/messagetrans.h"
-#include "oslib/wimp.h"
+#include <oslib/messagetrans.h>
+#include <oslib/wimp.h>
 
 
 /**
@@ -235,4 +235,3 @@ void error_report_fatal(char *message);
 void error_report_program(os_error *error);
 
 #endif
-

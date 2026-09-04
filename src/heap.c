@@ -34,14 +34,14 @@
 
 /* Acorn C header files. */
 
-#include "flex.h"
+#include <flex.h>
 
 /* OS-Lib header files. */
 
-#include "oslib/os.h"
-#include "oslib/osheap.h"
-#include "oslib/messagetrans.h"
-#include "oslib/wimp.h"
+#include <oslib/os.h>
+#include <oslib/osheap.h>
+#include <oslib/messagetrans.h>
+#include <oslib/wimp.h>
 
 /* SF-Lib header files. */
 

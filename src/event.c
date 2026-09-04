@@ -29,8 +29,8 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/os.h"
-#include "oslib/wimp.h"
+#include <oslib/os.h>
+#include <oslib/wimp.h>
 
 /* SFLib Header Files. */
 

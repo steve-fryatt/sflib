@@ -29,7 +29,7 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/os.h"
+#include <oslib/os.h>
 
 /* SF-Lib header files. */
 
@@ -69,4 +69,3 @@ int general_mode_height(void)
 
 	return ((height + 1) << shift);
 }
-

@@ -30,8 +30,8 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/messagetrans.h"
-#include "oslib/os.h"
+#include <oslib/messagetrans.h>
+#include <oslib/os.h>
 
 /* SF-Lib header files. */
 

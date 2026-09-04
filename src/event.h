@@ -125,9 +125,9 @@
 #ifndef SFLIB_EVENT
 #define SFLIB_EVENT
 
-#include "oslib/os.h"
-#include "oslib/types.h"
-#include "oslib/wimp.h"
+#include <oslib/os.h>
+#include <oslib/types.h>
+#include <oslib/wimp.h>
 
 /**
  * Categorization of Wimp Message types.  A bitfield, where:
@@ -604,11 +604,11 @@ void event_set_menu_block(wimp_menu *menu);
 
 /**
  * Add a new single, one-shot callback to the callback queue.
- * 
+ *
  * The routine is sent the time of the callback, and the client data pointer. It
  * should return TRUE if it wishes to claim the Null event and prevent it from
  * being passed on to the default handler.
- * 
+ *
  * \param w			A window to associate the callback with, or NULL.
  * \param delay			The time until the callback, in centiseconds.
  * \param *callback		The callback function to be called.
@@ -621,11 +621,11 @@ osbool event_add_single_callback(wimp_w w, os_t delay, osbool (*callback)(os_t t
 
 /**
  * Add a new regular, repeating callback to the callback queue.
- * 
+ *
  * The routine is sent the time of the callback, and the client data pointer. It
  * should return TRUE if it wishes to claim the Null event and prevent it from
  * being passed on to the default handler.
- * 
+ *
  * \param w			A window to associate the callback with, or NULL.
  * \param delay			The time until the first callback, in centiseconds.
  * \param interval		The time between repeating callbacks, in centiseconds.
@@ -639,7 +639,7 @@ osbool event_add_regular_callback(wimp_w w, os_t delay, os_t interval, osbool (*
 
 /**
  * Delete all references to a callback from the callback queue.
- * 
+ *
  * \param *callback		The callback to be deleted.
  */
 
@@ -649,7 +649,7 @@ void event_delete_callback(osbool (*callback)(os_t time, void *data));
 /**
  * Delete references to a callback from the callback queue where
  * the client data pointer matches the one supplied.
- * 
+ *
  * \param *callback		The callback to be deleted.
  * \param *data			The client data pointer to be matched.
  */

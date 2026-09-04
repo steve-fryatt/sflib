@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "oslib/wimp.h"
+#include <oslib/wimp.h>
 
 
 #define sf_ICONBAR_HEIGHT 124							/**< The height in OS units used for avoiding the iconbar on window opens.	*/

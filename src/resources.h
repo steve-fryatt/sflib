@@ -33,7 +33,7 @@
 
 #include <stdlib.h>
 #include <stddef.h>
-#include "oslib/osspriteop.h"
+#include <oslib/osspriteop.h>
 
 
 /**

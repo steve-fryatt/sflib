@@ -29,8 +29,8 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/os.h"
-#include "oslib/report.h"
+#include <oslib/os.h>
+#include <oslib/report.h>
 
 /* ANSII C header files. */
 
@@ -69,4 +69,3 @@ int debug_printf(char *cntrl_string, ...)
 
 	return ret;
 }
-

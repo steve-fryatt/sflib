@@ -36,10 +36,10 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/wimp.h"
-#include "oslib/wimpreadsysinfo.h"
-#include "oslib/os.h"
-#include "oslib/uri.h"
+#include <oslib/wimp.h>
+#include <oslib/wimpreadsysinfo.h>
+#include <oslib/os.h>
+#include <oslib/uri.h>
 
 /* SF-Lib header files. */
 

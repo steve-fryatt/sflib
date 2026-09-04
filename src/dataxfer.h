@@ -31,7 +31,7 @@
 #define SFLIB_DATAXFER
 
 #include <stddef.h>
-#include "oslib/wimp.h"
+#include <oslib/wimp.h>
 
 /* ==================================================================================================================
  * Static constants

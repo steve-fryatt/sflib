@@ -30,8 +30,8 @@
 #ifndef SFLIB_TASKS
 #define SFLIB_TASKS
 
-#include "oslib/wimp.h"
-#include "oslib/types.h"
+#include <oslib/wimp.h>
+#include <oslib/types.h>
 
 
 /**
@@ -64,4 +64,3 @@ osbool tasks_get_running(char *task_name, wimp_t ignore_task);
 osbool tasks_test_for_duplicate(char *task_name, wimp_t handle, char *message, char *buttons);
 
 #endif
-

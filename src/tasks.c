@@ -29,8 +29,8 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/taskmanager.h"
-#include "oslib/wimp.h"
+#include <oslib/taskmanager.h>
+#include <oslib/wimp.h>
 
 /* SFLib header files. */
 
@@ -93,4 +93,3 @@ osbool tasks_test_for_duplicate(char *task_name, wimp_t handle, char *message, c
 
 	return exit;
 }
-

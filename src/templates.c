@@ -36,8 +36,8 @@
 
 /* OSLib header files */
 
-#include "oslib/osspriteop.h"
-#include "oslib/wimp.h"
+#include <oslib/osspriteop.h>
+#include <oslib/wimp.h>
 
 /* SF-Lib header files. */
 
@@ -170,4 +170,3 @@ wimp_menu *templates_get_menu(char *menu)
 
 	return handle;
 }
-

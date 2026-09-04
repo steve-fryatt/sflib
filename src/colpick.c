@@ -30,7 +30,7 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/wimp.h"
+#include <oslib/wimp.h>
 
 /* SF-Lib header files. */
 
@@ -98,4 +98,3 @@ void colpick_set_icon_colour(wimp_w w, wimp_i i, wimp_colour colour)
 	wimp_set_icon_state(w, i, (foreground << wimp_ICON_FG_COLOUR_SHIFT) | (colour << wimp_ICON_BG_COLOUR_SHIFT),
 			wimp_ICON_FG_COLOUR | wimp_ICON_BG_COLOUR);
 }
-

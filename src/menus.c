@@ -30,9 +30,9 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/wimp.h"
-#include "oslib/osfile.h"
-#include "oslib/osspriteop.h"
+#include <oslib/wimp.h>
+#include <oslib/osfile.h>
+#include <oslib/osspriteop.h>
 
 /* SF-Lib header files. */
 

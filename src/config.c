@@ -35,9 +35,9 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/os.h"
-#include "oslib/osfile.h"
-#include "oslib/fileswitch.h"
+#include <oslib/os.h>
+#include <oslib/osfile.h>
+#include <oslib/fileswitch.h>
 
 /* ANSII C header files. */
 

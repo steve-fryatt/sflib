@@ -32,7 +32,7 @@
 #define SFLIB_ICONS
 
 #include <stddef.h>
-#include "oslib/wimp.h"
+#include <oslib/wimp.h>
 
 
 /**
@@ -98,13 +98,13 @@ osbool icons_get_validation_command(char *buffer, size_t length, wimp_w w, wimp_
 
 /**
  * Extract a 'command' from an icon validation string.
- * 
+ *
  * \param *buffer	Pointer to a buffer to take the returned text.
  * \param length	The length of the supplied buffer.
  * \param *validation	Pointer to the validation string to be processed.
  * \param command	The single character validation command to return.
  * \return		TRUE if the command code was found; else FALSE.
- */ 
+ */
 
 osbool icons_extract_validation_command(char *buffer, size_t length, char *validation, char command);
 
@@ -375,4 +375,3 @@ void icons_replace_caret_in_window(wimp_w window);
 void icons_insert_text(wimp_w w, wimp_i i, int index, char *text, int n);
 
 #endif
-

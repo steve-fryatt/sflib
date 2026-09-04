@@ -29,7 +29,7 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/os.h"
+#include <oslib/os.h>
 
 /* SF-Lib header files. */
 

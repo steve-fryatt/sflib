@@ -31,7 +31,7 @@
 #define SFLIB_STRING
 
 #include <stddef.h>
-#include "oslib/types.h"
+#include <oslib/types.h>
 
 
 /**
@@ -254,4 +254,3 @@ char *string_strip_extension(char *filename);
 int string_convert_version_number(char *string);
 
 #endif
-

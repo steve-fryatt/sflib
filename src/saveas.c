@@ -37,11 +37,11 @@
 
 /* OSLib header files */
 
-#include "oslib/dragasprite.h"
-#include "oslib/osbyte.h"
-#include "oslib/osfscontrol.h"
-#include "oslib/wimp.h"
-#include "oslib/wimpspriteop.h"
+#include <oslib/dragasprite.h>
+#include <oslib/osbyte.h>
+#include <oslib/osfscontrol.h>
+#include <oslib/wimp.h>
+#include <oslib/wimpspriteop.h>
 
 /* SF-Lib header files. */
 

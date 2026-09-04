@@ -33,7 +33,7 @@
 
 #include <stdlib.h>
 #include <stddef.h>
-#include "oslib/wimp.h"
+#include <oslib/wimp.h>
 
 /**
  * Options for adding a separator to a menu.

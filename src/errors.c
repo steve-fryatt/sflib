@@ -29,9 +29,9 @@
 
 /* OS-Lib header files. */
 
-#include "oslib/wimp.h"
-#include "oslib/wimpspriteop.h"
-#include "oslib/messagetrans.h"
+#include <oslib/wimp.h>
+#include <oslib/wimpspriteop.h>
+#include <oslib/messagetrans.h>
 
 /* SF-Lib header files. */
 

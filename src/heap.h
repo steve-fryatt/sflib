@@ -33,7 +33,7 @@
 
 #include <stdlib.h>
 #include <stddef.h>
-#include "oslib/types.h"
+#include <oslib/types.h>
 
 /**
  * Initialise the heap.  Flex must have been initialised via flex_init() before
