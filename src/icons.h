@@ -1,4 +1,4 @@
-/* Copyright 2003-2017, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2026, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -53,7 +53,8 @@ char *icons_copy_text(wimp_w w, wimp_i i, char *buffer, size_t length);
  *
  * \param w		The handle of the window containing the icon.
  * \param i		The handle of the icon to read.
- * \return		The start of the icon's indirected buffer.
+ * \return		The start of the icon's indirected buffer, or
+ *			NULL if the icon isn't indirected or an error occurs.
  */
 
 char *icons_get_indirected_text_addr(wimp_w w, wimp_i i);
@@ -64,7 +65,8 @@ char *icons_get_indirected_text_addr(wimp_w w, wimp_i i);
  *
  * \param w		The handle of the window containing the icon.
  * \param i		The handle of the icon to read.
- * \return		The start of the icon's validation string buffer.
+ * \return		The start of the icon's validation string buffer, or
+ *			NULL if the icon isn't indirected or an error occurs.
  */
 
 char *icons_get_validation_addr(wimp_w w, wimp_i i);
@@ -75,7 +77,8 @@ char *icons_get_validation_addr(wimp_w w, wimp_i i);
  *
  * \param w		The handle of the window containing the icon.
  * \param i		The handle of the icon to read.
- * \return		The size of the icon's validation string buffer, or -1.
+ * \return		The size of the icon's validation string buffer,
+ *			or 0 if the icon isn't indirected or an error occurs.
  */
 
 size_t icons_get_indirected_text_length(wimp_w w, wimp_i i);

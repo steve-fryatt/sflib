@@ -135,12 +135,12 @@ size_t icons_get_indirected_text_length(wimp_w w, wimp_i i)
 	icon.w = w;
 	icon.i = i;
 	if (xwimp_get_icon_state(&icon) != NULL)
-		return -1;
+		return 0;
 
 	if ((icon.icon.flags & (wimp_ICON_INDIRECTED | wimp_ICON_TEXT)) == (wimp_ICON_INDIRECTED | wimp_ICON_TEXT))
 		return icon.icon.data.indirected_text.size;
 	else
-		return -1;
+		return 0;
 }
 
 
