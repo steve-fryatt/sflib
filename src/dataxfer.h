@@ -130,6 +130,7 @@ osbool dataxfer_request_clipboard(wimp_w w, wimp_i i, os_coord pos, bits types[]
  * \param your_ref		The "your ref" to use for the opening message, or 0.
  * \param *save_callback	The function to be called with the full pathname
  *				to save the file.
+ * \param *bounce_callback	The function to be called if the action bounces.
  * \param *data			Data to be passed to the callback function.
  * \return			TRUE on success; FALSE on failure.
  */
@@ -141,6 +142,7 @@ osbool dataxfer_start_save(
 		bits type,
 		int your_ref,
 		osbool (*save_callback)(char *filename, osbool safe, void *data),
+		osbool (*bounce_callback)(wimp_message *message, void *data),
 		void *data
 );
 
@@ -154,10 +156,20 @@ osbool dataxfer_start_save(
  * \param size			The estimated file size.
  * \param type			The proposed file type.
  * \param your_ref		The "your ref" to use for the opening message, or 0.
+ * \param *bounce_callback	The function to be called if the action bounces.
+ * \param *data			Data to be passed to the callback function.
  * \return			TRUE on success; FALSE on failure.
  */
 
-osbool dataxfer_start_load(wimp_pointer *pointer, char *name, int size, bits type, int your_ref);
+osbool dataxfer_start_load(
+		wimp_pointer *pointer,
+		char *name,
+		int size,
+		bits type,
+		int your_ref,
+		osbool (*bounce_callback)(wimp_message *message, void *data),
+		void *data
+);
 
 
 /**

@@ -384,7 +384,7 @@ static void saveas_drag_end_handler(wimp_pointer *pointer, void *data)
 
 	leafname = string_find_leafname((handle->selected) ? handle->selection_filename : handle->full_filename);
 
-	dataxfer_start_save(pointer, leafname, 0, handle->filetype, 0, saveas_save_handler, handle);
+	dataxfer_start_save(pointer, leafname, 0, handle->filetype, 0, saveas_save_handler, NULL, handle);
 }
 
 

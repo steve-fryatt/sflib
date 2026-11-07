@@ -107,6 +107,10 @@ struct dataxfer_descriptor {
 						bits type,
 						void *data
 					);								/**< The callback function to be used if clipboard data is received.	*/
+	osbool				(*bounce_callback)(
+						wimp_message *message,
+						void *data
+					);								/**< The callback function to be used if messages bounce.		*/
 	void				*callback_data;							/**< Data to be passed to the callback function.			*/
 	char				*intermediate_filename;						/**< The filename to use for the disc-based Data Transfer Protocol.	*/
 
@@ -466,6 +470,7 @@ osbool dataxfer_request_clipboard(wimp_w w, wimp_i i, os_coord pos, bits types[]
 
 	descriptor->save_callback = NULL;
 	descriptor->receive_callback = receive_callback;
+	descriptor->bounce_callback = NULL;
 	descriptor->callback_data = data;
 
 	/* Set up and send the datasave message. If it fails, give an error
@@ -513,6 +518,7 @@ osbool dataxfer_request_clipboard(wimp_w w, wimp_i i, os_coord pos, bits types[]
  * \param your_ref		The "your ref" to use for the opening message, or 0.
  * \param *save_callback	The function to be called with the full pathname
  *				to save the file.
+ * \param *bounce_callback	The function to be called if the action bounces.
  * \param *data			Data to be passed to the callback function.
  * \return			TRUE on success; FALSE on failure.
  */
@@ -524,6 +530,7 @@ osbool dataxfer_start_save(
 		bits type,
 		int your_ref,
 		osbool (*save_callback)(char *filename, osbool safe, void *data),
+		osbool (*bounce_callback)(wimp_message *message, void *data),
 		void *data
 )
 {
@@ -545,6 +552,7 @@ osbool dataxfer_start_save(
 
 	descriptor->save_callback = save_callback;
 	descriptor->receive_callback = NULL;
+	descriptor->bounce_callback = bounce_callback;
 	descriptor->callback_data = data;
 
 	/* Set up and send the datasave message. If it fails, give an error
@@ -587,10 +595,20 @@ osbool dataxfer_start_save(
  * \param size			The estimated file size.
  * \param type			The proposed file type.
  * \param your_ref		The "your ref" to use for the opening message, or 0.
+ * \param *bounce_callback	The function to be called if the action bounces.
+ * \param *data			Data to be passed to the callback function.
  * \return			TRUE on success; FALSE on failure.
  */
 
-osbool dataxfer_start_load(wimp_pointer *pointer, char *name, int size, bits type, int your_ref)
+osbool dataxfer_start_load(
+		wimp_pointer *pointer,
+		char *name,
+		int size,
+		bits type,
+		int your_ref,
+		osbool (*bounce_callback)(wimp_message *message, void *data),
+		void *data
+)
 {
 	struct dataxfer_descriptor	*descriptor;
 	wimp_full_message_data_xfer	message;
@@ -607,7 +625,8 @@ osbool dataxfer_start_load(wimp_pointer *pointer, char *name, int size, bits typ
 
 	descriptor->save_callback = NULL;
 	descriptor->receive_callback = NULL;
-	descriptor->callback_data = NULL;
+	descriptor->bounce_callback = bounce_callback;
+	descriptor->callback_data = data;
 
 	/* Set up and send the datasave message. If it fails, give an error
 	 * and delete the message details as we won't need them again.
@@ -701,6 +720,7 @@ static osbool dataxfer_message_datarequest(wimp_message *message)
 
 	descriptor->save_callback = NULL;
 	descriptor->receive_callback = NULL;
+	descriptor->bounce_callback = NULL;
 	descriptor->callback_data = NULL;
 
 	descriptor->ram_data = clipboard_data;
@@ -991,6 +1011,7 @@ static osbool dataxfer_message_data_save(wimp_message *message)
 
 		descriptor->save_callback = NULL;
 		descriptor->receive_callback = NULL;
+		descriptor->bounce_callback = NULL;
 		descriptor->callback_data = target;
 		if (target->intermediate_filename != NULL) {
 			descriptor->intermediate_filename = target->intermediate_filename;
@@ -1300,15 +1321,22 @@ static osbool dataxfer_message_bounced(wimp_message *message)
 {
 	struct dataxfer_descriptor	*descriptor;
 
-	/* The message has bounced, so just clean up. */
+	/* The message has bounced, so just let the client know and clean up. */
 
 	descriptor = dataxfer_find_descriptor(message->your_ref, DATAXFER_MESSAGE_ALL);
 	if (descriptor != NULL) {
+		osbool warn_user = TRUE;
+
+		if (descriptor->bounce_callback != NULL)
+			warn_user = descriptor->bounce_callback(message, descriptor->callback_data);
+
 		if (message->action == message_DATA_LOAD) {
 			wimp_full_message_data_xfer *dataload = (wimp_full_message_data_xfer *) message;
 
 			xosfscontrol_wipe(dataload->file_name, NONE, 0, 0, 0, 0);
-			error_msgs_report_error("XferFail:Data transfer failed.");
+
+			if (warn_user == TRUE)
+				error_msgs_report_error("XferFail:Data transfer failed.");
 		}
 
 		dataxfer_delete_descriptor(descriptor);
