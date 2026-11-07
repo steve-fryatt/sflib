@@ -1,4 +1,4 @@
-/* Copyright 2003-2020, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2026, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -96,9 +96,17 @@ struct dataxfer_descriptor {
 
 	int				my_ref;								/**< The MyRef of the sent message.					*/
 	wimp_t				task;								/**< The task handle of the recipient task.				*/
-	osbool				(*save_callback)(char *filename, void *data);			/**< The callback function to be used if a save is required.		*/
-	osbool				(*receive_callback)(void *content, size_t size, bits type,
-							void *data);					/**< The callback function to be used if clipboard data is received.	*/
+	osbool				(*save_callback)(
+						char *filename,
+						osbool safe,
+						void *data
+					);								/**< The callback function to be used if a save is required.		*/
+	osbool				(*receive_callback)(
+						void *content,
+						size_t size,
+						bits type,
+						void *data
+					);								/**< The callback function to be used if clipboard data is received.	*/
 	void				*callback_data;							/**< Data to be passed to the callback function.			*/
 	char				*intermediate_filename;						/**< The filename to use for the disc-based Data Transfer Protocol.	*/
 
@@ -509,7 +517,15 @@ osbool dataxfer_request_clipboard(wimp_w w, wimp_i i, os_coord pos, bits types[]
  * \return			TRUE on success; FALSE on failure.
  */
 
-osbool dataxfer_start_save(wimp_pointer *pointer, char *name, int size, bits type, int your_ref, osbool (*save_callback)(char *filename, void *data), void *data)
+osbool dataxfer_start_save(
+		wimp_pointer *pointer,
+		char *name,
+		int size,
+		bits type,
+		int your_ref,
+		osbool (*save_callback)(char *filename, osbool safe, void *data),
+		void *data
+)
 {
 	struct dataxfer_descriptor	*descriptor;
 	wimp_full_message_data_xfer	message;
@@ -822,7 +838,9 @@ static osbool dataxfer_message_data_save_ack(wimp_message *message)
 		 */
 
 		if (descriptor->save_callback != NULL &&
-				!descriptor->save_callback(datasaveack->file_name, descriptor->callback_data)) {
+				!descriptor->save_callback(datasaveack->file_name,
+						(datasaveack->est_size == -1) ? FALSE : TRUE,
+						descriptor->callback_data)) {
 			dataxfer_delete_descriptor(descriptor);
 			return TRUE;
 		}

@@ -1,4 +1,4 @@
-/* Copyright 2003-2016, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2003-2026, Stephen Fryatt (info@stevefryatt.org.uk)
  *
  * This file is part of SFLib:
  *
@@ -134,7 +134,15 @@ osbool dataxfer_request_clipboard(wimp_w w, wimp_i i, os_coord pos, bits types[]
  * \return			TRUE on success; FALSE on failure.
  */
 
-osbool dataxfer_start_save(wimp_pointer *pointer, char *name, int size, bits type, int your_ref, osbool (*save_callback)(char *filename, void *data), void *data);
+osbool dataxfer_start_save(
+		wimp_pointer *pointer,
+		char *name,
+		int size,
+		bits type,
+		int your_ref,
+		osbool (*save_callback)(char *filename, osbool safe, void *data),
+		void *data
+);
 
 
 /**

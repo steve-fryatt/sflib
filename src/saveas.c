@@ -104,7 +104,7 @@ static void				saveas_click_handler(wimp_pointer *pointer);
 static osbool				saveas_keypress_handler(wimp_key *key);
 
 static void				saveas_drag_end_handler(wimp_pointer *pointer, void *data);
-static osbool				saveas_save_handler(char *filename, void *data);
+static osbool				saveas_save_handler(char *filename, osbool safe, void *data);
 static void				saveas_immediate_save(struct saveas_block *handle);
 
 
@@ -392,11 +392,12 @@ static void saveas_drag_end_handler(wimp_pointer *pointer, void *data)
  * Process data transfer results for Save As dialogues.
  *
  * \param *filename		The destination of the dragged file.
+ * \param safe			TRUE if the destination is claiming to be safe.
  * \param *data			Context data.
  * \return			TRUE if the save succeeded; FALSE if it failed.
  */
 
-static osbool saveas_save_handler(char *filename, void *data)
+static osbool saveas_save_handler(char *filename, osbool safe, void *data)
 {
 	struct saveas_block		*handle = data;
 	osbool				result;
