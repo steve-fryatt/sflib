@@ -69,11 +69,11 @@
  */
 
 enum dataxfer_purpose {
-	DATAXFER_UNKNOWN = 0,										/**< The transfer has no defined purpose.				*/
-	DATAXFER_FILE_SAVE,										/**< The transfer is for saving a file.					*/
-	DATAXFER_FILE_LOAD,										/**< The transfer is for loading a file.				*/
-	DATAXFER_CLIPBOARD_SEND,									/**< The transfer is for sending the clipboard content.			*/
-	DATAXFER_CLIPBOARD_RECEIVE									/**< The transfer is for receiving the clipboard content.		*/
+	DATAXFER_UNKNOWN = 0,				/**< The transfer has no defined purpose.				*/
+	DATAXFER_FILE_SAVE,				/**< The transfer is for saving a file.					*/
+	DATAXFER_FILE_LOAD,				/**< The transfer is for loading a file.				*/
+	DATAXFER_CLIPBOARD_SEND,			/**< The transfer is for sending the clipboard content.			*/
+	DATAXFER_CLIPBOARD_RECEIVE			/**< The transfer is for receiving the clipboard content.		*/
 };
 
 /**
@@ -81,52 +81,54 @@ enum dataxfer_purpose {
  */
 
 enum dataxfer_message_type {
-	DATAXFER_MESSAGE_NONE = 0,									/**< An unset message block.						*/
-	DATAXFER_MESSAGE_SAVE = 1,									/**< A message block associated with a save operation.			*/
-	DATAXFER_MESSAGE_LOAD = 2,									/**< A message block associated with a load operation.			*/
-	DATAXFER_MESSAGE_REQUEST = 4,									/**< A message block associated with a datarequest operation.		*/
-	DATAXFER_MESSAGE_RAMRX = 8,									/**< A message block associated with a RAM receive operation.		*/
-	DATAXFER_MESSAGE_RAMTX = 16,									/**< A message block associated with a RAM send operation.		*/
-	DATAXFER_MESSAGE_ALL = 31									/**< All message blocks.						*/
+	DATAXFER_MESSAGE_NONE = 0,			/**< An unset message block.						*/
+	DATAXFER_MESSAGE_SAVE = 1,			/**< A message block associated with a save operation.			*/
+	DATAXFER_MESSAGE_LOAD = 2,			/**< A message block associated with a load operation.			*/
+	DATAXFER_MESSAGE_REQUEST = 4,			/**< A message block associated with a datarequest operation.		*/
+	DATAXFER_MESSAGE_RAMRX = 8,			/**< A message block associated with a RAM receive operation.		*/
+	DATAXFER_MESSAGE_RAMTX = 16,			/**< A message block associated with a RAM send operation.		*/
+	DATAXFER_MESSAGE_ALL = 31			/**< All message blocks.						*/
 };
 
 struct dataxfer_descriptor {
-	enum dataxfer_message_type	type;								/**< The type of message that the block describes.			*/
-	enum dataxfer_purpose		purpose;							/**< The purpose of the described transfer.				*/
+	enum dataxfer_message_type type;		/**< The type of message that the block describes.			*/
+	enum dataxfer_purpose purpose;			/**< The purpose of the described transfer.				*/
 
-	int				my_ref;								/**< The MyRef of the sent message.					*/
-	wimp_t				task;								/**< The task handle of the recipient task.				*/
-	osbool				(*save_callback)(
-						char *filename,
-						osbool safe,
-						void *data
-					);								/**< The callback function to be used if a save is required.		*/
-	osbool				(*receive_callback)(
-						void *content,
-						size_t size,
-						bits type,
-						void *data
-					);								/**< The callback function to be used if clipboard data is received.	*/
-	osbool				(*bounce_callback)(
-						wimp_message *message,
-						void *data
-					);								/**< The callback function to be used if messages bounce.		*/
-	void				*callback_data;							/**< Data to be passed to the callback function.			*/
-	char				*intermediate_filename;						/**< The filename to use for the disc-based Data Transfer Protocol.	*/
+	int my_ref;					/**< The MyRef of the sent message.					*/
+	wimp_t task;					/**< The task handle of the recipient task.				*/
+	osbool (*save_callback)(
+			char *filename,
+			osbool safe,
+			void *data
+	);						/**< The callback function to be used if a save is required.		*/
+	osbool (*receive_callback)(
+			void *content,
+			size_t size,
+			bits type,
+			void *data
+	);						/**< The callback function to be used if clipboard data is received.	*/
+	osbool (*bounce_callback)(
+			wimp_message *message,
+			void *data
+	);						/**< The callback function to be used if messages bounce.		*/
+	void *callback_data;				/**< Data to be passed to the callback function.			*/
+	char *intermediate_filename;			/**< The filename to use for the disc-based Data Transfer Protocol.	*/
 
-	byte				*ram_data;							/**< The buffer for RAM transfers.					*/
-	size_t				ram_allocation;							/**< The amount of memory being allocated to the RAM buffer.		*/
-	size_t				ram_size;							/**< The size of the buffer for RAM transfers.				*/
-	size_t				ram_used;							/**< The amount of RAM buffer used.					*/
+	byte *ram_data;					/**< The buffer for RAM transfers.					*/
+	size_t ram_allocation;				/**< The amount of memory being allocated to the RAM buffer.		*/
+	size_t ram_size;				/**< The size of the buffer for RAM transfers.				*/
+	size_t ram_used;				/**< The amount of RAM buffer used.					*/
 
-	wimp_full_message_data_xfer	*saved_message;							/**< A saved data transfer message block.				*/
+	wimp_full_message_data_xfer *saved_message;	/**< A saved data transfer message block.				*/
 
-
-	struct dataxfer_descriptor	*next;								/**< The next message block in the chain, or NULL.			*/
+	struct dataxfer_descriptor *next;		/**< The next message block in the chain, or NULL.			*/
 };
 
-static struct dataxfer_descriptor	*dataxfer_descriptors = NULL;					/**< List of currently active message operations.			*/
+/**
+ * The list of currently active message operations.
+ */
 
+static struct dataxfer_descriptor *dataxfer_descriptors = NULL;
 /**
  * Data associated with incoming transfer targets.
  */
@@ -137,86 +139,95 @@ static struct dataxfer_descriptor	*dataxfer_descriptors = NULL;					/**< List of
 
 enum dataxfer_target_type {
 	DATAXFER_TARGET_NONE = 0,
-	DATAXFER_TARGET_LOAD = 1,	/**< Transfers initiated by a Message_DataLoad.				*/
-	DATAXFER_TARGET_SAVE = 2,	/**< Transfers initiated by a Message_DataSave.				*/
-	DATAXFER_TARGET_DRAG = 3,	/**< Transfers initiated by Message_DataLoad or MessageDataSave.	*/
-	DATAXFER_TARGET_OPEN = 4,	/**< Transfers initiated by a Message_DataOpen.				*/
-	DATAXFER_TARGET_ALL  = 7	/**< Transfers initialed by all of the above.				*/
+	DATAXFER_TARGET_LOAD = 1,			/**< Transfers initiated by a Message_DataLoad.				*/
+	DATAXFER_TARGET_SAVE = 2,			/**< Transfers initiated by a Message_DataSave.				*/
+	DATAXFER_TARGET_DRAG = 3,			/**< Transfers initiated by Message_DataLoad or MessageDataSave.	*/
+	DATAXFER_TARGET_OPEN = 4,			/**< Transfers initiated by a Message_DataOpen.				*/
+	DATAXFER_TARGET_ALL  = 7			/**< Transfers initialed by all of the above.				*/
 };
 
 struct dataxfer_incoming_target {
-	enum dataxfer_target_type	target;								/**< The type of initiation to which this target applies.		*/
+	enum dataxfer_target_type target;		/**< The type of initiation to which this target applies.		*/
 
-	unsigned			filetype;							/**< The target filetype.						*/
-	wimp_w				window;								/**< The target window (used in window and icon lists).			*/
-	wimp_i				icon;								/**< The target icon (used in icon lists).				*/
+	unsigned filetype;				/**< The target filetype.						*/
+	wimp_w window;					/**< The target window (used in window and icon lists).			*/
+	wimp_i icon;					/**< The target icon (used in icon lists).				*/
 
-	osbool				(*callback)(wimp_w w, wimp_i i,
-			unsigned filetype, char *filename, void *data);					/**< The callback function to be used if a load is required.		*/
-	void				*callback_data;							/**< Data to be passed to the callback function.			*/
+	osbool (*callback)(
+			wimp_w w,
+			wimp_i i,
+			unsigned filetype,
+			char *filename,
+			void *data
+	);						/**< The callback function to be used if a load is required.		*/
+	void *callback_data;				/**< Data to be passed to the callback function.			*/
 
-	char				*intermediate_filename;						/**< Filename to be used for disc-based transfers.			*/
+	char *intermediate_filename;			/**< Filename to be used for disc-based transfers.			*/
 
-	struct dataxfer_incoming_target	*children;							/**< Pointer to a list of child targets (window or icon lists).		*/
+	struct dataxfer_incoming_target *children;	/**< Pointer to a list of child targets (window or icon lists).		*/
 
-	struct dataxfer_incoming_target	*next;								/**< The next target in the chain, or NULL.				*/
+	struct dataxfer_incoming_target *next;		/**< The next target in the chain, or NULL.				*/
 };
 
-struct dataxfer_incoming_target		*dataxfer_incoming_targets = NULL;				/**< List of defined incoming targets.					*/
+/**
+ * The list of defined incoming targets.
+ */
+
+struct dataxfer_incoming_target *dataxfer_incoming_targets = NULL;
 
 /**
  * Data asscoiated with drag box handling.
  */
 
-static osbool	dataxfer_dragging_sprite = FALSE;							/**< TRUE if we're dragging a sprite, FALSE if dragging a dotted-box.	*/
-static void	(*dataxfer_drag_end_callback)(wimp_pointer *, void *) = NULL;				/**< The callback function to be used by the icon drag code.		*/
+static osbool dataxfer_dragging_sprite = FALSE;						/**< TRUE if we're dragging a sprite, FALSE if dragging a dotted-box.	*/
+static void (*dataxfer_drag_end_callback)(wimp_pointer *, void *) = NULL;		/**< The callback function to be used by the icon drag code.		*/
 
 /**
  * Memory allocation handlers.
  */
 
-static struct dataxfer_memory		*dataxfer_memory_handlers = NULL;				/**< Pointer to client functions for handling memory.			*/
+static struct dataxfer_memory *dataxfer_memory_handlers = NULL;				/**< Pointer to client functions for handling memory.			*/
 
 /**
  * Clipboard content locator.
  */
 
-static size_t	(*dataxfer_find_clipboard_content)(bits *, bits *, void **) = NULL;			/**< The callback function to ask the client for the clipboard contents	*/
+static size_t (*dataxfer_find_clipboard_content)(bits *, bits *, void **) = NULL;	/**< The callback function to ask the client for the clipboard contents	*/
 
 /**
  * Task handle of the client.
  */
 
-static wimp_t	dataxfer_task_handle;
+static wimp_t dataxfer_task_handle;
 
 /**
  * Function prototypes.
  */
 
-static void				dataxfer_terminate_user_drag(wimp_dragged *drag, void *data);
+static void dataxfer_terminate_user_drag(wimp_dragged *drag, void *data);
 
-static osbool				dataxfer_message_ram_fetch(wimp_message *message);
-static osbool				dataxfer_message_data_save_ack(wimp_message *message);
-static osbool				dataxfer_message_data_load_ack(wimp_message *message);
+static osbool dataxfer_message_ram_fetch(wimp_message *message);
+static osbool dataxfer_message_data_save_ack(wimp_message *message);
+static osbool dataxfer_message_data_load_ack(wimp_message *message);
 
-static osbool				dataxfer_message_datarequest(wimp_message *message);
+static osbool dataxfer_message_datarequest(wimp_message *message);
 
-static osbool				dataxfer_message_data_save(wimp_message *message);
-static osbool				dataxfer_message_ram_fetch_bounced(wimp_message *message);
-static osbool				dataxfer_message_ram_transmit(wimp_message *message);
-static osbool				dataxfer_message_data_load(wimp_message *message);
-static osbool				dataxfer_message_data_open(wimp_message *message);
+static osbool dataxfer_message_data_save(wimp_message *message);
+static osbool dataxfer_message_ram_fetch_bounced(wimp_message *message);
+static osbool dataxfer_message_ram_transmit(wimp_message *message);
+static osbool dataxfer_message_data_load(wimp_message *message);
+static osbool dataxfer_message_data_open(wimp_message *message);
 
-static osbool				dataxfer_message_bounced(wimp_message *message);
+static osbool dataxfer_message_bounced(wimp_message *message);
 
-static osbool				dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i, char *intermediate,
+static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i, char *intermediate,
 							osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data);
-static void				dataxfer_delete_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i);
-static struct dataxfer_incoming_target	*dataxfer_find_incoming_target(enum dataxfer_target_type target, wimp_w w, wimp_i i, unsigned filetype);
+static void dataxfer_delete_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i);
+static struct dataxfer_incoming_target *dataxfer_find_incoming_target(enum dataxfer_target_type target, wimp_w w, wimp_i i, unsigned filetype);
 
-static struct dataxfer_descriptor	*dataxfer_new_descriptor(void);
-static struct dataxfer_descriptor	*dataxfer_find_descriptor(int ref, enum dataxfer_message_type type);
-static void				dataxfer_delete_descriptor(struct dataxfer_descriptor *message);
+static struct dataxfer_descriptor *dataxfer_new_descriptor(void);
+static struct dataxfer_descriptor *dataxfer_find_descriptor(int ref, enum dataxfer_message_type type);
+static void dataxfer_delete_descriptor(struct dataxfer_descriptor *message);
 
 
 /**
@@ -226,7 +237,10 @@ static void				dataxfer_delete_descriptor(struct dataxfer_descriptor *message);
  * \param *handlers	Pointer to memory allocation functions, if RAM Transfers are to be used.
  */
 
-void dataxfer_initialise(wimp_t task_handle, struct dataxfer_memory *handlers)
+void dataxfer_initialise(
+		wimp_t task_handle,
+		struct dataxfer_memory *handlers
+)
 {
 	event_add_message_handler(message_DATA_REQUEST, EVENT_MESSAGE_INCOMING, dataxfer_message_datarequest);
 	event_add_message_handler(message_DATA_SAVE, EVENT_MESSAGE_INCOMING, dataxfer_message_data_save);
@@ -265,7 +279,14 @@ void dataxfer_initialise(wimp_t task_handle, struct dataxfer_memory *handlers)
  * \param callback	A callback function
  */
 
-void dataxfer_work_area_drag(wimp_w w, wimp_pointer *pointer, os_box *extent, char *sprite, void (* drag_end_callback)(wimp_pointer *pointer, void *data), void *drag_end_data)
+void dataxfer_work_area_drag(
+		wimp_w w,
+		wimp_pointer *pointer,
+		os_box *extent,
+		char *sprite,
+		void (* drag_end_callback)(wimp_pointer *pointer, void *data),
+		void *drag_end_data
+)
 {
 	wimp_window_state	window;
 	wimp_drag		drag;
@@ -349,7 +370,12 @@ void dataxfer_work_area_drag(wimp_w w, wimp_pointer *pointer, os_box *extent, ch
  * \param callback	A callback function
  */
 
-void dataxfer_save_window_drag(wimp_w w, wimp_i i, void (* drag_end_callback)(wimp_pointer *pointer, void *data), void *drag_end_data)
+void dataxfer_save_window_drag(
+		wimp_w w,
+		wimp_i i,
+		void (* drag_end_callback)(wimp_pointer *pointer, void *data),
+		void *drag_end_data
+)
 {
 	wimp_window_state	window;
 	wimp_icon_state		icon;
@@ -449,7 +475,14 @@ static void dataxfer_terminate_user_drag(wimp_dragged *drag, void *data)
  * \return			TRUE on success; FALSE on failure.
  */
 
-osbool dataxfer_request_clipboard(wimp_w w, wimp_i i, os_coord pos, bits types[], osbool (*receive_callback)(void *content, size_t size, bits type, void *data), void *data)
+osbool dataxfer_request_clipboard(
+		wimp_w w,
+		wimp_i i,
+		os_coord pos,
+		bits types[],
+		osbool (*receive_callback)(void *content, size_t size, bits type, void *data),
+		void *data
+)
 {
 	struct dataxfer_descriptor	*descriptor;
 	wimp_full_message_data_request	datarequest;
@@ -673,7 +706,9 @@ osbool dataxfer_start_load(
  */
 
 
-void dataxfer_register_clipboard_provider(size_t callback(bits types[], bits *type, void **data))
+void dataxfer_register_clipboard_provider(
+		size_t callback(bits types[], bits *type, void **data)
+)
 {
 	dataxfer_find_clipboard_content = callback;
 }
@@ -1362,7 +1397,14 @@ static osbool dataxfer_message_bounced(wimp_message *message)
  * \return			TRUE if successfully registered; else FALSE.
  */
 
-osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i, char *intermediate, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
+osbool dataxfer_set_drop_target(
+		unsigned filetype,
+		wimp_w w,
+		wimp_i i,
+		char *intermediate,
+		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data),
+		void *data
+)
 {
 	return dataxfer_set_load_target(DATAXFER_TARGET_DRAG, filetype, w, i, intermediate, callback, data);
 }
@@ -1378,7 +1420,11 @@ osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i, char *int
  * \return			TRUE if successfully registered; else FALSE.
  */
 
-osbool dataxfer_set_load_type(unsigned filetype, osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
+osbool dataxfer_set_load_type(
+		unsigned filetype,
+		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data),
+		void *data
+)
 {
 	return dataxfer_set_load_target(DATAXFER_TARGET_OPEN, filetype, NULL, -1, NULL, callback, data);
 }
@@ -1405,8 +1451,15 @@ osbool dataxfer_set_load_type(unsigned filetype, osbool (*callback)(wimp_w w, wi
  * \return			TRUE if successfully registered; else FALSE.
  */
 
-static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigned filetype, wimp_w w, wimp_i i, char *intermediate,
-		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data)
+static osbool dataxfer_set_load_target(
+		enum dataxfer_target_type target,
+		unsigned filetype,
+		wimp_w w,
+		wimp_i i,
+		char *intermediate,
+		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data),
+		void *data
+)
 {
 	struct dataxfer_incoming_target		*type, *window, *icon;
 
@@ -1526,7 +1579,11 @@ static osbool dataxfer_set_load_target(enum dataxfer_target_type target, unsigne
  * \param i			The target icon to delete, or -1.
  */
 
-void dataxfer_delete_drop_target(unsigned filetype, wimp_w w, wimp_i i)
+void dataxfer_delete_drop_target(
+		unsigned filetype,
+		wimp_w w,
+		wimp_i i
+)
 {
 	dataxfer_delete_load_target(DATAXFER_TARGET_DRAG, filetype, w, i);
 }
@@ -1538,7 +1595,9 @@ void dataxfer_delete_drop_target(unsigned filetype, wimp_w w, wimp_i i)
  * \param filetype		The filetype to delete as a target.
  */
 
-void dataxfer_delete_load_type(unsigned filetype)
+void dataxfer_delete_load_type(
+		unsigned filetype
+)
 {
 	dataxfer_delete_load_target(DATAXFER_TARGET_OPEN, filetype, NULL, -1);
 }

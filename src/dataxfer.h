@@ -69,7 +69,10 @@ struct dataxfer_memory {
  * \param *handlers	Pointer to memory allocation functions, if RAM Transfers are to be used.
  */
 
-void dataxfer_initialise(wimp_t task_handle, struct dataxfer_memory *handlers);
+void dataxfer_initialise(
+		wimp_t task_handle,
+		struct dataxfer_memory *handlers
+);
 
 
 /**
@@ -84,7 +87,14 @@ void dataxfer_initialise(wimp_t task_handle, struct dataxfer_memory *handlers);
  * \param callback	A callback function
  */
 
-void dataxfer_work_area_drag(wimp_w w, wimp_pointer *pointer, os_box *extent, char *sprite, void (* drag_end_callback)(wimp_pointer *pointer, void *data), void *drag_end_data);
+void dataxfer_work_area_drag(
+		wimp_w w,
+		wimp_pointer *pointer,
+		os_box *extent,
+		char *sprite,
+		void (* drag_end_callback)(wimp_pointer *pointer, void *data),
+		void *drag_end_data
+);
 
 
 /**
@@ -97,7 +107,12 @@ void dataxfer_work_area_drag(wimp_w w, wimp_pointer *pointer, os_box *extent, ch
  * \param callback	A callback function
  */
 
-void dataxfer_save_window_drag(wimp_w w, wimp_i i, void (* drag_end_callback)(wimp_pointer *pointer, void *data), void *drag_end_data);
+void dataxfer_save_window_drag(
+		wimp_w w,
+		wimp_i i,
+		void (* drag_end_callback)(wimp_pointer *pointer, void *data),
+		void *drag_end_data
+);
 
 
 /**
@@ -115,7 +130,14 @@ void dataxfer_save_window_drag(wimp_w w, wimp_i i, void (* drag_end_callback)(wi
  * \return			TRUE on success; FALSE on failure.
  */
 
-osbool dataxfer_request_clipboard(wimp_w w, wimp_i i, os_coord pos, bits types[], osbool (*receive_callback)(void *content, size_t size, bits type, void *data), void *data);
+osbool dataxfer_request_clipboard(
+		wimp_w w,
+		wimp_i i,
+		os_coord pos,
+		bits types[],
+		osbool (*receive_callback)(void *content, size_t size, bits type, void *data),
+		void *data
+);
 
 
 /**
@@ -185,7 +207,9 @@ osbool dataxfer_start_load(
  *				to unset.
  */
 
-void dataxfer_register_clipboard_provider(size_t callback(bits types[], bits *type, void **data));
+void dataxfer_register_clipboard_provider(
+		size_t callback(bits types[], bits *type, void **data)
+);
 
 
 /**
@@ -203,8 +227,14 @@ void dataxfer_register_clipboard_provider(size_t callback(bits types[], bits *ty
  * \return			TRUE if successfully registered; else FALSE.
  */
 
-osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i, char *intermediate,
-		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data);
+osbool dataxfer_set_drop_target(
+		unsigned filetype,
+		wimp_w w,
+		wimp_i i,
+		char *intermediate,
+		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data),
+		void *data
+);
 
 
 /**
@@ -217,8 +247,11 @@ osbool dataxfer_set_drop_target(unsigned filetype, wimp_w w, wimp_i i, char *int
  * \return			TRUE if successfully registered; else FALSE.
  */
 
-osbool dataxfer_set_load_type(unsigned filetype,
-		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data), void *data);
+osbool dataxfer_set_load_type(
+		unsigned filetype,
+		osbool (*callback)(wimp_w w, wimp_i i, unsigned filetype, char *filename, void *data),
+		void *data
+);
 
 
 /**
@@ -229,7 +262,11 @@ osbool dataxfer_set_load_type(unsigned filetype,
  * \param i			The target icon to delete, or -1.
  */
 
-void dataxfer_delete_drop_target(unsigned filetype, wimp_w w, wimp_i i);
+void dataxfer_delete_drop_target(
+		unsigned filetype,
+		wimp_w w,
+		wimp_i i
+);
 
 
 /**
@@ -238,6 +275,8 @@ void dataxfer_delete_drop_target(unsigned filetype, wimp_w w, wimp_i i);
  * \param filetype		The filetype to delete as a target.
  */
 
-void dataxfer_delete_load_type(unsigned filetype);
+void dataxfer_delete_load_type(
+		unsigned filetype
+);
 
 #endif
